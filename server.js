@@ -6,7 +6,7 @@ require('dotenv').config({ override: true });
 
 const PORT = process.env.PORT || 3000;
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const WEBAPP_URL = process.env.WEBAPP_URL || 'http://194.33.35.18';
+const WEBAPP_URL = process.env.WEBAPP_URL || 'https://way.clans.idlebat.online';
 const DATABASE_URL = process.env.DATABASE_URL;
 const db = DATABASE_URL
   ? new Pool({

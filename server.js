@@ -2,7 +2,7 @@ const path = require('path');
 const express = require('express');
 const { Pool } = require('pg');
 const { Telegraf, Markup } = require('telegraf');
-require('dotenv').config();
+require('dotenv').config({ override: true });
 
 const PORT = process.env.PORT || 3000;
 const BOT_TOKEN = process.env.BOT_TOKEN;

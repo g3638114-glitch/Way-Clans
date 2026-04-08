@@ -1,5 +1,4 @@
 const path = require('path');
-const path = require('path');
 const express = require('express');
 const { Pool } = require('pg');
 const { Telegraf, Markup } = require('telegraf');
@@ -9,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const WEBAPP_URL = process.env.WEBAPP_URL || 'https://way.clans.idlebat.online';
 const DATABASE_URL = process.env.DATABASE_URL;
+
 const db = DATABASE_URL
   ? new Pool({
       connectionString: DATABASE_URL,

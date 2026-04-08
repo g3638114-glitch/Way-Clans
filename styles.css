@@ -1,0 +1,374 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b1018;
+  --panel: #111a29;
+  --panel-strong: #162235;
+  --panel-soft: #1b2a40;
+  --border: #2f466a;
+  --text: #eff5ff;
+  --muted: #96a7c2;
+  --accent: #4ea1ff;
+  --accent-strong: #2d7ef7;
+  --success: #46d17b;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top, rgba(78, 161, 255, 0.18), transparent 35%),
+    linear-gradient(180deg, #09111c 0%, #10182a 100%);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+.game-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.game-screen {
+  width: min(100%, 480px);
+  padding: 18px;
+  border: 1px solid rgba(78, 161, 255, 0.35);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(17, 26, 41, 0.98), rgba(11, 16, 24, 0.98));
+  box-shadow: var(--shadow);
+}
+
+.resource-header {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.resource-header__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.resource-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.resource-pill {
+  padding: 8px 10px;
+  border: 1px solid rgba(78, 161, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.93rem;
+  white-space: nowrap;
+}
+
+.player-panel {
+  margin-bottom: 20px;
+}
+
+.player-panel__frame {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+}
+
+.player-panel__name {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.player-panel__line {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.96rem;
+}
+
+.action-section {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.action-row {
+  display: flex;
+  gap: 10px;
+}
+
+.action-row--two .action-chip {
+  flex: 1;
+}
+
+.action-chip,
+.attack-button,
+.bottom-nav__button,
+.modal-primary-button,
+.modal-secondary-button,
+.inventory-row__button {
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.action-chip:hover,
+.attack-button:hover,
+.bottom-nav__button:hover,
+.modal-primary-button:hover,
+.modal-secondary-button:hover,
+.inventory-row__button:hover {
+  transform: translateY(-1px);
+}
+
+.action-chip {
+  padding: 13px 12px;
+  border: 1px solid rgba(78, 161, 255, 0.3);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+.attack-button {
+  width: 100%;
+  padding: 14px 12px;
+  border: 1px solid rgba(70, 209, 123, 0.4);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #1f7a3f, #185c30);
+  color: #eefef5;
+  font-weight: 800;
+}
+
+.bottom-nav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.bottom-nav__button {
+  padding: 13px 8px;
+  border: 1px solid rgba(78, 161, 255, 0.25);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+.bottom-nav__button--active {
+  border-color: rgba(78, 161, 255, 0.55);
+  background: rgba(78, 161, 255, 0.15);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 10;
+}
+
+.modal.is-open {
+  display: flex;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 8, 16, 0.68);
+  backdrop-filter: blur(6px);
+}
+
+.modal__card {
+  position: relative;
+  width: min(100%, 420px);
+  padding: 18px;
+  border: 1px solid rgba(78, 161, 255, 0.3);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #14213a, #0f1726);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.modal__close {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 1.3rem;
+}
+
+.inventory-list {
+  display: grid;
+  gap: 10px;
+}
+
+.inventory-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(78, 161, 255, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.inventory-row__label,
+.inventory-row__value {
+  font-size: 0.94rem;
+}
+
+.inventory-row__value {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.inventory-row__button {
+  padding: 8px 12px;
+  border: 1px solid rgba(78, 161, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(78, 161, 255, 0.11);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.modal__hint {
+  margin: 14px 2px 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.modal__actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.modal-primary-button,
+.modal-secondary-button {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 16px;
+  font-weight: 800;
+}
+
+.modal-primary-button {
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  color: white;
+}
+
+.modal-secondary-button {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.exchange-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.exchange-panel__gold,
+.exchange-result,
+.exchange-info p {
+  margin: 0;
+}
+
+.exchange-panel__gold {
+  font-weight: 700;
+}
+
+.exchange-input-label {
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.exchange-input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid rgba(78, 161, 255, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  outline: none;
+}
+
+.exchange-input:focus {
+  border-color: rgba(78, 161, 255, 0.6);
+}
+
+.exchange-result {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.exchange-info {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 520px) {
+  .game-shell {
+    padding: 12px;
+  }
+
+  .game-screen {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .resource-pill {
+    font-size: 0.88rem;
+  }
+
+  .inventory-row {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .inventory-row__button {
+    width: fit-content;
+  }
+}

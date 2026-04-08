@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MiniApp</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script defer src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="game-screen" aria-label="Главная страница MiniApp">
+        <header class="resource-header">
+          <p class="resource-header__title">🏠 ГЛАВНАЯ СТРАНИЦА:</p>
+          <div class="resource-bar" id="resourceBar">
+            <span class="resource-pill">[💰 120 000]</span>
+            <span class="resource-pill">[🌲 50 000]</span>
+            <span class="resource-pill">[🪨 30 000]</span>
+            <span class="resource-pill">[🍖 10 000]</span>
+            <span class="resource-pill">[💎 3]</span>
+          </div>
+        </header>
+
+        <section class="player-panel" aria-label="Панель игрока">
+          <div class="player-panel__frame">
+            <p class="player-panel__name" id="playerName">PlayerName</p>
+            <p class="player-panel__line" id="playerAvatarLine">🧑 Аватар @username</p>
+            <p class="player-panel__line" id="playerIdLine">ID: 123456789</p>
+          </div>
+        </section>
+
+        <section class="action-section" aria-label="Основные действия">
+          <div class="action-row action-row--two">
+            <button class="action-chip" id="openWarehouse" type="button">[📦 Склад]</button>
+            <button class="action-chip" id="openExchange" type="button">[💱 Обмен]</button>
+          </div>
+          <button class="attack-button" type="button">[⚔️ Атаковать]</button>
+        </section>
+
+        <nav class="bottom-nav" aria-label="Нижнее меню">
+          <button class="bottom-nav__button" type="button">[⛏ Добыча]</button>
+          <button class="bottom-nav__button bottom-nav__button--active" type="button">[🏠 Главная]</button>
+          <button class="bottom-nav__button" type="button">[🛡 Казарма]</button>
+        </nav>
+      </section>
+    </main>
+
+    <div class="modal" id="warehouseModal" aria-hidden="true">
+      <div class="modal__backdrop" data-close-modal="warehouseModal"></div>
+      <section class="modal__card" role="dialog" aria-modal="true" aria-labelledby="warehouseTitle">
+        <header class="modal__header">
+          <h2 class="modal__title" id="warehouseTitle">📦 Склад</h2>
+          <button class="modal__close" type="button" data-close-modal="warehouseModal" aria-label="Закрыть окно">×</button>
+        </header>
+
+        <div class="inventory-list">
+          <div class="inventory-row">
+            <span class="inventory-row__label">🌲 Дерево: 50 000</span>
+            <span class="inventory-row__value">[ 0 ]</span>
+            <button class="inventory-row__button" type="button">[Макс]</button>
+          </div>
+          <div class="inventory-row">
+            <span class="inventory-row__label">🪨 Камень: 30 000</span>
+            <span class="inventory-row__value">[ 0 ]</span>
+            <button class="inventory-row__button" type="button">[Макс]</button>
+          </div>
+          <div class="inventory-row">
+            <span class="inventory-row__label">🍖 Мясо: 10 000</span>
+            <span class="inventory-row__value">[ 0 ]</span>
+            <button class="inventory-row__button" type="button">[Макс]</button>
+          </div>
+        </div>
+
+        <p class="modal__hint">(Введите количество ресурсов для продажи)</p>
+
+        <div class="modal__actions modal__actions--stacked">
+          <button class="modal-primary-button" type="button">[Продать]</button>
+          <button class="modal-secondary-button" type="button" data-close-modal="warehouseModal">[Закрыть]</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="modal" id="exchangeModal" aria-hidden="true">
+      <div class="modal__backdrop" data-close-modal="exchangeModal"></div>
+      <section class="modal__card" role="dialog" aria-modal="true" aria-labelledby="exchangeTitle">
+        <header class="modal__header">
+          <h2 class="modal__title" id="exchangeTitle">💱 Обмен</h2>
+          <button class="modal__close" type="button" data-close-modal="exchangeModal" aria-label="Закрыть окно">×</button>
+        </header>
+
+        <div class="exchange-panel">
+          <p class="exchange-panel__gold">Ваше золото: 💰 120 000</p>
+          <label class="exchange-input-label" for="goldAmount">[ Введите количество золота ]</label>
+          <input class="exchange-input" id="goldAmount" type="number" min="0" inputmode="numeric" placeholder="0" />
+          <p class="exchange-result" id="jabcoinResult">= 💎 0 Jabcoin</p>
+          <div class="exchange-info">
+            <p>Курс:</p>
+            <p>1 000 000 💰 = 1 💎</p>
+            <p>(Минимум для обмена: 1 000 000)</p>
+          </div>
+        </div>
+
+        <div class="modal__actions modal__actions--stacked">
+          <button class="modal-primary-button" type="button">[Обменять]</button>
+          <button class="modal-secondary-button" type="button" data-close-modal="exchangeModal">[Закрыть]</button>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

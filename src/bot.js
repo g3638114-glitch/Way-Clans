@@ -11,8 +11,24 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 // Initialize Supabase tables
 async function initializeDatabase() {
   try {
-    // Check if tables exist, if not they will be created via Supabase dashboard
-    console.log('Database initialized');
+    console.log('🔄 Initializing database tables...');
+
+    // Seed building configs if empty
+    const { data: configs } = await supabase.from('building_configs').select('*');
+
+    if (!configs || configs.length === 0) {
+      const buildingConfigs = [
+        { building_type: 'mine', name: 'Шахта', emoji: '⛏', resource_type: 'gold', base_production: 50, cost_gold: 1000, cost_stone: 500, cost_wood: 300, cost_meat: 100 },
+        { building_type: 'quarry', name: 'Каменоломня', emoji: '⛏', resource_type: 'stone', base_production: 40, cost_gold: 800, cost_stone: 400, cost_wood: 200, cost_meat: 80 },
+        { building_type: 'sawmill', name: 'Лесопилка', emoji: '🌲', resource_type: 'wood', base_production: 45, cost_gold: 900, cost_stone: 450, cost_wood: 250, cost_meat: 90 },
+        { building_type: 'farm', name: 'Ферма', emoji: '🍖', resource_type: 'meat', base_production: 20, cost_gold: 600, cost_stone: 300, cost_wood: 150, cost_meat: 50 },
+      ];
+
+      await supabase.from('building_configs').insert(buildingConfigs);
+      console.log('✅ Building configs seeded');
+    }
+
+    console.log('✅ Database initialized');
   } catch (error) {
     console.error('Database initialization error:', error);
   }
@@ -40,11 +56,11 @@ bot.command('start', async (ctx) => {
           telegram_id: userId,
           username: username,
           first_name: firstName,
-          gold: 120000,
-          wood: 50000,
-          stone: 30000,
-          meat: 10000,
-          jabcoins: 3,
+          gold: 5000,
+          wood: 2500,
+          stone: 2500,
+          meat: 500,
+          jabcoins: 0,
           created_at: new Date().toISOString(),
         })
         .select()
@@ -54,6 +70,14 @@ bot.command('start', async (ctx) => {
         console.error('Error creating user:', insertError);
       } else {
         user = newUser;
+
+        // Create initial buildings for new user
+        await supabase.from('buildings').insert([
+          { user_id: user.id, building_type: 'mine', level: 1 },
+          { user_id: user.id, building_type: 'quarry', level: 1 },
+          { user_id: user.id, building_type: 'sawmill', level: 1 },
+          { user_id: user.id, building_type: 'farm', level: 1 },
+        ]);
       }
     } else if (selectError) {
       console.error('Error fetching user:', selectError);

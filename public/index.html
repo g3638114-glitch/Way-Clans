@@ -50,8 +50,24 @@
       </div>
     </div>
 
+    <!-- Mining Section (Hidden by default) -->
+    <div class="mining-section" id="mining-section" style="display: none; flex: 1; overflow-y: auto; padding: 15px;">
+      <!-- Category Tabs -->
+      <div class="mining-tabs">
+        <button class="mining-tab active" data-category="mine">⛏ Шахты</button>
+        <button class="mining-tab" data-category="quarry">⛏ Каменоломня</button>
+        <button class="mining-tab" data-category="sawmill">🌲 Лесопилка</button>
+        <button class="mining-tab" data-category="farm">🍖 Ферма</button>
+      </div>
+
+      <!-- Buildings Container -->
+      <div class="buildings-container" id="buildings-container">
+        <!-- Buildings will be populated here -->
+      </div>
+    </div>
+
     <!-- Action Buttons -->
-    <div class="action-buttons">
+    <div class="action-buttons" id="action-buttons">
       <button class="btn btn-storage" id="storage-btn">📦 Склад</button>
       <button class="btn btn-exchange" id="exchange-btn">💱 Обмен</button>
     </div>

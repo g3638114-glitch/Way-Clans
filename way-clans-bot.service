@@ -1,0 +1,17 @@
+[Unit]
+Description=Way Clans Telegram Bot with MiniApp
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/home/way-clans/app
+EnvironmentFile=/home/way-clans/app/.env
+ExecStart=/usr/bin/node /home/way-clans/app/src/index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

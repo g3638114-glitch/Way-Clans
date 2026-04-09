@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Way Clans - MiniApp</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <!-- Main Container -->
+  <div class="app-container">
+    <!-- Header with Resources -->
+    <div class="resources-header">
+      <div class="resource-item">
+        <span class="resource-icon">💰</span>
+        <span class="resource-value" id="gold-value">120 000</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-icon">🌲</span>
+        <span class="resource-value" id="wood-value">50 000</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-icon">🪨</span>
+        <span class="resource-value" id="stone-value">30 000</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-icon">🍖</span>
+        <span class="resource-value" id="meat-value">10 000</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-icon">💎</span>
+        <span class="resource-value" id="jabcoins-value">3</span>
+      </div>
+    </div>
+
+    <!-- Player Card -->
+    <div class="player-card">
+      <div class="player-header">
+        <h2 id="player-name">PlayerName</h2>
+      </div>
+      <div class="player-info">
+        <div class="player-avatar">
+          <div class="avatar-placeholder">🧑</div>
+          <span id="player-username">@username</span>
+        </div>
+        <div class="player-id">
+          ID: <span id="player-id">123456789</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="btn btn-storage" id="storage-btn">📦 Склад</button>
+      <button class="btn btn-exchange" id="exchange-btn">💱 Обмен</button>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-attack" id="attack-btn">⚔️ Атаковать</button>
+    </div>
+
+    <!-- Bottom Navigation Menu -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" id="nav-main">🏠 Главная</button>
+      <button class="nav-item" id="nav-mining">⛏ Добыча</button>
+      <button class="nav-item" id="nav-barracks">🛡 Казарма</button>
+    </nav>
+  </div>
+
+  <!-- Storage Modal -->
+  <div class="modal" id="storage-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📦 Склад</h2>
+        <button class="close-btn" onclick="closeStorageModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🌲 Дерево: <span id="storage-wood">50 000</span></span>
+            <div class="input-controls">
+              <input type="number" id="wood-input" min="0" max="50000" placeholder="0">
+              <button class="max-btn" onclick="setMaxWood()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🪨 Камень: <span id="storage-stone">30 000</span></span>
+            <div class="input-controls">
+              <input type="number" id="stone-input" min="0" max="30000" placeholder="0">
+              <button class="max-btn" onclick="setMaxStone()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🍖 Мясо: <span id="storage-meat">10 000</span></span>
+            <div class="input-controls">
+              <input type="number" id="meat-input" min="0" max="10000" placeholder="0">
+              <button class="max-btn" onclick="setMaxMeat()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="storage-hint">(Введите количество ресурсов для продажи)</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="sellResources()">Продать</button>
+        <button class="btn btn-secondary" onclick="closeStorageModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exchange Modal -->
+  <div class="modal" id="exchange-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>💱 Обмен</h2>
+        <button class="close-btn" onclick="closeExchangeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="exchange-section">
+          <p>Ваше золото: <strong id="exchange-gold">💰 120 000</strong></p>
+        </div>
+
+        <div class="exchange-input">
+          <input type="number" id="gold-input" min="1000000" step="100000" placeholder="Введите количество золота">
+        </div>
+
+        <div class="exchange-result">
+          <p>= <span id="exchange-result">💎 0</span> Jabcoin</p>
+        </div>
+
+        <div class="exchange-rate">
+          <p><strong>Курс:</strong></p>
+          <p>1 000 000 💰 = 1 💎</p>
+          <p class="minimum">(Минимум для обмена: 1 000 000)</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="exchangeGold()">Обменять</button>
+        <button class="btn btn-secondary" onclick="closeExchangeModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

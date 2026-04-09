@@ -39,13 +39,15 @@ async function loadUserData() {
 // Load buildings data
 async function loadBuildings() {
   try {
+    console.log('Loading buildings for userId:', userId);
     const response = await fetch(`/api/user/${userId}/buildings`);
     if (!response.ok) {
-      console.error('Failed to load buildings');
+      console.error('Failed to load buildings:', response.status);
       return;
     }
 
     allBuildings = await response.json();
+    console.log('Buildings loaded:', allBuildings.length, 'buildings');
     renderBuildings();
   } catch (error) {
     console.error('Error loading buildings:', error);
@@ -114,6 +116,7 @@ function showPage(page) {
     document.getElementById('nav-main').classList.add('active');
     document.getElementById('nav-mining').classList.remove('active');
     document.getElementById('nav-barracks').classList.remove('active');
+    stopProductionRefresh();
   } else if (page === 'mining') {
     document.getElementById('mining-page').style.display = 'flex';
     document.getElementById('nav-main').classList.remove('active');
@@ -123,6 +126,7 @@ function showPage(page) {
     document.getElementById('nav-mining-active').classList.add('active');
     document.getElementById('nav-barracks-from-mining').classList.remove('active');
     loadBuildings(); // Load buildings when switching to mining page
+    startProductionRefresh();
   }
 }
 
@@ -505,6 +509,7 @@ let productionRefreshInterval = null;
 
 function startProductionRefresh() {
   // Update production every second
+  if (productionRefreshInterval) return; // Prevent multiple intervals
   productionRefreshInterval = setInterval(() => {
     if (currentPage === 'mining' && allBuildings.length > 0) {
       renderBuildings();
@@ -516,18 +521,6 @@ function stopProductionRefresh() {
   if (productionRefreshInterval) {
     clearInterval(productionRefreshInterval);
     productionRefreshInterval = null;
-  }
-}
-
-// Override showPage to manage production refresh
-const originalShowPage = showPage;
-function showPage(page) {
-  originalShowPage(page);
-
-  if (page === 'mining') {
-    startProductionRefresh();
-  } else {
-    stopProductionRefresh();
   }
 }
 

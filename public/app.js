@@ -47,6 +47,14 @@ async function loadBuildings() {
     }
 
     allBuildings = await response.json();
+
+    // Initialize decimal trackers for all buildings
+    allBuildings.forEach(building => {
+      if (!building._collected_decimal) {
+        building._collected_decimal = building.collected_amount || 0;
+      }
+    });
+
     console.log('Buildings loaded:', allBuildings.length, 'buildings');
     renderBuildings();
   } catch (error) {
@@ -130,7 +138,7 @@ function showPage(page) {
   }
 }
 
-// Calculate accumulated resources since last collection
+// Calculate accumulated resources since last collection (with decimals internally)
 function updateCollectedAmounts() {
   const now = new Date();
 
@@ -142,35 +150,95 @@ function updateCollectedAmounts() {
     const productionRate = building.production_rate || 100;
     const maxCapacity = productionRate * 24; // 24 hour max capacity
 
-    const newCollected = building.collected_amount + (hoursPassed * productionRate);
-    building.collected_amount = Math.min(newCollected, maxCapacity); // Cap at max capacity
+    // Store decimal value internally for smooth calculation
+    if (!building._collected_decimal) {
+      building._collected_decimal = building.collected_amount || 0;
+    }
+
+    const newCollected = building._collected_decimal + (hoursPassed * productionRate);
+    building._collected_decimal = Math.min(newCollected, maxCapacity); // Cap at max capacity
   });
 }
 
-// Render buildings
+// Render buildings - creates cards on first render, updates values on subsequent renders
 function renderBuildings() {
   updateCollectedAmounts(); // Update production before rendering
 
   const container = document.getElementById('buildings-container');
   const filteredBuildings = allBuildings.filter(b => b.building_type === selectedBuildingType);
 
-  container.innerHTML = '';
+  // Check if cards already exist for owned buildings
+  const existingCards = container.querySelectorAll('[data-building-id]');
 
-  filteredBuildings.forEach((building, index) => {
-    const card = createBuildingCard(building);
-    card.style.animationDelay = `${index * 0.1}s`;
-    container.appendChild(card);
-  });
+  if (existingCards.length === 0) {
+    // First render - create all cards
+    container.innerHTML = '';
+
+    // Show owned buildings
+    filteredBuildings.forEach((building, index) => {
+      const card = createBuildingCard(building);
+      card.style.animationDelay = `${index * 0.1}s`;
+      container.appendChild(card);
+    });
+
+    // If no buildings of this type owned, show "Buy first building" card
+    if (filteredBuildings.length === 0) {
+      const lockedCard = createLockedBuildingCard(selectedBuildingType);
+      container.appendChild(lockedCard);
+    }
+  } else {
+    // Subsequent renders - update values in place
+    filteredBuildings.forEach((building) => {
+      updateBuildingCard(building);
+    });
+  }
+}
+
+// Update building card values (smooth update without re-rendering)
+function updateBuildingCard(building) {
+  const card = document.querySelector(`[data-building-id="${building.id}"]`);
+  if (!card) return;
+
+  const collectedAmount = Math.floor(building._collected_decimal || building.collected_amount || 0);
+  const productionRate = building.production_rate || 100;
+  const maxCapacity = productionRate * 24;
+  const progressPercent = (collectedAmount / maxCapacity) * 100;
+
+  // Update info values
+  const infoValue = card.querySelector('.info-value-collected');
+  if (infoValue) {
+    infoValue.textContent = `${collectedAmount}/${maxCapacity}`;
+  }
+
+  // Update progress bar
+  const progressFill = card.querySelector('.production-fill');
+  if (progressFill) {
+    progressFill.style.width = `${progressPercent}%`;
+  }
+
+  // Update time remaining
+  const timeDiv = card.querySelector('[data-time-remaining]');
+  if (timeDiv) {
+    const timeRemaining = calculateTimeRemaining(collectedAmount, productionRate, maxCapacity);
+    timeDiv.textContent = `Время до заполнения: ${timeRemaining}`;
+  }
+
+  // Update collect button state
+  const collectBtn = card.querySelector('.collect-btn');
+  if (collectBtn) {
+    collectBtn.disabled = collectedAmount === 0;
+  }
 }
 
 // Create building card
 function createBuildingCard(building) {
   const card = document.createElement('div');
   card.className = 'building-card';
+  card.dataset.buildingId = building.id;
 
   const icon = getBuildingIcon(building.building_type);
   const level = building.level || 1;
-  const collectedAmount = building.collected_amount || 0;
+  const collectedAmount = Math.floor(building._collected_decimal || building.collected_amount || 0);
   const productionRate = building.production_rate || 100;
   const maxCapacity = productionRate * 24; // Capacity for 24 hours
 
@@ -197,7 +265,7 @@ function createBuildingCard(building) {
     </div>
     <div class="info-item">
       <span class="info-label">Собрано</span>
-      <span class="info-value">${collectedAmount}/${maxCapacity}</span>
+      <span class="info-value info-value-collected">${collectedAmount}/${maxCapacity}</span>
     </div>
   `;
 
@@ -212,10 +280,12 @@ function createBuildingCard(building) {
   // Time remaining
   const timeRemaining = calculateTimeRemaining(collectedAmount, productionRate, maxCapacity);
   const timeDiv = document.createElement('div');
+  timeDiv.className = 'time-remaining';
+  timeDiv.dataset.timeRemaining = '';
   timeDiv.style.fontSize = '12px';
   timeDiv.style.color = 'rgba(255, 255, 255, 0.7)';
   timeDiv.style.marginBottom = '12px';
-  timeDiv.innerHTML = `Время до заполнения: ${timeRemaining}`;
+  timeDiv.textContent = `Время до заполнения: ${timeRemaining}`;
 
   // Buttons
   const actions = document.createElement('div');
@@ -240,6 +310,98 @@ function createBuildingCard(building) {
   card.appendChild(info);
   card.appendChild(progressBar);
   card.appendChild(timeDiv);
+  card.appendChild(actions);
+
+  return card;
+}
+
+// Create locked building card for purchase
+function createLockedBuildingCard(buildingType) {
+  const card = document.createElement('div');
+  card.className = 'building-card locked-card';
+
+  const buildingNames = {
+    mine: 'Шахта',
+    quarry: 'Каменоломня',
+    lumber_mill: 'Лесопилка',
+    farm: 'Ферма',
+  };
+
+  const buildingIcons = {
+    mine: '⛏',
+    quarry: '🪨',
+    lumber_mill: '🌲',
+    farm: '🍖',
+  };
+
+  const buildingProductions = {
+    mine: 100,
+    quarry: 80,
+    lumber_mill: 60,
+    farm: 40,
+  };
+
+  // Calculate cost for first building of this type
+  let cost = 0;
+  if (buildingType === 'mine') {
+    cost = 0; // First mine is free
+  } else {
+    // Other buildings have a cost for the first one
+    const costs = {
+      quarry: 50000,
+      lumber_mill: 40000,
+      farm: 30000,
+    };
+    cost = costs[buildingType] || 50000;
+  }
+
+  const icon = buildingIcons[buildingType];
+  const name = buildingNames[buildingType];
+  const production = buildingProductions[buildingType];
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'building-header';
+  header.innerHTML = `
+    <div class="building-title">
+      <span>${icon}</span>
+      <span>${name} #1</span>
+    </div>
+    <div class="building-level">Уровень: 1</div>
+  `;
+
+  // Locked info
+  const lockedInfo = document.createElement('div');
+  lockedInfo.className = 'locked-info';
+  lockedInfo.innerHTML = `
+    <div class="info-item">
+      <span class="info-label">Производство/час</span>
+      <span class="info-value">${production}</span>
+    </div>
+    <div class="cost-item">
+      <span>Стоимость первого здания:</span>
+      <strong>${cost === 0 ? 'БЕСПЛАТНО' : formatNumber(cost) + ' 💰'}</strong>
+    </div>
+    <div class="cost-item">
+      <span>Ваше золото:</span>
+      <strong>${formatNumber(currentUser.gold)} 💰</strong>
+    </div>
+  `;
+
+  // Buy button
+  const actions = document.createElement('div');
+  actions.className = 'building-actions';
+
+  const buyBtn = document.createElement('button');
+  buyBtn.className = 'btn building-btn buy-btn';
+  buyBtn.textContent = cost === 0 ? 'Купить (Бесплатно)' : `Купить (${formatNumber(cost)})`;
+  buyBtn.addEventListener('click', () => purchaseBuilding(buildingType));
+
+  actions.appendChild(buyBtn);
+
+  // Assemble card
+  card.appendChild(header);
+  card.appendChild(lockedInfo);
   card.appendChild(actions);
 
   return card;
@@ -270,6 +432,47 @@ function calculateTimeRemaining(collected, production, capacity) {
   return `${Math.ceil(hoursNeeded)} ч`;
 }
 
+// Purchase a building
+async function purchaseBuilding(buildingType) {
+  try {
+    const response = await fetch(`/api/user/${userId}/building/purchase`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ buildingType }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      tg.showAlert(error.error || 'Ошибка при покупке здания');
+      return;
+    }
+
+    const result = await response.json();
+    currentUser = result.user;
+    allBuildings.push(result.building);
+
+    // Initialize decimal tracker for new building
+    result.building._collected_decimal = 0;
+
+    updateUI();
+    renderBuildings();
+
+    const buildingNames = {
+      mine: 'Шахта',
+      quarry: 'Каменоломня',
+      lumber_mill: 'Лесопилка',
+      farm: 'Ферма',
+    };
+
+    tg.showAlert(`✅ ${buildingNames[buildingType]} #1 куплена!`);
+  } catch (error) {
+    console.error('Error purchasing building:', error);
+    tg.showAlert('Ошибка при покупке здания');
+  }
+}
+
 // Collect resources
 async function collectResources(buildingId) {
   try {
@@ -291,10 +494,12 @@ async function collectResources(buildingId) {
     const buildingIndex = allBuildings.findIndex(b => b.id === buildingId);
     if (buildingIndex !== -1) {
       allBuildings[buildingIndex] = result.building;
+      // Reset decimal tracker
+      allBuildings[buildingIndex]._collected_decimal = 0;
     }
 
     renderBuildings();
-    tg.showAlert(`✅ Собрано ${result.collected} ресурсов!`);
+    tg.showAlert(`✅ Собрано ${Math.floor(result.collected)} ресурсов!`);
   } catch (error) {
     console.error('Error collecting resources:', error);
     tg.showAlert('Ошибка при сборе ресурсов');
@@ -327,6 +532,10 @@ async function upgradeBuilding(buildingId, currentLevel) {
     const buildingIndex = allBuildings.findIndex(b => b.id === buildingId);
     if (buildingIndex !== -1) {
       allBuildings[buildingIndex] = result.building;
+      // Maintain decimal value tracking across upgrades
+      if (!allBuildings[buildingIndex]._collected_decimal) {
+        allBuildings[buildingIndex]._collected_decimal = 0;
+      }
     }
 
     renderBuildings();

@@ -8,36 +8,19 @@ dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Create initial buildings for a new user
-async function createInitialBuildings(userId) {
-  try {
-    const buildingTypes = [
-      { type: 'mine', count: 3, productionRate: 100 },
-      { type: 'quarry', count: 3, productionRate: 80 },
-      { type: 'lumber_mill', count: 3, productionRate: 60 },
-      { type: 'farm', count: 3, productionRate: 40 },
-    ];
+// Create available buildings templates that users can purchase
+// These are not added to users by default, but available for purchase
+const AVAILABLE_BUILDINGS = [
+  { type: 'mine', maxCount: 5, productionRate: 100, baseCost: 0 }, // First mine is free
+  { type: 'quarry', maxCount: 5, productionRate: 80, baseCost: 50000 },
+  { type: 'lumber_mill', maxCount: 5, productionRate: 60, baseCost: 40000 },
+  { type: 'farm', maxCount: 5, productionRate: 40, baseCost: 30000 },
+];
 
-    for (const buildingType of buildingTypes) {
-      for (let i = 1; i <= buildingType.count; i++) {
-        await supabase
-          .from('user_buildings')
-          .insert({
-            user_id: userId,
-            building_type: buildingType.type,
-            building_number: i,
-            level: 1,
-            collected_amount: 0,
-            production_rate: buildingType.productionRate,
-            last_collected: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-          });
-      }
-    }
-    console.log(`✅ Initial buildings created for user ${userId}`);
-  } catch (error) {
-    console.error('Error creating initial buildings:', error);
-  }
+// Create initial buildings for a new user (deprecated - users now buy buildings)
+async function createInitialBuildings(userId) {
+  // No longer auto-create buildings. Users must purchase them.
+  console.log(`✅ User ${userId} created. Buildings can now be purchased.`);
 }
 
 // Initialize Supabase tables

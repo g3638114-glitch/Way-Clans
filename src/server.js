@@ -350,6 +350,109 @@ app.post('/api/user/:userId/exchange', async (req, res) => {
   }
 });
 
+// API endpoint to purchase a building
+app.post('/api/user/:userId/building/purchase', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { buildingType } = req.body;
+
+    // Define building properties
+    const buildingConfigs = {
+      mine: { productionRate: 100, firstFreeCost: 0, subsequentCost: 50000 },
+      quarry: { productionRate: 80, firstFreeCost: 50000, subsequentCost: 100000 },
+      lumber_mill: { productionRate: 60, firstFreeCost: 40000, subsequentCost: 80000 },
+      farm: { productionRate: 40, firstFreeCost: 30000, subsequentCost: 60000 },
+    };
+
+    if (!buildingConfigs[buildingType]) {
+      return res.status(400).json({ error: 'Invalid building type' });
+    }
+
+    // Get user
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('telegram_id', userId)
+      .single();
+
+    if (userError) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get user's buildings of this type to determine building number and cost
+    const { data: userBuildings, error: buildError } = await supabase
+      .from('user_buildings')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('building_type', buildingType)
+      .order('building_number', { ascending: false });
+
+    if (buildError && buildError.code !== 'PGRST116') {
+      return res.status(500).json({ error: 'Failed to check existing buildings' });
+    }
+
+    const config = buildingConfigs[buildingType];
+    const buildingNumber = (userBuildings && userBuildings.length > 0)
+      ? userBuildings[0].building_number + 1
+      : 1;
+
+    // Determine cost: first mine is free, others have costs
+    let cost = config.subsequentCost;
+    if (buildingType === 'mine' && buildingNumber === 1) {
+      cost = config.firstFreeCost; // First mine is free (0 cost)
+    } else if (buildingNumber === 1) {
+      cost = config.firstFreeCost; // Other buildings' first purchase cost
+    }
+
+    // Check if user has enough gold
+    if (user.gold < cost) {
+      return res.status(400).json({ error: `Not enough gold. Need ${cost}, have ${user.gold}` });
+    }
+
+    // Create new building
+    const { data: newBuilding, error: createError } = await supabase
+      .from('user_buildings')
+      .insert({
+        user_id: user.id,
+        building_type: buildingType,
+        building_number: buildingNumber,
+        level: 1,
+        collected_amount: 0,
+        production_rate: config.productionRate,
+        last_collected: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      return res.status(500).json({ error: 'Failed to create building' });
+    }
+
+    // Deduct gold from user
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({ gold: user.gold - cost })
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      return res.status(500).json({ error: 'Failed to update user gold' });
+    }
+
+    res.json({
+      success: true,
+      costDeducted: cost,
+      user: updatedUser,
+      building: newBuilding,
+    });
+  } catch (error) {
+    console.error('Error purchasing building:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Serve MiniApp HTML
 app.get('/', (req, res) => {
   res.sendFile(join(__dirname, '../public/index.html'));

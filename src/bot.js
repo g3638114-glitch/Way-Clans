@@ -8,27 +8,77 @@ dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
+// Create initial buildings for a new user
+async function createInitialBuildings(userId) {
+  try {
+    const buildingTypes = [
+      { type: 'mine', count: 3, productionRate: 100 },
+      { type: 'quarry', count: 3, productionRate: 80 },
+      { type: 'lumber_mill', count: 3, productionRate: 60 },
+      { type: 'farm', count: 3, productionRate: 40 },
+    ];
+
+    for (const buildingType of buildingTypes) {
+      for (let i = 1; i <= buildingType.count; i++) {
+        await supabase
+          .from('user_buildings')
+          .insert({
+            user_id: userId,
+            building_type: buildingType.type,
+            building_number: i,
+            level: 1,
+            collected_amount: 0,
+            production_rate: buildingType.productionRate,
+            last_collected: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          });
+      }
+    }
+    console.log(`✅ Initial buildings created for user ${userId}`);
+  } catch (error) {
+    console.error('Error creating initial buildings:', error);
+  }
+}
+
 // Initialize Supabase tables
 async function initializeDatabase() {
   try {
-    console.log('🔄 Initializing database tables...');
+    // Create users table if it doesn't exist
+    const { error: usersError } = await supabase.rpc('create_users_table').catch(() => {
+      // Table might already exist, continue
+      return { error: null };
+    });
 
-    // Seed building configs if empty
-    const { data: configs } = await supabase.from('building_configs').select('*');
+    // Try to create the tables via raw SQL (through Supabase functions if available)
+    // Since we don't have direct SQL execution, we'll verify by attempting to query
 
-    if (!configs || configs.length === 0) {
-      const buildingConfigs = [
-        { building_type: 'mine', name: 'Шахта', emoji: '⛏', resource_type: 'gold', base_production: 50, cost_gold: 1000, cost_stone: 500, cost_wood: 300, cost_meat: 100 },
-        { building_type: 'quarry', name: 'Каменоломня', emoji: '⛏', resource_type: 'stone', base_production: 40, cost_gold: 800, cost_stone: 400, cost_wood: 200, cost_meat: 80 },
-        { building_type: 'sawmill', name: 'Лесопилка', emoji: '🌲', resource_type: 'wood', base_production: 45, cost_gold: 900, cost_stone: 450, cost_wood: 250, cost_meat: 90 },
-        { building_type: 'farm', name: 'Ферма', emoji: '🍖', resource_type: 'meat', base_production: 20, cost_gold: 600, cost_stone: 300, cost_wood: 150, cost_meat: 50 },
-      ];
+    // Verify users table exists by trying a query
+    const { error: checkUsersError } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
 
-      await supabase.from('building_configs').insert(buildingConfigs);
-      console.log('✅ Building configs seeded');
+    if (checkUsersError && checkUsersError.code === 'PGRST116') {
+      console.log('⚠️  Users table does not exist yet. Please create it in Supabase Dashboard with these columns:');
+      console.log('id (uuid, primary key), telegram_id (bigint, unique), username, first_name, gold, wood, stone, meat, jabcoins, created_at, updated_at');
+    } else {
+      console.log('✅ Users table verified');
     }
 
-    console.log('✅ Database initialized');
+    // Verify buildings table exists
+    const { error: checkBuildingsError } = await supabase
+      .from('user_buildings')
+      .select('id')
+      .limit(1);
+
+    if (checkBuildingsError && checkBuildingsError.code === 'PGRST116') {
+      console.log('⚠️  User buildings table does not exist yet. Please create it in Supabase Dashboard with these columns:');
+      console.log('id (uuid, primary key), user_id (uuid), building_type, building_number, level, collected_amount, production_rate, created_at, updated_at');
+    } else {
+      console.log('✅ User buildings table verified');
+    }
+
+    console.log('✅ Database schema check completed');
   } catch (error) {
     console.error('Database initialization error:', error);
   }
@@ -49,7 +99,7 @@ bot.command('start', async (ctx) => {
       .single();
 
     if (selectError && selectError.code === 'PGRST116') {
-      // User doesn't exist, create new
+      // User doesn't exist, create new with initial resources
       const { data: newUser, error: insertError } = await supabase
         .from('users')
         .insert({
@@ -70,14 +120,8 @@ bot.command('start', async (ctx) => {
         console.error('Error creating user:', insertError);
       } else {
         user = newUser;
-
-        // Create initial buildings for new user
-        await supabase.from('buildings').insert([
-          { user_id: user.id, building_type: 'mine', level: 1 },
-          { user_id: user.id, building_type: 'quarry', level: 1 },
-          { user_id: user.id, building_type: 'sawmill', level: 1 },
-          { user_id: user.id, building_type: 'farm', level: 1 },
-        ]);
+        // Create initial buildings for the user
+        await createInitialBuildings(user.id);
       }
     } else if (selectError) {
       console.error('Error fetching user:', selectError);

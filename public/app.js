@@ -4,9 +4,9 @@ tg.ready();
 
 let currentUser = null;
 let userId = null;
-let currentBuildings = null;
-let currentMiningTab = 'mine';
-let buildingUpdateInterval = null;
+let currentPage = 'main';
+let allBuildings = [];
+let selectedBuildingType = 'mine';
 
 // Parse userId from URL
 function getUserIdFromUrl() {
@@ -19,25 +19,36 @@ async function loadUserData() {
   try {
     userId = getUserIdFromUrl();
     if (!userId) {
-      console.error('❌ No userId provided in URL');
-      tg.showAlert('❌ Ошибка: не передан userId. Откройте МiniApp через команду /start в боте.');
+      console.error('No userId provided');
       return;
     }
 
-    console.log(`📊 Загрузка данных игрока ${userId} из Supabase...`);
     const response = await fetch(`/api/user/${userId}`);
     if (!response.ok) {
-      console.error('❌ Failed to load user data. Status:', response.status);
-      tg.showAlert('❌ Ошибка загрузки данных. Убедитесь что таблицы созданы в Supabase (см. SUPABASE_SETUP.md)');
+      console.error('Failed to load user data');
       return;
     }
 
     currentUser = await response.json();
-    console.log('✅ Данные игрока загружены:', currentUser);
     updateUI();
   } catch (error) {
-    console.error('❌ Error loading user data:', error);
-    tg.showAlert('❌ Ошибка подключения к серверу');
+    console.error('Error loading user data:', error);
+  }
+}
+
+// Load buildings data
+async function loadBuildings() {
+  try {
+    const response = await fetch(`/api/user/${userId}/buildings`);
+    if (!response.ok) {
+      console.error('Failed to load buildings');
+      return;
+    }
+
+    allBuildings = await response.json();
+    renderBuildings();
+  } catch (error) {
+    console.error('Error loading buildings:', error);
   }
 }
 
@@ -46,11 +57,24 @@ function updateUI() {
   if (!currentUser) return;
 
   // Update resources
-  document.getElementById('gold-value').textContent = formatNumber(currentUser.gold);
-  document.getElementById('wood-value').textContent = formatNumber(currentUser.wood);
-  document.getElementById('stone-value').textContent = formatNumber(currentUser.stone);
-  document.getElementById('meat-value').textContent = formatNumber(currentUser.meat);
-  document.getElementById('jabcoins-value').textContent = currentUser.jabcoins;
+  const goldText = formatNumber(currentUser.gold);
+  const woodText = formatNumber(currentUser.wood);
+  const stoneText = formatNumber(currentUser.stone);
+  const meatText = formatNumber(currentUser.meat);
+  const jabcoinsText = currentUser.jabcoins;
+
+  document.getElementById('gold-value').textContent = goldText;
+  document.getElementById('wood-value').textContent = woodText;
+  document.getElementById('stone-value').textContent = stoneText;
+  document.getElementById('meat-value').textContent = meatText;
+  document.getElementById('jabcoins-value').textContent = jabcoinsText;
+
+  // Update mining page resources
+  document.getElementById('mining-gold-value').textContent = goldText;
+  document.getElementById('mining-wood-value').textContent = woodText;
+  document.getElementById('mining-stone-value').textContent = stoneText;
+  document.getElementById('mining-meat-value').textContent = meatText;
+  document.getElementById('mining-jabcoins-value').textContent = jabcoinsText;
 
   // Update player card
   document.getElementById('player-name').textContent = currentUser.first_name || 'Player';
@@ -58,12 +82,12 @@ function updateUI() {
   document.getElementById('player-id').textContent = currentUser.telegram_id;
 
   // Update storage modal
-  document.getElementById('storage-wood').textContent = formatNumber(currentUser.wood);
-  document.getElementById('storage-stone').textContent = formatNumber(currentUser.stone);
-  document.getElementById('storage-meat').textContent = formatNumber(currentUser.meat);
+  document.getElementById('storage-wood').textContent = woodText;
+  document.getElementById('storage-stone').textContent = stoneText;
+  document.getElementById('storage-meat').textContent = meatText;
 
   // Update exchange modal
-  document.getElementById('exchange-gold').textContent = `💰 ${formatNumber(currentUser.gold)}`;
+  document.getElementById('exchange-gold').textContent = `💰 ${goldText}`;
 
   // Reset input fields
   document.getElementById('wood-input').max = currentUser.wood;
@@ -74,6 +98,244 @@ function updateUI() {
 // Format numbers with spaces
 function formatNumber(num) {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+// Page Management
+function showPage(page) {
+  currentPage = page;
+
+  // Hide all pages
+  document.getElementById('main-page').style.display = 'none';
+  document.getElementById('mining-page').style.display = 'none';
+
+  // Show selected page
+  if (page === 'main') {
+    document.getElementById('main-page').style.display = 'flex';
+    document.getElementById('nav-main').classList.add('active');
+    document.getElementById('nav-mining').classList.remove('active');
+    document.getElementById('nav-barracks').classList.remove('active');
+  } else if (page === 'mining') {
+    document.getElementById('mining-page').style.display = 'flex';
+    document.getElementById('nav-main').classList.remove('active');
+    document.getElementById('nav-mining').classList.add('active');
+    document.getElementById('nav-barracks').classList.remove('active');
+    document.getElementById('nav-main-from-mining').classList.remove('active');
+    document.getElementById('nav-mining-active').classList.add('active');
+    document.getElementById('nav-barracks-from-mining').classList.remove('active');
+    loadBuildings(); // Load buildings when switching to mining page
+  }
+}
+
+// Calculate accumulated resources since last collection
+function updateCollectedAmounts() {
+  const now = new Date();
+
+  allBuildings.forEach(building => {
+    if (!building.last_collected) return;
+
+    const lastCollected = new Date(building.last_collected);
+    const hoursPassed = (now - lastCollected) / (1000 * 60 * 60);
+    const productionRate = building.production_rate || 100;
+    const maxCapacity = productionRate * 24; // 24 hour max capacity
+
+    const newCollected = building.collected_amount + (hoursPassed * productionRate);
+    building.collected_amount = Math.min(newCollected, maxCapacity); // Cap at max capacity
+  });
+}
+
+// Render buildings
+function renderBuildings() {
+  updateCollectedAmounts(); // Update production before rendering
+
+  const container = document.getElementById('buildings-container');
+  const filteredBuildings = allBuildings.filter(b => b.building_type === selectedBuildingType);
+
+  container.innerHTML = '';
+
+  filteredBuildings.forEach((building, index) => {
+    const card = createBuildingCard(building);
+    card.style.animationDelay = `${index * 0.1}s`;
+    container.appendChild(card);
+  });
+}
+
+// Create building card
+function createBuildingCard(building) {
+  const card = document.createElement('div');
+  card.className = 'building-card';
+
+  const icon = getBuildingIcon(building.building_type);
+  const level = building.level || 1;
+  const collectedAmount = building.collected_amount || 0;
+  const productionRate = building.production_rate || 100;
+  const maxCapacity = productionRate * 24; // Capacity for 24 hours
+
+  const progressPercent = (collectedAmount / maxCapacity) * 100;
+
+  // Building Header
+  const header = document.createElement('div');
+  header.className = 'building-header';
+  header.innerHTML = `
+    <div class="building-title">
+      <span>${icon}</span>
+      <span>${building.building_type === 'mine' ? 'Шахта' : building.building_type === 'quarry' ? 'Каменоломня' : building.building_type === 'lumber_mill' ? 'Лесопилка' : 'Ферма'} #${building.building_number}</span>
+    </div>
+    <div class="building-level">Уровень: ${level}</div>
+  `;
+
+  // Building Info
+  const info = document.createElement('div');
+  info.className = 'building-info';
+  info.innerHTML = `
+    <div class="info-item">
+      <span class="info-label">Производство/час</span>
+      <span class="info-value">${productionRate}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Собрано</span>
+      <span class="info-value">${collectedAmount}/${maxCapacity}</span>
+    </div>
+  `;
+
+  // Production Progress Bar
+  const progressBar = document.createElement('div');
+  progressBar.className = 'production-bar';
+  const fill = document.createElement('div');
+  fill.className = 'production-fill';
+  fill.style.width = `${progressPercent}%`;
+  progressBar.appendChild(fill);
+
+  // Time remaining
+  const timeRemaining = calculateTimeRemaining(collectedAmount, productionRate, maxCapacity);
+  const timeDiv = document.createElement('div');
+  timeDiv.style.fontSize = '12px';
+  timeDiv.style.color = 'rgba(255, 255, 255, 0.7)';
+  timeDiv.style.marginBottom = '12px';
+  timeDiv.innerHTML = `Время до заполнения: ${timeRemaining}`;
+
+  // Buttons
+  const actions = document.createElement('div');
+  actions.className = 'building-actions';
+
+  const collectBtn = document.createElement('button');
+  collectBtn.className = 'btn building-btn collect-btn';
+  collectBtn.textContent = `Собрать`;
+  collectBtn.disabled = collectedAmount === 0;
+  collectBtn.addEventListener('click', () => collectResources(building.id));
+
+  const upgradeBtn = document.createElement('button');
+  upgradeBtn.className = 'btn building-btn upgrade-btn';
+  upgradeBtn.textContent = `Улучшить`;
+  upgradeBtn.addEventListener('click', () => upgradeBuilding(building.id, level));
+
+  actions.appendChild(collectBtn);
+  actions.appendChild(upgradeBtn);
+
+  // Assemble card
+  card.appendChild(header);
+  card.appendChild(info);
+  card.appendChild(progressBar);
+  card.appendChild(timeDiv);
+  card.appendChild(actions);
+
+  return card;
+}
+
+// Get building icon
+function getBuildingIcon(type) {
+  const icons = {
+    mine: '⛏',
+    quarry: '🪨',
+    lumber_mill: '🌲',
+    farm: '🍖',
+  };
+  return icons[type] || '🏢';
+}
+
+// Calculate time remaining until full
+function calculateTimeRemaining(collected, production, capacity) {
+  if (production === 0) return 'Н/Д';
+  const remaining = capacity - collected;
+  const hoursNeeded = remaining / production;
+
+  if (hoursNeeded <= 0) return 'Готово!';
+  if (hoursNeeded < 1) {
+    const minutes = Math.ceil(hoursNeeded * 60);
+    return `${minutes} мин`;
+  }
+  return `${Math.ceil(hoursNeeded)} ч`;
+}
+
+// Collect resources
+async function collectResources(buildingId) {
+  try {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/collect`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      tg.showAlert(error.error || 'Ошибка при сборе');
+      return;
+    }
+
+    const result = await response.json();
+    currentUser = result.user;
+    updateUI();
+
+    // Update building in local array
+    const buildingIndex = allBuildings.findIndex(b => b.id === buildingId);
+    if (buildingIndex !== -1) {
+      allBuildings[buildingIndex] = result.building;
+    }
+
+    renderBuildings();
+    tg.showAlert(`✅ Собрано ${result.collected} ресурсов!`);
+  } catch (error) {
+    console.error('Error collecting resources:', error);
+    tg.showAlert('Ошибка при сборе ресурсов');
+  }
+}
+
+// Upgrade building
+async function upgradeBuilding(buildingId, currentLevel) {
+  try {
+    const upgradeCost = calculateUpgradeCost(currentLevel);
+    const confirmation = confirm(`Улучшение до уровня ${currentLevel + 1}? Стоимость: ${formatNumber(upgradeCost)} 💰`);
+
+    if (!confirmation) return;
+
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/upgrade`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      tg.showAlert(error.error || 'Ошибка при улучшении');
+      return;
+    }
+
+    const result = await response.json();
+    currentUser = result.user;
+    updateUI();
+
+    // Update building in local array
+    const buildingIndex = allBuildings.findIndex(b => b.id === buildingId);
+    if (buildingIndex !== -1) {
+      allBuildings[buildingIndex] = result.building;
+    }
+
+    renderBuildings();
+    tg.showAlert(`✅ Здание улучшено! Новый уровень: ${currentLevel + 1}`);
+  } catch (error) {
+    console.error('Error upgrading building:', error);
+    tg.showAlert('Ошибка при улучшении');
+  }
+}
+
+// Calculate upgrade cost
+function calculateUpgradeCost(level) {
+  return Math.floor(1000 * Math.pow(1.15, level - 1));
 }
 
 // Storage Modal Functions
@@ -192,195 +454,6 @@ async function exchangeGold() {
   }
 }
 
-// Load buildings data
-async function loadBuildings() {
-  try {
-    console.log(`🏗️ Загрузка построек из Supabase для пользователя ${userId}...`);
-    const response = await fetch(`/api/user/${userId}/buildings`);
-    if (!response.ok) {
-      console.error('❌ Failed to load buildings. Status:', response.status);
-      tg.showAlert('❌ Ошибка загрузки построек. Проверьте что таблицы созданы в Supabase.');
-      return;
-    }
-
-    const data = await response.json();
-    currentBuildings = data.buildings;
-    console.log(`✅ Загружено ${currentBuildings.length} построек:`, currentBuildings);
-    renderBuildings(currentMiningTab);
-  } catch (error) {
-    console.error('❌ Error loading buildings:', error);
-    tg.showAlert('❌ Ошибка загрузки построек');
-  }
-}
-
-// Render buildings based on selected category
-function renderBuildings(category) {
-  currentMiningTab = category;
-  const container = document.getElementById('buildings-container');
-  container.innerHTML = '';
-
-  if (!currentBuildings) return;
-
-  const filteredBuildings = currentBuildings.filter(b => b.building_type === category);
-
-  filteredBuildings.forEach((building) => {
-    const config = building.building_configs;
-    const isLocked = false; // For now, all buildings are unlocked
-
-    const card = createBuildingCard(building, config);
-    container.appendChild(card);
-  });
-}
-
-// Create building card element
-function createBuildingCard(building, config) {
-  const card = document.createElement('div');
-  card.className = 'building-card';
-
-  // Calculate production
-  const now = new Date();
-  const lastCollected = new Date(building.last_collected_at);
-  const hoursPassed = (now - lastCollected) / (1000 * 60 * 60);
-  const productionPerHour = config.base_production * building.level;
-  const maxProduction = productionPerHour * 24; // 24 hour cap
-  const collectedAmount = Math.min(Math.floor(productionPerHour * hoursPassed), maxProduction);
-  const progressPercent = (collectedAmount / maxProduction) * 100;
-  const timeToFull = maxProduction / productionPerHour;
-  const timeRemaining = timeToFull - hoursPassed;
-
-  card.innerHTML = `
-    <div class="building-header">
-      <div class="building-emoji">${config.emoji}</div>
-      <div class="building-name">
-        <h3>${config.emoji} ${config.name} #${building.id}</h3>
-        <div class="building-level">Уровень: ${building.level}</div>
-      </div>
-    </div>
-
-    <div class="building-info">
-      <div class="info-item">
-        <span class="info-label">Производство в час:</span>
-        <span class="info-value">${formatNumber(productionPerHour)}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Собрано:</span>
-        <span class="info-value">${formatNumber(collectedAmount)}/${formatNumber(maxProduction)}</span>
-      </div>
-    </div>
-
-    <div class="production-progress">
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: ${progressPercent}%"></div>
-      </div>
-      <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 5px;">
-        Заполнится через: ${timeRemaining > 0 ? Math.ceil(timeRemaining) : 0} часов
-      </div>
-    </div>
-
-    <div class="building-actions">
-      <button class="action-btn collect-btn" onclick="collectResources('${building.building_type}')">
-        💰 Собрать
-      </button>
-      <button class="action-btn upgrade-btn" onclick="upgradeBuildingModal('${building.building_type}', ${building.level})">
-        ⬆️ Улучшить
-      </button>
-    </div>
-  `;
-
-  return card;
-}
-
-// Collect resources from building
-async function collectResources(buildingType) {
-  try {
-    const response = await fetch(`/api/user/${userId}/buildings/${buildingType}/collect`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      tg.showAlert(error.error || 'Не удалось собрать ресурсы');
-      return;
-    }
-
-    const result = await response.json();
-    currentUser = result.user;
-    updateUI();
-    loadBuildings();
-
-    const resourceEmojis = { gold: '💰', stone: '🪨', wood: '🌲', meat: '🍖' };
-    const emoji = resourceEmojis[result.resourceType] || '📦';
-    tg.showAlert(`✅ Собрано ${emoji} ${formatNumber(result.collectedAmount)}`);
-  } catch (error) {
-    console.error('Error collecting resources:', error);
-    tg.showAlert('Ошибка при сборе ресурсов');
-  }
-}
-
-// Show upgrade confirmation
-function upgradeBuildingModal(buildingType, currentLevel) {
-  const building = currentBuildings.find(b => b.building_type === buildingType);
-  const config = building.building_configs;
-
-  const costMultiplier = Math.pow(1.1, currentLevel - 1);
-  const costGold = Math.floor((config.cost_gold || 0) * costMultiplier);
-  const costStone = Math.floor((config.cost_stone || 0) * costMultiplier);
-  const costWood = Math.floor((config.cost_wood || 0) * costMultiplier);
-  const costMeat = Math.floor((config.cost_meat || 0) * costMultiplier);
-
-  const hasEnough =
-    currentUser.gold >= costGold &&
-    currentUser.stone >= costStone &&
-    currentUser.wood >= costWood &&
-    currentUser.meat >= costMeat;
-
-  let message = `🏗️ Улучшение ${config.emoji} ${config.name} #${building.id}
-До уровня ${currentLevel + 1}
-
-Стоимость улучшения:
-💰 Золото: ${formatNumber(costGold)} ${currentUser.gold >= costGold ? '✅' : '❌'}
-🪨 Камень: ${formatNumber(costStone)} ${currentUser.stone >= costStone ? '✅' : '❌'}
-🌲 Дерево: ${formatNumber(costWood)} ${currentUser.wood >= costWood ? '✅' : '❌'}
-🍖 Мясо: ${formatNumber(costMeat)} ${currentUser.meat >= costMeat ? '✅' : '❌'}`;
-
-  if (hasEnough) {
-    tg.showConfirm(message, (result) => {
-      if (result) {
-        upgradeBuildingConfirm(buildingType);
-      }
-    });
-  } else {
-    tg.showAlert(message + '\n\n❌ Недостаточно ресурсов');
-  }
-}
-
-// Confirm building upgrade
-async function upgradeBuildingConfirm(buildingType) {
-  try {
-    const response = await fetch(`/api/user/${userId}/buildings/${buildingType}/upgrade`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      tg.showAlert(error.error || 'Не удалось улучшить здание');
-      return;
-    }
-
-    const result = await response.json();
-    currentUser = result.user;
-    updateUI();
-    loadBuildings();
-
-    tg.showAlert(`✅ Здание улучшено до уровня ${result.newLevel}!`);
-  } catch (error) {
-    console.error('Error upgrading building:', error);
-    tg.showAlert('Ошибка при улучшении здания');
-  }
-}
-
 // Event Listeners
 document.getElementById('storage-btn').addEventListener('click', openStorageModal);
 document.getElementById('exchange-btn').addEventListener('click', openExchangeModal);
@@ -391,60 +464,27 @@ document.getElementById('attack-btn').addEventListener('click', () => {
   tg.showAlert('🔧 Функция "Атаковать" скоро будет доступна!');
 });
 
-// Navigation handlers
-document.getElementById('nav-main').addEventListener('click', () => {
-  showMainView();
-});
-
-document.getElementById('nav-mining').addEventListener('click', () => {
-  showMiningView();
-});
+document.getElementById('nav-main').addEventListener('click', () => showPage('main'));
+document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));
+document.getElementById('nav-main-from-mining').addEventListener('click', () => showPage('main'));
+document.getElementById('nav-mining-active').addEventListener('click', () => showPage('mining'));
 
 document.getElementById('nav-barracks').addEventListener('click', () => {
   tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
 });
 
-// Show main view
-function showMainView() {
-  document.getElementById('mining-section').style.display = 'none';
-  document.querySelector('.player-card').style.display = 'block';
-  document.querySelector('.resources-header').style.display = 'grid';
-  document.getElementById('action-buttons').style.display = 'flex';
+document.getElementById('nav-barracks-from-mining').addEventListener('click', () => {
+  tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
+});
 
-  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-  document.getElementById('nav-main').classList.add('active');
-
-  clearInterval(buildingUpdateInterval);
-}
-
-// Show mining view
-function showMiningView() {
-  document.getElementById('mining-section').style.display = 'flex';
-  document.querySelector('.player-card').style.display = 'none';
-  document.querySelector('.resources-header').style.display = 'none';
-
-  const actionButtons = document.querySelectorAll('.action-buttons');
-  actionButtons.forEach(btn => btn.style.display = 'none');
-
-  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-  document.getElementById('nav-mining').classList.add('active');
-
-  loadBuildings();
-
-  // Update buildings every 5 seconds for live progress
-  if (buildingUpdateInterval) clearInterval(buildingUpdateInterval);
-  buildingUpdateInterval = setInterval(() => {
-    renderBuildings(currentMiningTab);
-  }, 5000);
-}
-
-// Mining tab switching
-document.addEventListener('click', (e) => {
-  if (e.target.classList.contains('mining-tab')) {
-    document.querySelectorAll('.mining-tab').forEach(tab => tab.classList.remove('active'));
+// Building type tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     e.target.classList.add('active');
-    renderBuildings(e.target.dataset.category);
-  }
+    selectedBuildingType = e.target.dataset.type;
+    renderBuildings();
+  });
 });
 
 // Close modals on background click
@@ -460,7 +500,39 @@ document.getElementById('exchange-modal').addEventListener('click', (e) => {
   }
 });
 
+// Set up auto-refresh for building production
+let productionRefreshInterval = null;
+
+function startProductionRefresh() {
+  // Update production every second
+  productionRefreshInterval = setInterval(() => {
+    if (currentPage === 'mining' && allBuildings.length > 0) {
+      renderBuildings();
+    }
+  }, 1000);
+}
+
+function stopProductionRefresh() {
+  if (productionRefreshInterval) {
+    clearInterval(productionRefreshInterval);
+    productionRefreshInterval = null;
+  }
+}
+
+// Override showPage to manage production refresh
+const originalShowPage = showPage;
+function showPage(page) {
+  originalShowPage(page);
+
+  if (page === 'mining') {
+    startProductionRefresh();
+  } else {
+    stopProductionRefresh();
+  }
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
   loadUserData();
+  showPage('main');
 });

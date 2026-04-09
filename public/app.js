@@ -19,20 +19,25 @@ async function loadUserData() {
   try {
     userId = getUserIdFromUrl();
     if (!userId) {
-      console.error('No userId provided');
+      console.error('❌ No userId provided in URL');
+      tg.showAlert('❌ Ошибка: не передан userId. Откройте МiniApp через команду /start в боте.');
       return;
     }
 
+    console.log(`📊 Загрузка данных игрока ${userId} из Supabase...`);
     const response = await fetch(`/api/user/${userId}`);
     if (!response.ok) {
-      console.error('Failed to load user data');
+      console.error('❌ Failed to load user data. Status:', response.status);
+      tg.showAlert('❌ Ошибка загрузки данных. Убедитесь что таблицы созданы в Supabase (см. SUPABASE_SETUP.md)');
       return;
     }
 
     currentUser = await response.json();
+    console.log('✅ Данные игрока загружены:', currentUser);
     updateUI();
   } catch (error) {
-    console.error('Error loading user data:', error);
+    console.error('❌ Error loading user data:', error);
+    tg.showAlert('❌ Ошибка подключения к серверу');
   }
 }
 
@@ -190,17 +195,21 @@ async function exchangeGold() {
 // Load buildings data
 async function loadBuildings() {
   try {
+    console.log(`🏗️ Загрузка построек из Supabase для пользователя ${userId}...`);
     const response = await fetch(`/api/user/${userId}/buildings`);
     if (!response.ok) {
-      console.error('Failed to load buildings');
+      console.error('❌ Failed to load buildings. Status:', response.status);
+      tg.showAlert('❌ Ошибка загрузки построек. Проверьте что таблицы созданы в Supabase.');
       return;
     }
 
     const data = await response.json();
     currentBuildings = data.buildings;
+    console.log(`✅ Загружено ${currentBuildings.length} построек:`, currentBuildings);
     renderBuildings(currentMiningTab);
   } catch (error) {
-    console.error('Error loading buildings:', error);
+    console.error('❌ Error loading buildings:', error);
+    tg.showAlert('❌ Ошибка загрузки построек');
   }
 }
 
@@ -398,7 +407,8 @@ document.getElementById('nav-barracks').addEventListener('click', () => {
 // Show main view
 function showMainView() {
   document.getElementById('mining-section').style.display = 'none';
-  document.getElementById('player-card').style.display = 'block';
+  document.querySelector('.player-card').style.display = 'block';
+  document.querySelector('.resources-header').style.display = 'grid';
   document.getElementById('action-buttons').style.display = 'flex';
 
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
@@ -410,8 +420,11 @@ function showMainView() {
 // Show mining view
 function showMiningView() {
   document.getElementById('mining-section').style.display = 'flex';
-  document.getElementById('player-card').style.display = 'none';
-  document.getElementById('action-buttons').style.display = 'none';
+  document.querySelector('.player-card').style.display = 'none';
+  document.querySelector('.resources-header').style.display = 'none';
+
+  const actionButtons = document.querySelectorAll('.action-buttons');
+  actionButtons.forEach(btn => btn.style.display = 'none');
 
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
   document.getElementById('nav-mining').classList.add('active');

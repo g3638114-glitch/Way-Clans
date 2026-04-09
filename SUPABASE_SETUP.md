@@ -47,29 +47,36 @@ CREATE INDEX idx_buildings_user_id ON user_buildings(user_id);
 CREATE INDEX idx_buildings_type ON user_buildings(building_type);
 ```
 
-## Step 3: Enable Row Level Security (Optional but Recommended)
+## Step 3: Row Level Security (RLS) Configuration
 
-For production, enable RLS:
+For this Telegram bot, **disable RLS** on the tables since the bot manages user access through Telegram authentication:
 
 ```sql
--- Enable RLS on tables
+-- Disable RLS on tables (bot handles access control via Telegram)
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;
+```
+
+**Note**: If you want to enable RLS later for additional security (e.g., for a web frontend), you'll need:
+
+```sql
+-- Enable RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_buildings ENABLE ROW LEVEL SECURITY;
 
--- Create policies for users table (allow read own data)
-CREATE POLICY "Users can view own data" ON users
-  FOR SELECT USING (true);
+-- Service role policies (for bot with service_role_key)
+CREATE POLICY "Service can manage all" ON users
+  AS PERMISSIVE FOR ALL
+  USING (auth.role() = 'authenticated' OR auth.role() = 'service_role')
+  WITH CHECK (auth.role() = 'authenticated' OR auth.role() = 'service_role');
 
-CREATE POLICY "Users can update own data" ON users
-  FOR UPDATE USING (true);
-
--- Create policies for buildings table
-CREATE POLICY "Users can view own buildings" ON user_buildings
-  FOR SELECT USING (true);
-
-CREATE POLICY "Users can update own buildings" ON user_buildings
-  FOR UPDATE USING (true);
+CREATE POLICY "Service can manage all" ON user_buildings
+  AS PERMISSIVE FOR ALL
+  USING (auth.role() = 'authenticated' OR auth.role() = 'service_role')
+  WITH CHECK (auth.role() = 'authenticated' OR auth.role() = 'service_role');
 ```
+
+However, for now, **disabling RLS is recommended** for a bot-driven application.
 
 ## Step 4: Environment Variables
 

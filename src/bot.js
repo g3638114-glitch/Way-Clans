@@ -43,15 +43,6 @@ async function createInitialBuildings(userId) {
 // Initialize Supabase tables
 async function initializeDatabase() {
   try {
-    // Create users table if it doesn't exist
-    const { error: usersError } = await supabase.rpc('create_users_table').catch(() => {
-      // Table might already exist, continue
-      return { error: null };
-    });
-
-    // Try to create the tables via raw SQL (through Supabase functions if available)
-    // Since we don't have direct SQL execution, we'll verify by attempting to query
-
     // Verify users table exists by trying a query
     const { error: checkUsersError } = await supabase
       .from('users')
@@ -59,8 +50,10 @@ async function initializeDatabase() {
       .limit(1);
 
     if (checkUsersError && checkUsersError.code === 'PGRST116') {
-      console.log('⚠️  Users table does not exist yet. Please create it in Supabase Dashboard with these columns:');
-      console.log('id (uuid, primary key), telegram_id (bigint, unique), username, first_name, gold, wood, stone, meat, jabcoins, created_at, updated_at');
+      console.log('⚠️  Users table does not exist. Please create it in Supabase Dashboard.');
+      console.log('Run the SQL commands in SUPABASE_SETUP.md');
+    } else if (checkUsersError) {
+      console.log('⚠️  Error checking users table:', checkUsersError.message);
     } else {
       console.log('✅ Users table verified');
     }
@@ -72,13 +65,15 @@ async function initializeDatabase() {
       .limit(1);
 
     if (checkBuildingsError && checkBuildingsError.code === 'PGRST116') {
-      console.log('⚠️  User buildings table does not exist yet. Please create it in Supabase Dashboard with these columns:');
-      console.log('id (uuid, primary key), user_id (uuid), building_type, building_number, level, collected_amount, production_rate, created_at, updated_at');
+      console.log('⚠️  User buildings table does not exist. Please create it in Supabase Dashboard.');
+      console.log('Run the SQL commands in SUPABASE_SETUP.md');
+    } else if (checkBuildingsError) {
+      console.log('⚠️  Error checking buildings table:', checkBuildingsError.message);
     } else {
       console.log('✅ User buildings table verified');
     }
 
-    console.log('✅ Database schema check completed');
+    console.log('✅ Database initialization check completed');
   } catch (error) {
     console.error('Database initialization error:', error);
   }

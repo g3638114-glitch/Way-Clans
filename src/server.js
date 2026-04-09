@@ -18,7 +18,21 @@ app.use(express.static(join(__dirname, '../public')));
 
 // Webhook for Telegram
 app.post('/webhook', express.json(), (req, res) => {
-  bot.handleUpdate(req.body, res);
+  console.log('📨 Webhook received:', {
+    update_id: req.body?.update_id,
+    message: req.body?.message?.text,
+    command: req.body?.message?.entities,
+  });
+
+  try {
+    bot.handleUpdate(req.body).catch(err => {
+      console.error('Update handling error:', err);
+    });
+    res.status(200).send('OK');
+  } catch (err) {
+    console.error('Webhook error:', err);
+    res.status(500).send('Error');
+  }
 });
 
 // API endpoint to get user data

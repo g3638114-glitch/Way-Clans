@@ -91,6 +91,11 @@ bot.on('message', async (ctx) => {
 // Error handler
 bot.catch((err, ctx) => {
   console.error('Bot error:', err);
+  try {
+    ctx.reply('Произошла ошибка. Попробуйте позже.').catch(() => {});
+  } catch (e) {
+    console.error('Error sending error message:', e);
+  }
 });
 
 export { bot, supabase, initializeDatabase };

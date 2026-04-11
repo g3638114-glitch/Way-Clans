@@ -740,32 +740,62 @@ function renderQuestsList(quests) {
       </div>
     `;
 
-    if (!quest.completed) {
-      if (quest.url) {
-        // For subscribe quest, show link button
-        questContent += `
-          <button class="btn btn-quest" onclick="window.open('${quest.url}', '_blank')">
-            Подписать
-          </button>
-        `;
-      } else {
-        // For referral quests, show claim button (they auto-complete when conditions are met)
-        questContent += `
-          <button class="btn btn-quest" disabled>
-            Пригласите друзей
-          </button>
-        `;
-      }
-    } else {
+    // Button logic
+    if (quest.completed) {
+      // If completed - show "Get Reward" button
       questContent += `
-        <button class="btn btn-quest" onclick="claimQuestReward('${quest.id}')">
-          Получить награду
+        <button class="btn btn-quest btn-quest-claim" onclick="claimQuestReward('${quest.id}')">
+          Получить награду ✓
+        </button>
+      `;
+    } else if (quest.url) {
+      // For subscribe quest - show button to open link and check button
+      questContent += `
+        <div class="quest-buttons">
+          <button class="btn btn-quest btn-quest-action" onclick="window.open('${quest.url}', '_blank')">
+            Перейти на канал
+          </button>
+          <button class="btn btn-quest btn-quest-check" onclick="checkQuestProgress('${quest.id}')">
+            Проверить
+          </button>
+        </div>
+      `;
+    } else {
+      // For referral quests - show check button
+      questContent += `
+        <button class="btn btn-quest btn-quest-check" onclick="checkQuestProgress('${quest.id}')">
+          Проверить
         </button>
       `;
     }
 
     questCard.innerHTML = questContent;
     questsList.appendChild(questCard);
+  });
+}
+
+function checkQuestProgress(questId) {
+  // Load quests again to refresh their status
+  loadQuests().then(quests => {
+    // Find the quest
+    const quest = quests.find(q => q.id === questId);
+
+    if (!quest) {
+      tg.showAlert('❌ Задание не найдено');
+      return;
+    }
+
+    if (quest.completed) {
+      tg.showAlert('✅ Задание выполнено! Можно получить награду.');
+      // Reload quests modal with updated status
+      renderQuestsList(quests);
+    } else {
+      if (questId === 'subscribe_channel') {
+        tg.showAlert('❌ Вы еще не подписаны на канал. Подпишитесь и проверьте ещё раз.');
+      } else {
+        tg.showAlert('❌ Условие квеста еще не выполнено. Пригласите больше друзей.');
+      }
+    }
   });
 }
 

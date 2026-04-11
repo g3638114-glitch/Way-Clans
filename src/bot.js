@@ -17,10 +17,27 @@ const AVAILABLE_BUILDINGS = [
   { type: 'farm', maxCount: 5, productionRate: 40, baseCost: 30000 },
 ];
 
-// Create initial buildings for a new user (deprecated - users now buy buildings)
+// Create initial buildings for a new user (free buildings: mine, quarry, lumber_mill, farm)
 async function createInitialBuildings(userId) {
-  // No longer auto-create buildings. Users must purchase them.
-  console.log(`✅ User ${userId} created. Buildings can now be purchased.`);
+  try {
+    // Get user from Supabase
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', userId)
+      .single();
+
+    if (userError || !user) {
+      console.error('Error fetching user for initial buildings:', userError);
+      return;
+    }
+
+    // Create 4 initial free buildings (not added yet, only available to purchase)
+    // They will be created as "locked" cards that the user can buy for free
+    console.log(`✅ User ${user.id} created. Free buildings available for purchase: mine, quarry, lumber_mill, farm`);
+  } catch (error) {
+    console.error('Error creating initial buildings:', error);
+  }
 }
 
 // Initialize Supabase tables

@@ -199,6 +199,23 @@ body {
   box-shadow: 0 2px 8px rgba(76, 111, 166, 0.3);
 }
 
+.btn-quests {
+  background: linear-gradient(135deg, #ff9800 0%, #e65100 100%);
+  color: #fff;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.btn-quests:hover {
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-quests:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
 .btn-attack {
   background: linear-gradient(135deg, #d32f2f 0%, #8b0000 100%);
   color: #fff;
@@ -758,26 +775,40 @@ body {
 }
 
 .collect-btn {
-  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  background: linear-gradient(135deg, #616161 0%, #424242 100%);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(97, 97, 97, 0.3);
+  transition: all 0.3s ease;
+  cursor: not-allowed;
+  opacity: 0.8;
 }
 
-.collect-btn:hover:not(:disabled) {
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
+.collect-btn.collecting {
+  background: linear-gradient(135deg, #616161 0%, #424242 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(97, 97, 97, 0.3);
+  opacity: 0.8;
+}
+
+.collect-btn.ready {
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.collect-btn.ready:hover {
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.6);
   transform: translateY(-2px);
 }
 
-.collect-btn:active {
+.collect-btn.ready:active {
   transform: scale(0.95);
 }
 
 .collect-btn:disabled {
-  background: linear-gradient(135deg, #616161 0%, #424242 100%);
-  opacity: 0.7;
   cursor: not-allowed;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  color: #fff;
 }
 
 .upgrade-btn {
@@ -826,6 +857,102 @@ body {
 
 .cost-item strong {
   color: #d4af37;
+}
+
+/* Quest Card Styles */
+#quests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quest-card {
+  background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
+  border: 2px solid rgba(76, 111, 166, 0.4);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.quest-card.completed {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(46, 125, 50, 0.15) 100%);
+  border-color: rgba(76, 175, 80, 0.4);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.quest-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.quest-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.quest-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.quest-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0 0 4px 0;
+  color: #fff;
+}
+
+.quest-description {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.quest-reward {
+  padding: 8px 12px;
+  background: rgba(212, 175, 55, 0.1);
+  border-left: 3px solid #d4af37;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.reward-text {
+  font-size: 13px;
+  color: #d4af37;
+  font-weight: 600;
+}
+
+.btn-quest {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ff9800 0%, #e65100 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.btn-quest:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-quest:active {
+  transform: scale(0.95);
+}
+
+.btn-quest:disabled {
+  background: linear-gradient(135deg, #616161 0%, #424242 100%);
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive */

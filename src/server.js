@@ -356,12 +356,12 @@ app.post('/api/user/:userId/building/purchase', async (req, res) => {
     const { userId } = req.params;
     const { buildingType } = req.body;
 
-    // Define building properties
+    // Define building properties - all initial buildings are FREE (cost: 0)
     const buildingConfigs = {
-      mine: { productionRate: 100, firstFreeCost: 0, subsequentCost: 50000 },
-      quarry: { productionRate: 80, firstFreeCost: 50000, subsequentCost: 100000 },
-      lumber_mill: { productionRate: 60, firstFreeCost: 40000, subsequentCost: 80000 },
-      farm: { productionRate: 40, firstFreeCost: 30000, subsequentCost: 60000 },
+      mine: { productionRate: 100, cost: 0 },
+      quarry: { productionRate: 80, cost: 0 },
+      lumber_mill: { productionRate: 60, cost: 0 },
+      farm: { productionRate: 40, cost: 0 },
     };
 
     if (!buildingConfigs[buildingType]) {
@@ -379,7 +379,7 @@ app.post('/api/user/:userId/building/purchase', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Get user's buildings of this type to determine building number and cost
+    // Get user's buildings of this type to determine building number
     const { data: userBuildings, error: buildError } = await supabase
       .from('user_buildings')
       .select('*')
@@ -391,20 +391,16 @@ app.post('/api/user/:userId/building/purchase', async (req, res) => {
       return res.status(500).json({ error: 'Failed to check existing buildings' });
     }
 
-    const config = buildingConfigs[buildingType];
-    const buildingNumber = (userBuildings && userBuildings.length > 0)
-      ? userBuildings[0].building_number + 1
-      : 1;
-
-    // Determine cost: first mine is free, others have costs
-    let cost = config.subsequentCost;
-    if (buildingType === 'mine' && buildingNumber === 1) {
-      cost = config.firstFreeCost; // First mine is free (0 cost)
-    } else if (buildingNumber === 1) {
-      cost = config.firstFreeCost; // Other buildings' first purchase cost
+    // Only allow the first building of each type to be purchased
+    if (userBuildings && userBuildings.length > 0) {
+      return res.status(400).json({ error: 'You already own this building. Get more from quests!' });
     }
 
-    // Check if user has enough gold
+    const config = buildingConfigs[buildingType];
+    const buildingNumber = 1;
+    const cost = config.cost; // All initial buildings are free (0)
+
+    // Check if user has enough gold (should always pass for free buildings, but good to check)
     if (user.gold < cost) {
       return res.status(400).json({ error: `Not enough gold. Need ${cost}, have ${user.gold}` });
     }
@@ -429,7 +425,7 @@ app.post('/api/user/:userId/building/purchase', async (req, res) => {
       return res.status(500).json({ error: 'Failed to create building' });
     }
 
-    // Deduct gold from user
+    // Deduct gold from user (0 for free buildings)
     const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update({ gold: user.gold - cost })
@@ -449,6 +445,145 @@ app.post('/api/user/:userId/building/purchase', async (req, res) => {
     });
   } catch (error) {
     console.error('Error purchasing building:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// API endpoint to get user quests
+app.get('/api/user/:userId/quests', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Get user
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, referral_count')
+      .eq('telegram_id', userId)
+      .single();
+
+    if (userError) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Define quests
+    const quests = [
+      {
+        id: 'subscribe_channel',
+        title: 'Подписать на канал',
+        description: 'Подпишитесь на наш канал в Telegram',
+        reward: 'Шахта +1',
+        icon: '📱',
+        url: 'https://t.me/spn_newsvpn',
+        completed: false,
+      },
+      {
+        id: 'referral_1',
+        title: '1 реферал',
+        description: `Пригласите друга (${user.referral_count || 0}/1)`,
+        reward: 'Шахта +1',
+        icon: '👥',
+        completed: (user.referral_count || 0) >= 1,
+      },
+      {
+        id: 'referral_2',
+        title: '2 реферала',
+        description: `Пригласите друзей (${user.referral_count || 0}/2)`,
+        reward: 'Шахта +1',
+        icon: '👥👥',
+        completed: (user.referral_count || 0) >= 2,
+      },
+      {
+        id: 'referral_3',
+        title: '3 реферала',
+        description: `Пригласите друзей (${user.referral_count || 0}/3)`,
+        reward: 'Шахта +2',
+        icon: '👥👥👥',
+        completed: (user.referral_count || 0) >= 3,
+      },
+    ];
+
+    res.json(quests);
+  } catch (error) {
+    console.error('Error fetching quests:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// API endpoint to complete a quest and claim reward
+app.post('/api/user/:userId/quest/:questId/claim', async (req, res) => {
+  try {
+    const { userId, questId } = req.params;
+
+    // Get user
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('telegram_id', userId)
+      .single();
+
+    if (userError) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Define quest rewards (mines)
+    const questRewards = {
+      subscribe_channel: 1,
+      referral_1: 1,
+      referral_2: 1,
+      referral_3: 2,
+    };
+
+    const minesToAdd = questRewards[questId];
+
+    if (!minesToAdd) {
+      return res.status(400).json({ error: 'Invalid quest' });
+    }
+
+    // Add mines to user
+    let buildingsAdded = [];
+    for (let i = 0; i < minesToAdd; i++) {
+      // Get current max building number
+      const { data: maxBuilding } = await supabase
+        .from('user_buildings')
+        .select('building_number')
+        .eq('user_id', user.id)
+        .eq('building_type', 'mine')
+        .order('building_number', { ascending: false })
+        .limit(1);
+
+      const nextBuildingNumber = (maxBuilding && maxBuilding.length > 0)
+        ? maxBuilding[0].building_number + 1
+        : 1;
+
+      const { data: newBuilding, error: createError } = await supabase
+        .from('user_buildings')
+        .insert({
+          user_id: user.id,
+          building_type: 'mine',
+          building_number: nextBuildingNumber,
+          level: 1,
+          collected_amount: 0,
+          production_rate: 100,
+          last_collected: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (!createError) {
+        buildingsAdded.push(newBuilding);
+      }
+    }
+
+    res.json({
+      success: true,
+      questId,
+      minesAdded: minesToAdd,
+      buildings: buildingsAdded,
+      message: `✅ Получено ${minesToAdd} шахт!`,
+    });
+  } catch (error) {
+    console.error('Error claiming quest reward:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

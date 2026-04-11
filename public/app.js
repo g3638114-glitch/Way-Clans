@@ -89,18 +89,18 @@ function updateUI() {
   const meatText = formatNumber(currentUser.meat);
   const jabcoinsText = currentUser.jabcoins;
 
-  document.getElementById('gold-value').textContent = goldText;
-  document.getElementById('wood-value').textContent = woodText;
-  document.getElementById('stone-value').textContent = stoneText;
-  document.getElementById('meat-value').textContent = meatText;
-  document.getElementById('jabcoins-value').textContent = jabcoinsText;
+  // Update header resources
+  const goldEl = document.getElementById('gold-value');
+  const woodEl = document.getElementById('wood-value');
+  const stoneEl = document.getElementById('stone-value');
+  const meatEl = document.getElementById('meat-value');
+  const jabcoinsEl = document.getElementById('jabcoins-value');
 
-  // Update mining page resources
-  document.getElementById('mining-gold-value').textContent = goldText;
-  document.getElementById('mining-wood-value').textContent = woodText;
-  document.getElementById('mining-stone-value').textContent = stoneText;
-  document.getElementById('mining-meat-value').textContent = meatText;
-  document.getElementById('mining-jabcoins-value').textContent = jabcoinsText;
+  if (goldEl) goldEl.textContent = goldText;
+  if (woodEl) woodEl.textContent = woodText;
+  if (stoneEl) stoneEl.textContent = stoneText;
+  if (meatEl) meatEl.textContent = meatText;
+  if (jabcoinsEl) jabcoinsEl.textContent = jabcoinsText;
 
   // Update player card
   document.getElementById('player-name').textContent = currentUser.first_name || 'Player';
@@ -108,12 +108,17 @@ function updateUI() {
   document.getElementById('player-id').textContent = currentUser.telegram_id;
 
   // Update storage modal
-  document.getElementById('storage-wood').textContent = woodText;
-  document.getElementById('storage-stone').textContent = stoneText;
-  document.getElementById('storage-meat').textContent = meatText;
+  const storageWoodEl = document.getElementById('storage-wood');
+  const storageStonEl = document.getElementById('storage-stone');
+  const storageMeatEl = document.getElementById('storage-meat');
+
+  if (storageWoodEl) storageWoodEl.textContent = woodText;
+  if (storageStonEl) storageStonEl.textContent = stoneText;
+  if (storageMeatEl) storageMeatEl.textContent = meatText;
 
   // Update exchange modal
-  document.getElementById('exchange-gold').textContent = `💰 ${goldText}`;
+  const exchangeGoldEl = document.getElementById('exchange-gold');
+  if (exchangeGoldEl) exchangeGoldEl.textContent = `💰 ${goldText}`;
 
   // Reset input fields
   document.getElementById('wood-input').max = currentUser.wood;
@@ -296,8 +301,15 @@ function createBuildingCard(building) {
 
   const collectBtn = document.createElement('button');
   collectBtn.className = 'btn building-btn collect-btn';
-  collectBtn.textContent = `Собрать`;
-  collectBtn.disabled = collectedAmount === 0;
+  const isReady = collectedAmount >= maxCapacity;
+  if (isReady) {
+    collectBtn.classList.add('ready');
+    collectBtn.textContent = `Собрать`;
+  } else {
+    collectBtn.classList.add('collecting');
+    collectBtn.textContent = `Собрать`;
+    collectBtn.disabled = true;
+  }
   collectBtn.addEventListener('click', () => collectResources(building.id));
 
   const upgradeBtn = document.createElement('button');
@@ -670,9 +682,122 @@ async function exchangeGold() {
   }
 }
 
+// Quests Modal Functions
+async function loadQuests() {
+  try {
+    const response = await fetch(`/api/user/${userId}/quests`);
+    if (!response.ok) {
+      console.error('Failed to load quests');
+      return [];
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error loading quests:', error);
+    return [];
+  }
+}
+
+function openQuestsModal() {
+  loadQuests().then(quests => {
+    renderQuestsList(quests);
+    document.getElementById('quests-modal').classList.add('active');
+  });
+}
+
+function closeQuestsModal() {
+  document.getElementById('quests-modal').classList.remove('active');
+}
+
+function renderQuestsList(quests) {
+  const questsList = document.getElementById('quests-list');
+  questsList.innerHTML = '';
+
+  quests.forEach(quest => {
+    const questCard = document.createElement('div');
+    questCard.className = 'quest-card';
+    if (quest.completed) {
+      questCard.classList.add('completed');
+    }
+
+    let questContent = `
+      <div class="quest-header">
+        <span class="quest-icon">${quest.icon}</span>
+        <div class="quest-info">
+          <h3 class="quest-title">${quest.title}</h3>
+          <p class="quest-description">${quest.description}</p>
+        </div>
+      </div>
+      <div class="quest-reward">
+        <span class="reward-text">Награда: ${quest.reward}</span>
+      </div>
+    `;
+
+    if (!quest.completed) {
+      if (quest.url) {
+        // For subscribe quest, show link button
+        questContent += `
+          <button class="btn btn-quest" onclick="window.open('${quest.url}', '_blank')">
+            Подписать
+          </button>
+        `;
+      } else {
+        // For referral quests, show claim button (they auto-complete when conditions are met)
+        questContent += `
+          <button class="btn btn-quest" disabled>
+            Пригласите друзей
+          </button>
+        `;
+      }
+    } else {
+      questContent += `
+        <button class="btn btn-quest" onclick="claimQuestReward('${quest.id}')">
+          Получить награду
+        </button>
+      `;
+    }
+
+    questCard.innerHTML = questContent;
+    questsList.appendChild(questCard);
+  });
+}
+
+async function claimQuestReward(questId) {
+  try {
+    const response = await fetch(`/api/user/${userId}/quest/${questId}/claim`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      tg.showAlert(error.error || 'Ошибка при получении награды');
+      return;
+    }
+
+    const result = await response.json();
+
+    // Add new buildings to local array
+    if (result.buildings && result.buildings.length > 0) {
+      result.buildings.forEach(building => {
+        building._collected_decimal = 0;
+        allBuildings.push(building);
+      });
+    }
+
+    tg.showAlert(result.message || `✅ Получено ${result.minesAdded} шахт!`);
+
+    // Reload quests and refresh UI
+    openQuestsModal();
+  } catch (error) {
+    console.error('Error claiming reward:', error);
+    tg.showAlert('Ошибка при получении награды');
+  }
+}
+
 // Event Listeners
 document.getElementById('storage-btn').addEventListener('click', openStorageModal);
 document.getElementById('exchange-btn').addEventListener('click', openExchangeModal);
+document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
 
 document.getElementById('gold-input').addEventListener('input', updateExchangeResult);
 
@@ -710,15 +835,90 @@ document.getElementById('exchange-modal').addEventListener('click', (e) => {
   }
 });
 
-// Set up auto-refresh for building production
+document.getElementById('quests-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'quests-modal') {
+    closeQuestsModal();
+  }
+});
+
+// Smooth production updates - only update values, no re-render
 let productionRefreshInterval = null;
 
+function smoothUpdateProduction() {
+  // Update decimal production amounts for all buildings
+  const now = new Date();
+
+  allBuildings.forEach(building => {
+    if (!building.last_collected) return;
+
+    const lastCollected = new Date(building.last_collected);
+    const hoursPassed = (now - lastCollected) / (1000 * 60 * 60);
+    const productionRate = building.production_rate || 100;
+    const maxCapacity = productionRate * 24; // 24 hour max capacity
+
+    // Store decimal value internally for smooth calculation
+    if (!building._collected_decimal) {
+      building._collected_decimal = building.collected_amount || 0;
+    }
+
+    const newCollected = building._collected_decimal + (hoursPassed * productionRate);
+    building._collected_decimal = Math.min(newCollected, maxCapacity); // Cap at max capacity
+
+    // Update UI for this building card only
+    updateBuildingCardValues(building);
+  });
+}
+
+// Update only the values on a building card (smooth update, no re-render)
+function updateBuildingCardValues(building) {
+  const card = document.querySelector(`[data-building-id="${building.id}"]`);
+  if (!card) return;
+
+  const collectedAmount = Math.floor(building._collected_decimal || building.collected_amount || 0);
+  const productionRate = building.production_rate || 100;
+  const maxCapacity = productionRate * 24;
+  const progressPercent = (collectedAmount / maxCapacity) * 100;
+  const isReady = collectedAmount >= maxCapacity;
+
+  // Update collected value
+  const infoValue = card.querySelector('.info-value-collected');
+  if (infoValue) {
+    infoValue.textContent = `${collectedAmount}/${maxCapacity}`;
+  }
+
+  // Update progress bar
+  const progressFill = card.querySelector('.production-fill');
+  if (progressFill) {
+    progressFill.style.width = `${Math.min(progressPercent, 100)}%`;
+  }
+
+  // Update time remaining
+  const timeDiv = card.querySelector('[data-time-remaining]');
+  if (timeDiv) {
+    const timeRemaining = calculateTimeRemaining(collectedAmount, productionRate, maxCapacity);
+    timeDiv.textContent = `Время до заполнения: ${timeRemaining}`;
+  }
+
+  // Update collect button state - green when ready, gray when collecting
+  const collectBtn = card.querySelector('.collect-btn');
+  if (collectBtn) {
+    collectBtn.disabled = !isReady;
+    if (isReady) {
+      collectBtn.classList.add('ready');
+      collectBtn.classList.remove('collecting');
+    } else {
+      collectBtn.classList.remove('ready');
+      collectBtn.classList.add('collecting');
+    }
+  }
+}
+
 function startProductionRefresh() {
-  // Update production every second
+  // Update production every second with smooth updates
   if (productionRefreshInterval) return; // Prevent multiple intervals
   productionRefreshInterval = setInterval(() => {
     if (currentPage === 'mining' && allBuildings.length > 0) {
-      renderBuildings();
+      smoothUpdateProduction();
     }
   }, 1000);
 }

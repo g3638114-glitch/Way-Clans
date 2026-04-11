@@ -35,7 +35,7 @@ body {
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 100;
 }
 
 .resource-item {
@@ -227,7 +227,7 @@ body {
   border-top: 2px solid rgba(255, 255, 255, 0.1);
   position: sticky;
   bottom: 0;
-  z-index: 10;
+  z-index: 100;
 }
 
 .nav-item {
@@ -513,7 +513,6 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding-bottom: 70px;
 }
 
 .page:not(#main-page) {

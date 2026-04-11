@@ -2,27 +2,33 @@
 const tg = window.Telegram.WebApp;
 tg.ready();
 
+// BOTFATHER CONFIGURATION:
+// For the MiniApp button in BotFather, use this URL: https://way.clans.idlebat.online/
+// The app will automatically get the userId from Telegram WebApp API
+// This URL will also work with any query parameters if needed
+
 let currentUser = null;
 let userId = null;
 let currentPage = 'main';
 let allBuildings = [];
 let selectedBuildingType = 'mine';
 
-// Parse userId from URL or Telegram WebApp
+// Parse userId from URL or Telegram WebApp API
 function getUserIdFromUrl() {
-  // First try to get from URL (for bot links)
+  // First, try to get userId from URL parameters (for bot-generated links)
   const params = new URLSearchParams(window.location.search);
   const urlUserId = params.get('userId');
+
   if (urlUserId) {
     return urlUserId;
   }
 
-  // Fallback: get from Telegram WebApp initData
-  const initDataUnsafe = window.Telegram?.WebApp?.initDataUnsafe;
-  if (initDataUnsafe && initDataUnsafe.user && initDataUnsafe.user.id) {
-    return initDataUnsafe.user.id.toString();
+  // If not in URL, try to get from Telegram WebApp API (when opened from BotFather button)
+  if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    return tg.initDataUnsafe.user.id.toString();
   }
 
+  console.error('No userId found');
   return null;
 }
 

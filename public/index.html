@@ -198,6 +198,55 @@
     </div>
   </div>
 
+  <!-- Upgrade Confirmation Modal -->
+  <div class="modal" id="upgrade-modal">
+    <div class="modal-content upgrade-modal-content">
+      <div class="modal-header">
+        <h2>⬆️ Улучшение здания</h2>
+        <button class="close-btn" onclick="closeUpgradeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body upgrade-modal-body">
+        <div class="upgrade-info">
+          <div class="upgrade-item">
+            <span class="upgrade-label">Уровень:</span>
+            <div class="upgrade-values">
+              <span id="upgrade-current-level" class="upgrade-current">1</span>
+              <span class="upgrade-arrow">→</span>
+              <span id="upgrade-new-level" class="upgrade-new">2</span>
+            </div>
+          </div>
+
+          <div class="upgrade-item">
+            <span class="upgrade-label">Производство в час:</span>
+            <div class="upgrade-values">
+              <span id="upgrade-current-production" class="upgrade-current">80</span>
+              <span class="upgrade-arrow">→</span>
+              <span id="upgrade-new-production" class="upgrade-new">96</span>
+            </div>
+          </div>
+
+          <div class="upgrade-item upgrade-cost-item">
+            <span class="upgrade-label">Стоимость:</span>
+            <div class="upgrade-cost">
+              <span id="upgrade-cost-gold">💰 1000</span>
+            </div>
+          </div>
+
+          <div class="upgrade-item user-gold-item">
+            <span class="upgrade-label">Ваше золото:</span>
+            <span id="upgrade-user-gold" class="user-gold-value">💰 5000</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="confirm-upgrade-btn" onclick="confirmUpgrade()">Улучшить</button>
+        <button class="btn btn-secondary" onclick="closeUpgradeModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

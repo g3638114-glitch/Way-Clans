@@ -990,6 +990,81 @@ body {
   width: 100%;
 }
 
+/* Upgrade Modal Styles */
+.upgrade-modal-content {
+  max-width: 400px;
+}
+
+.upgrade-modal-body {
+  padding: 30px 20px;
+}
+
+.upgrade-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.upgrade-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: rgba(76, 111, 166, 0.1);
+  border: 1px solid rgba(76, 111, 166, 0.3);
+  border-radius: 12px;
+}
+
+.upgrade-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.upgrade-values {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.upgrade-current {
+  color: #4caf50;
+  font-size: 16px;
+}
+
+.upgrade-arrow {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+.upgrade-new {
+  color: #64b5f6;
+  font-size: 16px;
+}
+
+.upgrade-cost-item {
+  background: rgba(255, 152, 0, 0.1);
+  border-color: rgba(255, 152, 0, 0.3);
+}
+
+.upgrade-cost {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffa500;
+}
+
+.user-gold-item {
+  background: rgba(76, 111, 166, 0.2);
+  border-color: rgba(76, 111, 166, 0.4);
+}
+
+.user-gold-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffeb3b;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .app-container {

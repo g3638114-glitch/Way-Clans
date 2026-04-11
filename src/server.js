@@ -86,7 +86,35 @@ app.get('/api/user/:userId/buildings', async (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch buildings' });
     }
 
-    res.json(buildings || []);
+    // Fix buildings with missing or invalid last_collected
+    const fixedBuildings = buildings || [];
+    const now = new Date().toISOString();
+
+    let needsUpdate = false;
+    for (const building of fixedBuildings) {
+      if (!building.last_collected || building.last_collected === null) {
+        building.last_collected = now;
+        building.collected_amount = 0;
+        needsUpdate = true;
+      }
+    }
+
+    // Update database if any buildings need fixing
+    if (needsUpdate) {
+      for (const building of fixedBuildings) {
+        if (!building.last_collected || building.last_collected === null) {
+          await supabase
+            .from('user_buildings')
+            .update({
+              last_collected: now,
+              collected_amount: 0,
+            })
+            .eq('id', building.id);
+        }
+      }
+    }
+
+    res.json(fixedBuildings);
   } catch (error) {
     console.error('Error fetching buildings:', error);
     res.status(500).json({ error: 'Server error' });
@@ -357,11 +385,12 @@ app.post('/api/user/:userId/building/purchase', async (req, res) => {
     const { buildingType } = req.body;
 
     // Define building properties - all initial buildings are FREE (cost: 0)
+    // Production rate is per hour
     const buildingConfigs = {
-      mine: { productionRate: 100, cost: 0 },
-      quarry: { productionRate: 80, cost: 0 },
-      lumber_mill: { productionRate: 60, cost: 0 },
-      farm: { productionRate: 40, cost: 0 },
+      mine: { productionRate: 80, cost: 0 },          // 80 gold per hour
+      quarry: { productionRate: 60, cost: 0 },        // 60 stone per hour
+      lumber_mill: { productionRate: 50, cost: 0 },   // 50 wood per hour
+      farm: { productionRate: 40, cost: 0 },          // 40 meat per hour
     };
 
     if (!buildingConfigs[buildingType]) {
@@ -449,10 +478,51 @@ app.post('/api/user/:userId/building/purchase', async (req, res) => {
   }
 });
 
+// API endpoint to check channel subscription
+app.post('/api/user/:userId/check-subscription', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const CHANNEL_ID = '@spn_newsvpn'; // Channel to check subscription
+
+    // Use Telegram Bot API to check if user is subscribed
+    const telegramApiUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/getChatMember`;
+
+    const response = await fetch(telegramApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: CHANNEL_ID,
+        user_id: userId,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!result.ok) {
+      console.error('Telegram API error:', result.description);
+      return res.status(400).json({
+        subscribed: false,
+        error: 'Could not check subscription'
+      });
+    }
+
+    const member = result.result;
+    const isSubscribed = member.status === 'member' || member.status === 'administrator' || member.status === 'creator';
+
+    res.json({ subscribed: isSubscribed });
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // API endpoint to get user quests
 app.get('/api/user/:userId/quests', async (req, res) => {
   try {
     const { userId } = req.params;
+    const CHANNEL_ID = '@spn_newsvpn';
 
     // Get user
     const { data: user, error: userError } = await supabase
@@ -471,6 +541,31 @@ app.get('/api/user/:userId/quests', async (req, res) => {
     }
     // If PGRST116 (no rows), just continue with referralCount = 0
 
+    // Check channel subscription via Telegram API
+    let isSubscribed = false;
+    try {
+      const telegramApiUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/getChatMember`;
+      const subResponse = await fetch(telegramApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: CHANNEL_ID,
+          user_id: userId,
+        }),
+      });
+
+      const subResult = await subResponse.json();
+      if (subResult.ok) {
+        const member = subResult.result;
+        isSubscribed = member.status === 'member' || member.status === 'administrator' || member.status === 'creator';
+      }
+    } catch (error) {
+      console.error('Error checking subscription in quests:', error);
+      // If error, just return false for subscription
+    }
+
     // Define quests - always return them even if user not found
     const quests = [
       {
@@ -480,7 +575,7 @@ app.get('/api/user/:userId/quests', async (req, res) => {
         reward: 'Шахта +1',
         icon: '📱',
         url: 'https://t.me/spn_newsvpn',
-        completed: false,
+        completed: isSubscribed,
       },
       {
         id: 'referral_1',
@@ -569,7 +664,7 @@ app.post('/api/user/:userId/quest/:questId/claim', async (req, res) => {
           building_number: nextBuildingNumber,
           level: 1,
           collected_amount: 0,
-          production_rate: 100,
+          production_rate: 80,
           last_collected: new Date().toISOString(),
           created_at: new Date().toISOString(),
         })

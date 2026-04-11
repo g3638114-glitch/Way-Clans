@@ -90,27 +90,33 @@ app.get('/api/user/:userId/buildings', async (req, res) => {
     const fixedBuildings = buildings || [];
     const now = new Date().toISOString();
 
-    let needsUpdate = false;
+    // Check if any building has a very old last_collected (more than 30 days old)
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
     for (const building of fixedBuildings) {
       if (!building.last_collected || building.last_collected === null) {
         building.last_collected = now;
         building.collected_amount = 0;
-        needsUpdate = true;
+      } else {
+        const lastCollectedDate = new Date(building.last_collected);
+        if (lastCollectedDate < thirtyDaysAgo) {
+          // Building has not been collected for 30+ days - reset it
+          building.last_collected = now;
+          building.collected_amount = 0;
+        }
       }
     }
 
     // Update database if any buildings need fixing
-    if (needsUpdate) {
-      for (const building of fixedBuildings) {
-        if (!building.last_collected || building.last_collected === null) {
-          await supabase
-            .from('user_buildings')
-            .update({
-              last_collected: now,
-              collected_amount: 0,
-            })
-            .eq('id', building.id);
-        }
+    for (const building of fixedBuildings) {
+      if (!building.last_collected || building.last_collected === null || new Date(building.last_collected) < thirtyDaysAgo) {
+        await supabase
+          .from('user_buildings')
+          .update({
+            last_collected: now,
+            collected_amount: 0,
+          })
+          .eq('id', building.id);
       }
     }
 
@@ -626,6 +632,18 @@ app.post('/api/user/:userId/quest/:questId/claim', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Check if quest is already claimed
+    const { data: existingReward, error: checkError } = await supabase
+      .from('user_quest_rewards')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('quest_id', questId)
+      .single();
+
+    if (existingReward || (checkError && checkError.code !== 'PGRST116')) {
+      return res.status(400).json({ error: 'Вы уже получили награду за это задание!' });
+    }
+
     // Define quest rewards (mines)
     const questRewards = {
       subscribe_channel: 1,
@@ -674,6 +692,20 @@ app.post('/api/user/:userId/quest/:questId/claim', async (req, res) => {
       if (!createError) {
         buildingsAdded.push(newBuilding);
       }
+    }
+
+    // Mark quest as claimed
+    const { error: rewardError } = await supabase
+      .from('user_quest_rewards')
+      .insert({
+        user_id: user.id,
+        quest_id: questId,
+        claimed_at: new Date().toISOString(),
+      });
+
+    if (rewardError && rewardError.code !== 'PGRST116') {
+      console.error('Error recording quest reward:', rewardError);
+      // Still return success since buildings were added
     }
 
     res.json({

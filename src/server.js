@@ -501,6 +501,14 @@ app.get('/api/user/:userId/quests', async (req, res) => {
     // Check if user is actually subscribed to the channel
     const isSubscribed = await isUserSubscribed(userId);
 
+    // Get all completed quests for this user
+    const { data: completedQuestsList } = await supabase
+      .from('completed_quests')
+      .select('quest_id')
+      .eq('user_id', user.id);
+
+    const completedQuestIds = new Set(completedQuestsList?.map(q => q.quest_id) || []);
+
     // Define quests - always return them even if user not found
     const quests = [
       {
@@ -511,6 +519,7 @@ app.get('/api/user/:userId/quests', async (req, res) => {
         icon: '📱',
         url: 'https://t.me/spn_newsvpn',
         completed: isSubscribed,
+        rewarded: completedQuestIds.has('subscribe_channel'),
       },
       {
         id: 'referral_1',
@@ -519,6 +528,7 @@ app.get('/api/user/:userId/quests', async (req, res) => {
         reward: 'Шахта +1',
         icon: '👥',
         completed: referralCount >= 1,
+        rewarded: completedQuestIds.has('referral_1'),
       },
       {
         id: 'referral_2',
@@ -527,6 +537,7 @@ app.get('/api/user/:userId/quests', async (req, res) => {
         reward: 'Шахта +1',
         icon: '👥👥',
         completed: referralCount >= 2,
+        rewarded: completedQuestIds.has('referral_2'),
       },
       {
         id: 'referral_3',
@@ -535,6 +546,7 @@ app.get('/api/user/:userId/quests', async (req, res) => {
         reward: 'Шахта +2',
         icon: '👥👥👥',
         completed: referralCount >= 3,
+        rewarded: completedQuestIds.has('referral_3'),
       },
     ];
 
@@ -575,6 +587,18 @@ app.post('/api/user/:userId/quest/:questId/claim', async (req, res) => {
       return res.status(400).json({ error: 'Invalid quest' });
     }
 
+    // Check if quest is already completed
+    const { data: existingCompletion } = await supabase
+      .from('completed_quests')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('quest_id', questId)
+      .single();
+
+    if (existingCompletion) {
+      return res.status(400).json({ error: 'Вы уже получили награду за это задание!' });
+    }
+
     // Add mines to user
     let buildingsAdded = [];
     for (let i = 0; i < minesToAdd; i++) {
@@ -610,6 +634,15 @@ app.post('/api/user/:userId/quest/:questId/claim', async (req, res) => {
         buildingsAdded.push(newBuilding);
       }
     }
+
+    // Mark quest as completed
+    await supabase
+      .from('completed_quests')
+      .insert({
+        user_id: user.id,
+        quest_id: questId,
+        completed_at: new Date().toISOString(),
+      });
 
     res.json({
       success: true,

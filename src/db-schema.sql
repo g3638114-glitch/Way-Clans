@@ -36,6 +36,19 @@ CREATE TABLE IF NOT EXISTS user_buildings (
 CREATE INDEX IF NOT EXISTS idx_buildings_user_id ON user_buildings(user_id);
 CREATE INDEX IF NOT EXISTS idx_buildings_type ON user_buildings(building_type);
 
+-- Create completed_quests table to track which quests user has completed
+CREATE TABLE IF NOT EXISTS completed_quests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  quest_id TEXT NOT NULL,
+  completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, quest_id)
+);
+
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_completed_quests_user_id ON completed_quests(user_id);
+
 -- Disable RLS on tables (bot handles access control via Telegram)
 ALTER TABLE users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE completed_quests DISABLE ROW LEVEL SECURITY;

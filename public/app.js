@@ -813,8 +813,15 @@ function renderQuestsList(quests) {
     `;
 
     // Button logic
-    if (quest.completed) {
-      // If completed - show "Get Reward" button
+    if (quest.rewarded) {
+      // If already received reward - show completed status
+      questContent += `
+        <button class="btn btn-quest btn-quest-completed" disabled>
+          ✓ Награда получена
+        </button>
+      `;
+    } else if (quest.completed) {
+      // If completed but not rewarded - show "Get Reward" button
       questContent += `
         <button class="btn btn-quest btn-quest-claim" onclick="claimQuestReward('${quest.id}')">
           Получить награду ✓

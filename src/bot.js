@@ -1,8 +1,11 @@
 import { Telegraf } from 'telegraf';
 import { createClient } from '@supabase/supabase-js';
+import pkg from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+const { Client } = pkg;
 
 // Initialize bot and Supabase
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
@@ -41,146 +44,108 @@ async function createInitialBuildings(userId) {
   }
 }
 
-// Execute SQL statements via Supabase SQL API
+// Execute SQL statements directly via PostgreSQL connection
 async function executeSqlStatements() {
-  console.log('📦 Starting database initialization...');
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+  });
 
-  // SQL statements to create tables
-  const sqlStatements = [
-    // Create users table
-    `CREATE TABLE IF NOT EXISTS users (
-      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-      telegram_id BIGINT UNIQUE NOT NULL,
-      username TEXT,
-      first_name TEXT,
-      gold BIGINT DEFAULT 5000,
-      wood BIGINT DEFAULT 2500,
-      stone BIGINT DEFAULT 2500,
-      meat BIGINT DEFAULT 500,
-      jabcoins BIGINT DEFAULT 0,
-      referral_count INT DEFAULT 0,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-    );`,
+  try {
+    console.log('📦 Connecting to PostgreSQL...');
+    await client.connect();
+    console.log('✅ Connected to PostgreSQL');
 
-    // Create index on telegram_id
-    `CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id);`,
+    // SQL statements to create tables
+    const sqlStatements = [
+      // Create users table
+      `CREATE TABLE IF NOT EXISTS users (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        telegram_id BIGINT UNIQUE NOT NULL,
+        username TEXT,
+        first_name TEXT,
+        gold BIGINT DEFAULT 5000,
+        wood BIGINT DEFAULT 2500,
+        stone BIGINT DEFAULT 2500,
+        meat BIGINT DEFAULT 500,
+        jabcoins BIGINT DEFAULT 0,
+        referral_count INT DEFAULT 0,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );`,
 
-    // Create user_buildings table
-    `CREATE TABLE IF NOT EXISTS user_buildings (
-      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      building_type TEXT NOT NULL,
-      building_number INT NOT NULL,
-      level INT DEFAULT 1,
-      collected_amount BIGINT DEFAULT 0,
-      production_rate BIGINT DEFAULT 100,
-      last_collected TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-      UNIQUE(user_id, building_type, building_number)
-    );`,
+      // Create index on telegram_id
+      `CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id);`,
 
-    // Create indexes for buildings table
-    `CREATE INDEX IF NOT EXISTS idx_buildings_user_id ON user_buildings(user_id);`,
-    `CREATE INDEX IF NOT EXISTS idx_buildings_type ON user_buildings(building_type);`,
+      // Create user_buildings table
+      `CREATE TABLE IF NOT EXISTS user_buildings (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        building_type TEXT NOT NULL,
+        building_number INT NOT NULL,
+        level INT DEFAULT 1,
+        collected_amount BIGINT DEFAULT 0,
+        production_rate BIGINT DEFAULT 100,
+        last_collected TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(user_id, building_type, building_number)
+      );`,
 
-    // Disable RLS
-    `ALTER TABLE users DISABLE ROW LEVEL SECURITY;`,
-    `ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;`,
-  ];
+      // Create indexes for buildings table
+      `CREATE INDEX IF NOT EXISTS idx_buildings_user_id ON user_buildings(user_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_buildings_type ON user_buildings(building_type);`,
 
-  // Try to execute all statements via Supabase query API
-  let tablesCreated = false;
+      // Disable RLS
+      `ALTER TABLE users DISABLE ROW LEVEL SECURITY;`,
+      `ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;`,
+    ];
 
-  for (let i = 0; i < sqlStatements.length; i++) {
-    const statement = sqlStatements[i];
-    try {
-      // Attempt execution via HTTP request to Supabase SQL API
-      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/sql`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'apikey': process.env.SUPABASE_KEY,
-        },
-        body: JSON.stringify({ query: statement }),
-      }).catch(() => ({ ok: false }));
-
-      if (response.ok) {
-        tablesCreated = true;
+    // Execute each SQL statement
+    for (let i = 0; i < sqlStatements.length; i++) {
+      const statement = sqlStatements[i];
+      try {
+        await client.query(statement);
+      } catch (error) {
+        // Ignore "already exists" errors, they're expected
+        if (!error.message.includes('already exists')) {
+          console.warn(`⚠️  SQL Warning: ${error.message}`);
+        }
       }
-    } catch (error) {
-      // Ignore errors - tables might already exist
     }
-  }
 
-  // Verify table creation by attempting queries
-  let usersCheckError = null;
-  let buildingsCheckError = null;
+    console.log('✅ Tables created/verified');
 
-  try {
-    const result = await supabase
-      .from('users')
-      .select('id')
-      .limit(1);
-    usersCheckError = result.error;
+    return {
+      usersTableExists: true,
+      buildingsTableExists: true,
+    };
   } catch (error) {
-    usersCheckError = { code: 'PGRST116', message: error.message };
+    console.error('❌ PostgreSQL connection error:', error.message);
+    return {
+      usersTableExists: false,
+      buildingsTableExists: false,
+    };
+  } finally {
+    await client.end();
   }
-
-  try {
-    const result = await supabase
-      .from('user_buildings')
-      .select('id')
-      .limit(1);
-    buildingsCheckError = result.error;
-  } catch (error) {
-    buildingsCheckError = { code: 'PGRST116', message: error.message };
-  }
-
-  return {
-    usersTableExists: !usersCheckError || usersCheckError.code !== 'PGRST116',
-    buildingsTableExists: !buildingsCheckError || buildingsCheckError.code !== 'PGRST116',
-  };
 }
 
-// Initialize Supabase tables - automatically creates them if they don't exist
+// Initialize database tables - automatically creates them if they don't exist
 async function initializeDatabase() {
   try {
     console.log('🚀 Initializing database...');
 
-    // Try to create tables
+    // Create tables via direct PostgreSQL connection
     const { usersTableExists, buildingsTableExists } = await executeSqlStatements();
 
-    if (usersTableExists) {
-      console.log('✅ Users table exists');
-    } else {
-      console.log('⚠️  Users table not found');
-    }
-
-    if (buildingsTableExists) {
-      console.log('✅ User buildings table exists');
-    } else {
-      console.log('⚠️  User buildings table not found');
-    }
-
-    if (!usersTableExists || !buildingsTableExists) {
-      console.log('');
-      console.log('📋 IMPORTANT: Tables were not automatically created.');
-      console.log('Please manually run the SQL from src/db-schema.sql in your Supabase SQL Editor:');
-      console.log(`   1. Go to ${process.env.SUPABASE_URL}`);
-      console.log('   2. Click on SQL Editor');
-      console.log('   3. Copy and paste the SQL from src/db-schema.sql');
-      console.log('   4. Run the script');
-      console.log('   5. Restart the bot');
-      console.log('');
-    } else {
+    if (usersTableExists && buildingsTableExists) {
       console.log('✅ Database initialization completed successfully!');
+    } else {
+      console.log('⚠️  Warning: Some tables could not be verified');
     }
   } catch (error) {
     console.error('❌ Database initialization error:', error.message);
-    console.log('Continuing anyway - tables may exist or will be created on next startup');
+    console.log('Continuing anyway - will retry on next startup');
   }
 }
 

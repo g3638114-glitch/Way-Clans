@@ -41,40 +41,96 @@ async function createInitialBuildings(userId) {
   }
 }
 
-// Initialize Supabase tables
-async function initializeDatabase() {
+// Create tables via SQL if they don't exist
+async function createTablesIfNeeded() {
   try {
-    // Verify users table exists by trying a query
-    const { error: checkUsersError } = await supabase
+    console.log('🔄 Checking database tables...');
+
+    // Verify tables exist by attempting to query them
+    const { error: usersError } = await supabase
       .from('users')
       .select('id')
       .limit(1);
 
-    if (checkUsersError && checkUsersError.code === 'PGRST116') {
-      console.log('⚠️  Users table does not exist. Please create it in Supabase Dashboard.');
-      console.log('Run the SQL commands in SUPABASE_SETUP.md');
-    } else if (checkUsersError) {
-      console.log('⚠️  Error checking users table:', checkUsersError.message);
-    } else {
-      console.log('✅ Users table verified');
-    }
-
-    // Verify buildings table exists
-    const { error: checkBuildingsError } = await supabase
+    const { error: buildingsError } = await supabase
       .from('user_buildings')
       .select('id')
       .limit(1);
 
-    if (checkBuildingsError && checkBuildingsError.code === 'PGRST116') {
-      console.log('⚠️  User buildings table does not exist. Please create it in Supabase Dashboard.');
-      console.log('Run the SQL commands in SUPABASE_SETUP.md');
-    } else if (checkBuildingsError) {
-      console.log('⚠️  Error checking buildings table:', checkBuildingsError.message);
-    } else {
-      console.log('✅ User buildings table verified');
+    // If both tables exist (or are empty which is also valid), we're good
+    if (!usersError || usersError.code !== 'PGRST116') {
+      if (!buildingsError || buildingsError.code !== 'PGRST116') {
+        console.log('✅ All required database tables verified and ready!');
+        return true;
+      }
     }
 
-    console.log('✅ Database initialization check completed');
+    // If we get here, at least one table is missing
+    throw new Error('One or more tables are missing');
+  } catch (error) {
+    console.error('\n⚠️  ERROR: Database tables not found!');
+    console.log('\n📋 SOLUTION: Create these tables in your Supabase Dashboard:');
+    console.log('━'.repeat(80));
+    console.log(`
+1. Go to https://app.supabase.com
+2. Select your project
+3. Go to "SQL Editor"
+4. Click "New Query"
+5. Copy and paste this SQL:
+
+────────────────────────────────────────────────────────────────────────────────
+
+-- Create users table
+CREATE TABLE IF NOT EXISTS public.users (
+  id BIGSERIAL PRIMARY KEY,
+  telegram_id BIGINT UNIQUE NOT NULL,
+  username TEXT,
+  first_name TEXT,
+  gold BIGINT DEFAULT 5000,
+  wood BIGINT DEFAULT 2500,
+  stone BIGINT DEFAULT 2500,
+  meat BIGINT DEFAULT 500,
+  jabcoins BIGINT DEFAULT 0,
+  referral_count INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create user_buildings table
+CREATE TABLE IF NOT EXISTS public.user_buildings (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  building_type TEXT NOT NULL,
+  building_number INTEGER NOT NULL,
+  level INTEGER DEFAULT 1,
+  collected_amount BIGINT DEFAULT 0,
+  production_rate BIGINT NOT NULL,
+  last_collected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, building_type, building_number)
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON public.users(telegram_id);
+CREATE INDEX IF NOT EXISTS idx_user_buildings_user_id ON public.user_buildings(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_buildings_type ON public.user_buildings(building_type);
+
+────────────────────────────────────────────────────────────────────────────────
+
+6. Click "Run" (CMD+Enter or CTRL+Enter)
+7. Restart your application
+
+⏳ The application will continue to run, but features will not work until tables are created.
+    `);
+    console.log('━'.repeat(80) + '\n');
+  }
+}
+
+// Initialize Supabase tables
+async function initializeDatabase() {
+  try {
+    console.log('🚀 Initializing database...');
+    await createTablesIfNeeded();
   } catch (error) {
     console.error('Database initialization error:', error);
   }

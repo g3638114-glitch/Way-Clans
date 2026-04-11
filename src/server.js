@@ -461,15 +461,17 @@ app.get('/api/user/:userId/quests', async (req, res) => {
       .eq('telegram_id', userId)
       .single();
 
-    if (userError) {
+    // Get referral count (0 if user not found or field doesn't exist)
+    let referralCount = 0;
+    if (!userError && user) {
+      referralCount = user.referral_count || 0;
+    } else if (userError && userError.code !== 'PGRST116') {
+      // If it's a different error (not "no rows"), log it
       console.error('Error fetching user for quests:', userError);
-      return res.status(404).json({ error: 'User not found' });
     }
+    // If PGRST116 (no rows), just continue with referralCount = 0
 
-    // Get referral count (0 if field doesn't exist)
-    const referralCount = user.referral_count || 0;
-
-    // Define quests
+    // Define quests - always return them even if user not found
     const quests = [
       {
         id: 'subscribe_channel',

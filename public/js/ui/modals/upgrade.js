@@ -3,7 +3,8 @@ import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { renderBuildings } from '../builders.js';
 import { formatNumber } from '../../utils/formatters.js';
-import { calculateUpgradeCost, BUILDING_CONFIGS } from '../../game/calculations.js';
+import { calculateUpgradeCost } from '../../game/calculations.js';
+import { BUILDING_CONFIGS } from '../../game/config.js';
 
 export function openUpgradeModal(buildingId, currentLevel) {
   const building = appState.allBuildings.find(b => b.id === buildingId);

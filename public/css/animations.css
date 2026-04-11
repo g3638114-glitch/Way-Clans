@@ -1,0 +1,133 @@
+/* ========================================
+   ANIMATIONS & KEYFRAMES
+   ======================================== */
+
+/* Resource Value Glow Animation */
+@keyframes gentle-glow {
+  0%, 100% {
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 16px rgba(212, 175, 55, 0.6);
+  }
+}
+
+.resource-value {
+  animation: gentle-glow 3s ease-in-out infinite;
+}
+
+/* Player Card Float Animation */
+@keyframes card-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.player-card {
+  animation: card-float 4s ease-in-out infinite;
+}
+
+/* Navigation Item Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(76, 111, 166, 0.5), 0 0 30px rgba(212, 175, 55, 0.5);
+  }
+}
+
+.nav-item.active {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Modal Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Modal Slide Up Animation */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.modal-content {
+  animation: slideUp 0.3s ease;
+}
+
+/* Building Card Entrance Animation */
+@keyframes card-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.building-card {
+  animation: card-entrance 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+/* Tab Highlight Animation */
+@keyframes tab-highlight {
+  0% {
+    transform: scaleX(0.8);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.tab-btn.active {
+  animation: tab-highlight 0.4s ease;
+}
+
+/* Production Bar Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.production-fill::after {
+  animation: shimmer 2s infinite;
+}
+
+/* Button Hover Shine Effect */
+@keyframes button-shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.btn::before,
+.building-btn::before {
+  animation: button-shine 0.3s ease forwards when hovered;
+}

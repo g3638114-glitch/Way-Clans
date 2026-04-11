@@ -1,12 +1,27 @@
-// Calculate upgrade cost based on level
+import { getBuildingConfig, getBuildingIcon, getBuildingName } from './config.js';
+
+export { getBuildingConfig, getBuildingIcon, getBuildingName };
+
+/**
+ * Calculate upgrade cost based on level
+ * Formula: 1000 * 1.15^(level-1)
+ * @param {number} level - Building level
+ * @returns {number} Upgrade cost in gold
+ */
 export function calculateUpgradeCost(level) {
   return Math.floor(1000 * Math.pow(1.15, level - 1));
 }
 
-// Calculate time remaining until building is full
+/**
+ * Calculate time remaining until building is full
+ * @param {number} collected - Currently collected amount
+ * @param {number} production - Production rate per hour
+ * @param {number} capacity - Max capacity of building
+ * @returns {string} Human-readable time remaining
+ */
 export function calculateTimeRemaining(collected, production, capacity) {
   if (production === 0) return 'Н/Д';
-  
+
   const remaining = capacity - collected;
   const hoursNeeded = remaining / production;
 
@@ -18,7 +33,11 @@ export function calculateTimeRemaining(collected, production, capacity) {
   return `${Math.ceil(hoursNeeded)} ч`;
 }
 
-// Update collected amounts for all buildings based on time passed
+/**
+ * Update collected amounts for all buildings based on time passed
+ * Maintains decimal precision internally for smooth production
+ * @param {array} buildings - Array of building objects
+ */
 export function updateCollectedAmounts(buildings) {
   const now = new Date();
 
@@ -38,47 +57,4 @@ export function updateCollectedAmounts(buildings) {
     const newCollected = building._collected_decimal + (hoursPassed * productionRate);
     building._collected_decimal = Math.min(newCollected, maxCapacity); // Cap at max capacity
   });
-}
-
-// Building configuration
-export const BUILDING_CONFIGS = {
-  mine: {
-    name: 'Шахта',
-    icon: '⛏',
-    productionRate: 80,
-    cost: 0,
-  },
-  quarry: {
-    name: 'Каменоломня',
-    icon: '🪨',
-    productionRate: 60,
-    cost: 50000,
-  },
-  lumber_mill: {
-    name: 'Лесопилка',
-    icon: '🌲',
-    productionRate: 50,
-    cost: 40000,
-  },
-  farm: {
-    name: 'Ферма',
-    icon: '🍖',
-    productionRate: 40,
-    cost: 30000,
-  },
-};
-
-// Get building configuration
-export function getBuildingConfig(buildingType) {
-  return BUILDING_CONFIGS[buildingType] || BUILDING_CONFIGS.mine;
-}
-
-// Get building icon
-export function getBuildingIcon(type) {
-  return BUILDING_CONFIGS[type]?.icon || '🏢';
-}
-
-// Get building name
-export function getBuildingName(type) {
-  return BUILDING_CONFIGS[type]?.name || 'Здание';
 }

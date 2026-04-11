@@ -1,0 +1,30 @@
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 480px) {
+  .app-container {
+    border-radius: 0;
+  }
+
+  .resource-item {
+    font-size: 12px;
+  }
+
+  .btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .modal-content {
+    border-radius: 0;
+  }
+
+  .building-tabs {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .building-info {
+    grid-template-columns: 1fr 1fr;
+  }
+}

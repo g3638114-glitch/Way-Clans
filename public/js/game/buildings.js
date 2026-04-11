@@ -3,7 +3,7 @@ import { apiClient } from '../api/client.js';
 import { updateUI } from '../ui/dom.js';
 import { renderBuildings } from '../ui/builders.js';
 import { openUpgradeModal } from '../ui/modals/index.js';
-import { BUILDING_CONFIGS } from './calculations.js';
+import { BUILDING_CONFIGS } from './config.js';
 
 // Collect resources from building
 export async function collectResources(buildingId) {

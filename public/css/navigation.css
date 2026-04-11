@@ -1,0 +1,38 @@
+/* ========================================
+   BOTTOM NAVIGATION
+   ======================================== */
+
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.nav-item {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: rgba(76, 111, 166, 0.15);
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%);
+  border-color: #d4af37;
+  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.nav-item:active {
+  transform: scale(0.95);
+}

@@ -1,0 +1,36 @@
+/* ========================================
+   LAYOUT & STRUCTURE
+   ======================================== */
+
+.app-container {
+  max-width: 500px;
+  margin: 0 auto;
+  background: #1a1a2e;
+  color: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Pages Container - Scrollable Content Area */
+.pages-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+}
+
+/* Page Management */
+.page {
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+}
+
+.page.active {
+  display: flex;
+}

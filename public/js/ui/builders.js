@@ -1,6 +1,7 @@
 import { appState } from '../utils/state.js';
 import { formatNumber } from '../utils/formatters.js';
-import { calculateTimeRemaining, updateCollectedAmounts, BUILDING_CONFIGS } from '../game/calculations.js';
+import { calculateTimeRemaining, updateCollectedAmounts } from '../game/calculations.js';
+import { BUILDING_CONFIGS } from '../game/config.js';
 import { collectResources, upgradeBuilding, purchaseBuilding } from '../game/buildings.js';
 
 // Make functions available globally for onclick handlers

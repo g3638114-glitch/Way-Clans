@@ -1,0 +1,346 @@
+/* ========================================
+   BUTTONS & INTERACTIVE ELEMENTS
+   ======================================== */
+
+/* Base Button */
+.btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: left 0.3s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+/* Storage & Exchange Buttons */
+.btn-storage,
+.btn-exchange {
+  background: linear-gradient(135deg, #4c6fa6 0%, #374a6b 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.3);
+}
+
+.btn-storage:hover,
+.btn-exchange:hover {
+  box-shadow: 0 6px 16px rgba(76, 111, 166, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-storage:active,
+.btn-exchange:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(76, 111, 166, 0.3);
+}
+
+/* Quests Button */
+.btn-quests {
+  background: linear-gradient(135deg, #ff9800 0%, #e65100 100%);
+  color: #fff;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.btn-quests:hover {
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-quests:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+/* Attack Button */
+.btn-attack {
+  background: linear-gradient(135deg, #d32f2f 0%, #8b0000 100%);
+  color: #fff;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+}
+
+.btn-attack:hover {
+  box-shadow: 0 6px 16px rgba(211, 47, 47, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-attack:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.3);
+}
+
+/* Primary & Secondary Buttons */
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #d4af37 0%, #a8860e 100%);
+  color: #000;
+}
+
+.btn-primary:active {
+  transform: scale(0.95);
+}
+
+.btn-primary:disabled,
+.btn-primary.disabled {
+  background: linear-gradient(135deg, #999 0%, #666 100%);
+  color: #ccc;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:active {
+  transform: scale(0.95);
+}
+
+/* Building Buttons */
+.building-btn {
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.building-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: left 0.3s ease;
+}
+
+.building-btn:hover::before {
+  left: 100%;
+}
+
+.collect-btn {
+  background: linear-gradient(135deg, #616161 0%, #424242 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(97, 97, 97, 0.3);
+  transition: all 0.3s ease;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.collect-btn.collecting {
+  background: linear-gradient(135deg, #616161 0%, #424242 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(97, 97, 97, 0.3);
+  opacity: 0.8;
+}
+
+.collect-btn.ready {
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.collect-btn.ready:hover {
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.6);
+  transform: translateY(-2px);
+}
+
+.collect-btn.ready:active {
+  transform: scale(0.95);
+}
+
+.collect-btn:disabled {
+  cursor: not-allowed;
+}
+
+.upgrade-btn {
+  background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.3);
+}
+
+.upgrade-btn:hover {
+  box-shadow: 0 6px 16px rgba(76, 111, 166, 0.5);
+  transform: translateY(-2px);
+}
+
+.upgrade-btn:active {
+  transform: scale(0.95);
+}
+
+.buy-btn {
+  background: linear-gradient(135deg, #d4af37 0%, #a8860e 100%);
+  color: #000;
+  grid-column: 1 / -1;
+}
+
+.buy-btn:active {
+  transform: scale(0.95);
+}
+
+/* Max Button */
+.max-btn {
+  padding: 8px 12px;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid #d4af37;
+  color: #d4af37;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.max-btn:active {
+  transform: scale(0.95);
+  background: rgba(212, 175, 55, 0.3);
+}
+
+/* Close Button */
+.close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tab Buttons */
+.tab-btn {
+  padding: 10px;
+  border: 2px solid rgba(76, 111, 166, 0.4);
+  background: rgba(76, 111, 166, 0.1);
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%);
+  border-color: #d4af37;
+  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 15px rgba(212, 175, 55, 0.2);
+}
+
+.tab-btn:hover:not(.active) {
+  background: rgba(76, 111, 166, 0.2);
+  border-color: rgba(76, 111, 166, 0.6);
+}
+
+.tab-btn:active {
+  transform: scale(0.95);
+}
+
+/* Quest Buttons */
+.btn-quest {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-quest-check {
+  width: 100%;
+  background: linear-gradient(135deg, #ff9800 0%, #e65100 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.btn-quest-check:hover {
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-quest-check:active {
+  transform: scale(0.95);
+}
+
+.btn-quest-action {
+  flex: 1;
+  background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.btn-quest-action:hover {
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-quest-action:active {
+  transform: scale(0.95);
+}
+
+.btn-quest-claim {
+  width: 100%;
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.btn-quest-claim:hover {
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-quest-claim:active {
+  transform: scale(0.95);
+}

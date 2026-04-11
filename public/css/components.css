@@ -1,0 +1,262 @@
+/* ========================================
+   COMPONENTS (Storage, Exchange, Upgrade)
+   ======================================== */
+
+/* Storage Component */
+.resource-input-group {
+  margin-bottom: 15px;
+  padding: 12px;
+  background: rgba(76, 111, 166, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(76, 111, 166, 0.3);
+}
+
+.resource-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.resource-row > span:first-child {
+  flex: 1;
+}
+
+.input-controls {
+  display: flex;
+  gap: 8px;
+  flex: 0.7;
+}
+
+.resource-row input {
+  flex: 1;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.resource-row input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.storage-hint {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  margin-top: 15px;
+}
+
+/* Exchange Component */
+.exchange-section {
+  padding: 15px;
+  background: rgba(76, 111, 166, 0.1);
+  border-radius: 10px;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.exchange-input {
+  margin-bottom: 15px;
+}
+
+.exchange-input input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(76, 111, 166, 0.3);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+}
+
+.exchange-input input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.exchange-result {
+  padding: 15px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 2px solid #d4af37;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.exchange-rate {
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.exchange-rate p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.exchange-rate .minimum {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+/* Upgrade Modal Component */
+.upgrade-building-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.upgrade-building-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  padding: 15px;
+  background: rgba(76, 111, 166, 0.15);
+  border-radius: 10px;
+  text-align: center;
+  border-left: 4px solid #d4af37;
+}
+
+.upgrade-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.upgrade-stat-item {
+  flex: 1;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  border: 1px solid rgba(76, 111, 166, 0.3);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #d4af37;
+}
+
+.arrow-separator {
+  flex: 0.3;
+  background: rgba(212, 175, 55, 0.1);
+  border-color: rgba(212, 175, 55, 0.4);
+  color: #d4af37;
+  font-size: 20px;
+  padding: 0;
+}
+
+.upgrade-production-info {
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
+  border: 1px solid rgba(76, 111, 166, 0.3);
+  border-radius: 10px;
+}
+
+.production-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.production-row > span:first-child {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.production-values {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: bold;
+}
+
+.production-values .current {
+  padding: 6px 12px;
+  background: rgba(97, 97, 97, 0.3);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.production-values .arrow {
+  color: #d4af37;
+  font-size: 16px;
+}
+
+.production-values .new {
+  padding: 6px 12px;
+  background: rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 50px;
+  text-align: center;
+  font-weight: bold;
+  border: 1px solid rgba(76, 175, 80, 0.5);
+}
+
+.upgrade-cost-section {
+  padding: 15px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  border-radius: 10px;
+}
+
+.upgrade-cost-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cost-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.cost-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #d4af37;
+}
+
+.cost-icon {
+  font-size: 24px;
+}
+
+.player-gold-info {
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}

@@ -86,41 +86,7 @@ app.get('/api/user/:userId/buildings', async (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch buildings' });
     }
 
-    // Fix buildings with missing or invalid last_collected
-    const fixedBuildings = buildings || [];
-    const now = new Date().toISOString();
-
-    // Check if any building has a very old last_collected (more than 30 days old)
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-    for (const building of fixedBuildings) {
-      if (!building.last_collected || building.last_collected === null) {
-        building.last_collected = now;
-        building.collected_amount = 0;
-      } else {
-        const lastCollectedDate = new Date(building.last_collected);
-        if (lastCollectedDate < thirtyDaysAgo) {
-          // Building has not been collected for 30+ days - reset it
-          building.last_collected = now;
-          building.collected_amount = 0;
-        }
-      }
-    }
-
-    // Update database if any buildings need fixing
-    for (const building of fixedBuildings) {
-      if (!building.last_collected || building.last_collected === null || new Date(building.last_collected) < thirtyDaysAgo) {
-        await supabase
-          .from('user_buildings')
-          .update({
-            last_collected: now,
-            collected_amount: 0,
-          })
-          .eq('id', building.id);
-      }
-    }
-
-    res.json(fixedBuildings);
+    res.json(buildings || []);
   } catch (error) {
     console.error('Error fetching buildings:', error);
     res.status(500).json({ error: 'Server error' });
@@ -155,11 +121,19 @@ app.post('/api/user/:userId/building/:buildingId/collect', async (req, res) => {
       return res.status(404).json({ error: 'Building not found' });
     }
 
-    // Calculate collected amount
-    const collectedAmount = building.collected_amount || 0;
+    // Calculate collected amount based on time passed
+    const lastCollected = new Date(building.last_collected);
+    const now = new Date();
+    const hoursPassed = (now - lastCollected) / (1000 * 60 * 60);
+    const productionRate = building.production_rate || 80;
+    const maxCapacity = productionRate * 24; // 24 hour max capacity
+
+    // Calculate actual collected amount with decimals
+    const totalCollected = (building.collected_amount || 0) + (hoursPassed * productionRate);
+    const collectedAmount = Math.floor(Math.min(totalCollected, maxCapacity));
 
     if (collectedAmount <= 0) {
-      return res.status(400).json({ error: 'Nothing to collect' });
+      return res.status(400).json({ error: 'Здание еще не накопило ресурсы. Подождите немного!' });
     }
 
     // Update building
@@ -391,12 +365,12 @@ app.post('/api/user/:userId/building/purchase', async (req, res) => {
     const { buildingType } = req.body;
 
     // Define building properties - all initial buildings are FREE (cost: 0)
-    // Production rate is per hour
+    // Production rates are per HOUR
     const buildingConfigs = {
-      mine: { productionRate: 80, cost: 0 },          // 80 gold per hour
-      quarry: { productionRate: 60, cost: 0 },        // 60 stone per hour
-      lumber_mill: { productionRate: 50, cost: 0 },   // 50 wood per hour
-      farm: { productionRate: 40, cost: 0 },          // 40 meat per hour
+      mine: { productionRate: 80, cost: 0 },
+      quarry: { productionRate: 60, cost: 0 },
+      lumber_mill: { productionRate: 50, cost: 0 },
+      farm: { productionRate: 40, cost: 0 },
     };
 
     if (!buildingConfigs[buildingType]) {
@@ -484,51 +458,28 @@ app.post('/api/user/:userId/building/purchase', async (req, res) => {
   }
 });
 
-// API endpoint to check channel subscription
-app.post('/api/user/:userId/check-subscription', async (req, res) => {
+// Helper function to check if user is subscribed to channel
+async function isUserSubscribed(userId) {
   try {
-    const { userId } = req.params;
-    const CHANNEL_ID = '@spn_newsvpn'; // Channel to check subscription
+    const CHANNEL_ID = '@spn_newsvpn'; // Channel username
 
-    // Use Telegram Bot API to check if user is subscribed
-    const telegramApiUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/getChatMember`;
+    // Get chat member status
+    const member = await bot.telegram.getChatMember(CHANNEL_ID, userId);
 
-    const response = await fetch(telegramApiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chat_id: CHANNEL_ID,
-        user_id: userId,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!result.ok) {
-      console.error('Telegram API error:', result.description);
-      return res.status(400).json({
-        subscribed: false,
-        error: 'Could not check subscription'
-      });
-    }
-
-    const member = result.result;
-    const isSubscribed = member.status === 'member' || member.status === 'administrator' || member.status === 'creator';
-
-    res.json({ subscribed: isSubscribed });
+    // Check if user is member (not left or kicked)
+    const status = member.status;
+    return status === 'member' || status === 'creator' || status === 'administrator' || status === 'restricted';
   } catch (error) {
-    console.error('Error checking subscription:', error);
-    res.status(500).json({ error: 'Server error' });
+    // If error occurs (user not found, etc.), assume not subscribed
+    console.log(`Subscription check error for user ${userId}:`, error.message);
+    return false;
   }
-});
+}
 
 // API endpoint to get user quests
 app.get('/api/user/:userId/quests', async (req, res) => {
   try {
     const { userId } = req.params;
-    const CHANNEL_ID = '@spn_newsvpn';
 
     // Get user
     const { data: user, error: userError } = await supabase
@@ -547,30 +498,8 @@ app.get('/api/user/:userId/quests', async (req, res) => {
     }
     // If PGRST116 (no rows), just continue with referralCount = 0
 
-    // Check channel subscription via Telegram API
-    let isSubscribed = false;
-    try {
-      const telegramApiUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/getChatMember`;
-      const subResponse = await fetch(telegramApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: CHANNEL_ID,
-          user_id: userId,
-        }),
-      });
-
-      const subResult = await subResponse.json();
-      if (subResult.ok) {
-        const member = subResult.result;
-        isSubscribed = member.status === 'member' || member.status === 'administrator' || member.status === 'creator';
-      }
-    } catch (error) {
-      console.error('Error checking subscription in quests:', error);
-      // If error, just return false for subscription
-    }
+    // Check if user is actually subscribed to the channel
+    const isSubscribed = await isUserSubscribed(userId);
 
     // Define quests - always return them even if user not found
     const quests = [
@@ -632,18 +561,6 @@ app.post('/api/user/:userId/quest/:questId/claim', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Check if quest is already claimed
-    const { data: existingReward, error: checkError } = await supabase
-      .from('user_quest_rewards')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('quest_id', questId)
-      .single();
-
-    if (existingReward || (checkError && checkError.code !== 'PGRST116')) {
-      return res.status(400).json({ error: 'Вы уже получили награду за это задание!' });
-    }
-
     // Define quest rewards (mines)
     const questRewards = {
       subscribe_channel: 1,
@@ -692,20 +609,6 @@ app.post('/api/user/:userId/quest/:questId/claim', async (req, res) => {
       if (!createError) {
         buildingsAdded.push(newBuilding);
       }
-    }
-
-    // Mark quest as claimed
-    const { error: rewardError } = await supabase
-      .from('user_quest_rewards')
-      .insert({
-        user_id: user.id,
-        quest_id: questId,
-        claimed_at: new Date().toISOString(),
-      });
-
-    if (rewardError && rewardError.code !== 'PGRST116') {
-      console.error('Error recording quest reward:', rewardError);
-      // Still return success since buildings were added
     }
 
     res.json({

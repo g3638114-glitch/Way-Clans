@@ -178,6 +178,61 @@
     </div>
   </div>
 
+  <!-- Upgrade Building Modal -->
+  <div class="modal" id="upgrade-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⬆️ Улучшение Здания</h2>
+        <button class="close-btn" onclick="closeUpgradeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="upgrade-building-info">
+          <div class="upgrade-building-name" id="upgrade-building-name">Шахта #1</div>
+
+          <div class="upgrade-stats-row">
+            <div class="upgrade-stat-item">
+              <span class="stat-label">Текущий уровень</span>
+              <span class="stat-value current-level" id="upgrade-current-level">1</span>
+            </div>
+            <div class="upgrade-stat-item arrow-separator">→</div>
+            <div class="upgrade-stat-item">
+              <span class="stat-label">Новый уровень</span>
+              <span class="stat-value new-level" id="upgrade-new-level">2</span>
+            </div>
+          </div>
+
+          <div class="upgrade-production-info">
+            <div class="production-row">
+              <span>Производство в час</span>
+              <div class="production-values">
+                <span class="current" id="upgrade-current-production">80</span>
+                <span class="arrow">→</span>
+                <span class="new" id="upgrade-new-production">96</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="upgrade-cost-section">
+            <h3>Стоимость улучшения</h3>
+            <div class="cost-display">
+              <span class="cost-value" id="upgrade-cost-value">1 150</span>
+              <span class="cost-icon">💰</span>
+            </div>
+            <div class="player-gold-info">
+              Ваше золото: <span id="upgrade-player-gold">5 000</span> 💰
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="upgrade-confirm-btn" onclick="confirmUpgrade()">Улучшить</button>
+        <button class="btn btn-secondary" onclick="closeUpgradeModal()">Отменить</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Quests Modal -->
   <div class="modal" id="quests-modal">
     <div class="modal-content">
@@ -194,55 +249,6 @@
 
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeQuestsModal()">Закрыть</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Upgrade Confirmation Modal -->
-  <div class="modal" id="upgrade-modal">
-    <div class="modal-content upgrade-modal-content">
-      <div class="modal-header">
-        <h2>⬆️ Улучшение здания</h2>
-        <button class="close-btn" onclick="closeUpgradeModal()">&times;</button>
-      </div>
-
-      <div class="modal-body upgrade-modal-body">
-        <div class="upgrade-info">
-          <div class="upgrade-item">
-            <span class="upgrade-label">Уровень:</span>
-            <div class="upgrade-values">
-              <span id="upgrade-current-level" class="upgrade-current">1</span>
-              <span class="upgrade-arrow">→</span>
-              <span id="upgrade-new-level" class="upgrade-new">2</span>
-            </div>
-          </div>
-
-          <div class="upgrade-item">
-            <span class="upgrade-label">Производство в час:</span>
-            <div class="upgrade-values">
-              <span id="upgrade-current-production" class="upgrade-current">80</span>
-              <span class="upgrade-arrow">→</span>
-              <span id="upgrade-new-production" class="upgrade-new">96</span>
-            </div>
-          </div>
-
-          <div class="upgrade-item upgrade-cost-item">
-            <span class="upgrade-label">Стоимость:</span>
-            <div class="upgrade-cost">
-              <span id="upgrade-cost-gold">💰 1000</span>
-            </div>
-          </div>
-
-          <div class="upgrade-item user-gold-item">
-            <span class="upgrade-label">Ваше золото:</span>
-            <span id="upgrade-user-gold" class="user-gold-value">💰 5000</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" id="confirm-upgrade-btn" onclick="confirmUpgrade()">Улучшить</button>
-        <button class="btn btn-secondary" onclick="closeUpgradeModal()">Отмена</button>
       </div>
     </div>
   </div>

@@ -10,11 +10,12 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 
 // Create available buildings templates that users can purchase
 // These are not added to users by default, but available for purchase
+// Production rates are per HOUR
 const AVAILABLE_BUILDINGS = [
-  { type: 'mine', maxCount: 5, productionRate: 80, baseCost: 0 },         // First mine is free, 80 per hour
-  { type: 'quarry', maxCount: 5, productionRate: 60, baseCost: 50000 },   // 60 per hour
-  { type: 'lumber_mill', maxCount: 5, productionRate: 50, baseCost: 40000 }, // 50 per hour
-  { type: 'farm', maxCount: 5, productionRate: 40, baseCost: 30000 },     // 40 per hour
+  { type: 'mine', maxCount: 5, productionRate: 80, baseCost: 0 }, // First mine is free
+  { type: 'quarry', maxCount: 5, productionRate: 60, baseCost: 50000 },
+  { type: 'lumber_mill', maxCount: 5, productionRate: 50, baseCost: 40000 },
+  { type: 'farm', maxCount: 5, productionRate: 40, baseCost: 30000 },
 ];
 
 // Create initial buildings for a new user (free buildings: mine, quarry, lumber_mill, farm)

@@ -82,11 +82,11 @@ async function loadBuildings() {
 function updateUI() {
   if (!currentUser) return;
 
-  // Update resources
-  const goldText = formatNumber(currentUser.gold);
-  const woodText = formatNumber(currentUser.wood);
-  const stoneText = formatNumber(currentUser.stone);
-  const meatText = formatNumber(currentUser.meat);
+  // Update resources - use short format for header to prevent wrapping
+  const goldText = formatNumberShort(currentUser.gold);
+  const woodText = formatNumberShort(currentUser.wood);
+  const stoneText = formatNumberShort(currentUser.stone);
+  const meatText = formatNumberShort(currentUser.meat);
   const jabcoinsText = currentUser.jabcoins;
 
   // Update header resources
@@ -126,20 +126,20 @@ function updateUI() {
   document.getElementById('meat-input').max = currentUser.meat;
 }
 
-// Format numbers with abbreviations for large numbers
+// Format numbers with spaces
 function formatNumber(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+// Format large numbers with abbreviations (e.g. 100000 → 100K, 1200000 → 1.2M)
+function formatNumberShort(num) {
   if (num >= 1000000) {
-    // For millions: 1000000 -> 1M, 1500000 -> 1.5M
-    const millions = num / 1000000;
-    return millions % 1 === 0 ? millions.toFixed(0) + 'M' : millions.toFixed(1) + 'M';
-  } else if (num >= 1000) {
-    // For thousands: 1000 -> 1K, 1500 -> 1.5K
-    const thousands = num / 1000;
-    return thousands % 1 === 0 ? thousands.toFixed(0) + 'K' : thousands.toFixed(1) + 'K';
-  } else {
-    // For numbers less than 1000, just return the number
-    return num.toString();
+    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
   }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  return num.toString();
 }
 
 // Page Management
@@ -508,7 +508,8 @@ async function collectResources(buildingId) {
 
     if (!response.ok) {
       const error = await response.json();
-      tg.showAlert(error.error || 'Ошибка при сборе');
+      const errorMsg = error.error || 'Ошибка при сборе';
+      tg.showAlert(errorMsg);
       return;
     }
 
@@ -532,55 +533,69 @@ async function collectResources(buildingId) {
   }
 }
 
-// Upgrade building
-async function upgradeBuilding(buildingId, currentLevel) {
-  try {
-    const building = allBuildings.find(b => b.id === buildingId);
-    if (!building) return;
+// Store building data for upgrade modal
+let upgradeModalData = {
+  buildingId: null,
+  currentLevel: null,
+};
 
-    const upgradeCost = calculateUpgradeCost(currentLevel);
-    const currentProduction = building.production_rate || 100;
-    const newProduction = Math.floor(currentProduction * 1.2);
-    const newLevel = currentLevel + 1;
+// Open upgrade modal
+function openUpgradeModal(buildingId, currentLevel) {
+  const building = allBuildings.find(b => b.id === buildingId);
+  if (!building) return;
 
-    // Store building info for confirmation
-    window.upgradeData = {
-      buildingId: buildingId,
-      currentLevel: currentLevel,
-      newLevel: newLevel,
-      currentProduction: currentProduction,
-      newProduction: newProduction,
-      cost: upgradeCost,
-    };
+  upgradeModalData.buildingId = buildingId;
+  upgradeModalData.currentLevel = currentLevel;
 
-    // Update modal with building info
-    document.getElementById('upgrade-current-level').textContent = currentLevel;
-    document.getElementById('upgrade-new-level').textContent = newLevel;
-    document.getElementById('upgrade-current-production').textContent = currentProduction;
-    document.getElementById('upgrade-new-production').textContent = newProduction;
-    document.getElementById('upgrade-cost-gold').textContent = `💰 ${formatNumber(upgradeCost)}`;
-    document.getElementById('upgrade-user-gold').textContent = `💰 ${formatNumber(currentUser.gold)}`;
+  // Update modal content
+  const buildingTypeNames = {
+    mine: 'Шахта',
+    quarry: 'Каменоломня',
+    lumber_mill: 'Лесопилка',
+    farm: 'Ферма',
+  };
 
-    // Show modal
-    document.getElementById('upgrade-modal').classList.add('active');
-  } catch (error) {
-    console.error('Error showing upgrade modal:', error);
-    tg.showAlert('Ошибка при улучшении');
+  const buildingName = `${buildingTypeNames[building.building_type] || 'Здание'} #${building.building_number}`;
+  document.getElementById('upgrade-building-name').textContent = buildingName;
+
+  // Current level and production
+  document.getElementById('upgrade-current-level').textContent = currentLevel;
+  document.getElementById('upgrade-new-level').textContent = currentLevel + 1;
+  document.getElementById('upgrade-current-production').textContent = building.production_rate;
+
+  // Calculate new production rate (20% increase per level)
+  const newProductionRate = Math.floor(building.production_rate * 1.2);
+  document.getElementById('upgrade-new-production').textContent = newProductionRate;
+
+  // Cost
+  const upgradeCost = calculateUpgradeCost(currentLevel);
+  document.getElementById('upgrade-cost-value').textContent = formatNumber(upgradeCost);
+  document.getElementById('upgrade-player-gold').textContent = formatNumber(currentUser.gold);
+
+  // Enable/disable upgrade button based on gold
+  const upgradeBtn = document.getElementById('upgrade-confirm-btn');
+  if (currentUser.gold >= upgradeCost) {
+    upgradeBtn.classList.remove('disabled');
+    upgradeBtn.disabled = false;
+  } else {
+    upgradeBtn.classList.add('disabled');
+    upgradeBtn.disabled = true;
   }
+
+  document.getElementById('upgrade-modal').classList.add('active');
 }
 
 function closeUpgradeModal() {
   document.getElementById('upgrade-modal').classList.remove('active');
-  window.upgradeData = null;
+  upgradeModalData = { buildingId: null, currentLevel: null };
 }
 
+// Confirm upgrade
 async function confirmUpgrade() {
-  if (!window.upgradeData) return;
-
-  const { buildingId, newLevel, cost } = window.upgradeData;
+  if (!upgradeModalData.buildingId) return;
 
   try {
-    const response = await fetch(`/api/user/${userId}/building/${buildingId}/upgrade`, {
+    const response = await fetch(`/api/user/${userId}/building/${upgradeModalData.buildingId}/upgrade`, {
       method: 'POST',
     });
 
@@ -595,7 +610,7 @@ async function confirmUpgrade() {
     updateUI();
 
     // Update building in local array
-    const buildingIndex = allBuildings.findIndex(b => b.id === buildingId);
+    const buildingIndex = allBuildings.findIndex(b => b.id === upgradeModalData.buildingId);
     if (buildingIndex !== -1) {
       allBuildings[buildingIndex] = result.building;
       // Maintain decimal value tracking across upgrades
@@ -604,13 +619,18 @@ async function confirmUpgrade() {
       }
     }
 
-    renderBuildings();
     closeUpgradeModal();
-    tg.showAlert(`✅ Здание улучшено! Новый уровень: ${newLevel}`);
+    renderBuildings();
+    tg.showAlert(`✅ Здание улучшено! Новый уровень: ${upgradeModalData.currentLevel + 1}`);
   } catch (error) {
     console.error('Error upgrading building:', error);
     tg.showAlert('Ошибка при улучшении');
   }
+}
+
+// Upgrade building - opens modal instead of confirm dialog
+function upgradeBuilding(buildingId, currentLevel) {
+  openUpgradeModal(buildingId, currentLevel);
 }
 
 // Calculate upgrade cost
@@ -827,55 +847,28 @@ function renderQuestsList(quests) {
 }
 
 function checkQuestProgress(questId) {
-  // For subscription quest, check via actual Telegram API
-  if (questId === 'subscribe_channel') {
-    checkChannelSubscription();
-  } else {
-    // For referral quests, load and check
-    loadQuests().then(quests => {
-      const quest = quests.find(q => q.id === questId);
+  // Load quests again to refresh their status
+  loadQuests().then(quests => {
+    // Find the quest
+    const quest = quests.find(q => q.id === questId);
 
-      if (!quest) {
-        tg.showAlert('❌ Задание не найдено');
-        return;
-      }
-
-      if (quest.completed) {
-        tg.showAlert('✅ Задание выполнено! Можно получить награду.');
-        renderQuestsList(quests);
-      } else {
-        tg.showAlert('❌ Условие квеста еще не выполнено. Пригласите больше друзей.');
-      }
-    });
-  }
-}
-
-async function checkChannelSubscription() {
-  try {
-    const response = await fetch(`/api/user/${userId}/check-subscription`, {
-      method: 'POST',
-    });
-
-    if (!response.ok) {
-      tg.showAlert('❌ Ошибка при проверке подписки');
+    if (!quest) {
+      tg.showAlert('❌ Задание не найдено');
       return;
     }
 
-    const result = await response.json();
-
-    if (result.subscribed) {
-      tg.showAlert('✅ Вы подписаны на канал! Можно получить награду.');
-      // Reload quests to show updated status
-      loadQuests().then(quests => {
-        renderQuestsList(quests);
-      });
+    if (quest.completed) {
+      tg.showAlert('✅ Задание выполнено! Вы можете получить награду.');
+      // Reload quests modal with updated status
+      renderQuestsList(quests);
     } else {
-      tg.showAlert('❌ Вы еще не подписаны на канал. Подпишитесь и проверьте ещё раз.');
+      if (questId === 'subscribe_channel') {
+        tg.showAlert('❌ Вы еще не подписаны на канал.\n\nПожалуйста:\n1. Нажмите "Перейти на канал"\n2. Подпишитесь на канал\n3. Вернитесь и нажмите "Проверить" ещё раз');
+      } else {
+        tg.showAlert('❌ Условие квеста еще не выполнено.\n\nВам нужно пригласить больше друзей.');
+      }
     }
-  } catch (error) {
-    console.error('Error checking subscription:', error);
-    tg.showAlert('❌ Ошибка при проверке подписки');
-  }
+  });
 }
 
 async function claimQuestReward(questId) {

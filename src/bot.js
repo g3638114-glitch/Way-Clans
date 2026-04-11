@@ -41,98 +41,135 @@ async function createInitialBuildings(userId) {
   }
 }
 
-// Create tables via SQL if they don't exist
-async function createTablesIfNeeded() {
-  try {
-    console.log('🔄 Checking database tables...');
+// Execute SQL statements via Supabase SQL API
+async function executeSqlStatements() {
+  console.log('📦 Starting database initialization...');
 
-    // Verify tables exist by attempting to query them
-    const { error: usersError } = await supabase
-      .from('users')
-      .select('id')
-      .limit(1);
+  // SQL statements to create tables
+  const sqlStatements = [
+    // Create users table
+    `CREATE TABLE IF NOT EXISTS users (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      telegram_id BIGINT UNIQUE NOT NULL,
+      username TEXT,
+      first_name TEXT,
+      gold BIGINT DEFAULT 5000,
+      wood BIGINT DEFAULT 2500,
+      stone BIGINT DEFAULT 2500,
+      meat BIGINT DEFAULT 500,
+      jabcoins BIGINT DEFAULT 0,
+      referral_count INT DEFAULT 0,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );`,
 
-    const { error: buildingsError } = await supabase
-      .from('user_buildings')
-      .select('id')
-      .limit(1);
+    // Create index on telegram_id
+    `CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id);`,
 
-    // If both tables exist (or are empty which is also valid), we're good
-    if (!usersError || usersError.code !== 'PGRST116') {
-      if (!buildingsError || buildingsError.code !== 'PGRST116') {
-        console.log('✅ All required database tables verified and ready!');
-        return true;
+    // Create user_buildings table
+    `CREATE TABLE IF NOT EXISTS user_buildings (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      building_type TEXT NOT NULL,
+      building_number INT NOT NULL,
+      level INT DEFAULT 1,
+      collected_amount BIGINT DEFAULT 0,
+      production_rate BIGINT DEFAULT 100,
+      last_collected TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      UNIQUE(user_id, building_type, building_number)
+    );`,
+
+    // Create indexes for buildings table
+    `CREATE INDEX IF NOT EXISTS idx_buildings_user_id ON user_buildings(user_id);`,
+    `CREATE INDEX IF NOT EXISTS idx_buildings_type ON user_buildings(building_type);`,
+
+    // Disable RLS
+    `ALTER TABLE users DISABLE ROW LEVEL SECURITY;`,
+    `ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;`,
+  ];
+
+  // Try to execute all statements via Supabase query API
+  let tablesCreated = false;
+
+  for (let i = 0; i < sqlStatements.length; i++) {
+    const statement = sqlStatements[i];
+    try {
+      // Attempt execution via HTTP request to Supabase SQL API
+      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/sql`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'apikey': process.env.SUPABASE_KEY,
+        },
+        body: JSON.stringify({ query: statement }),
+      }).catch(() => ({ ok: false }));
+
+      if (response.ok) {
+        tablesCreated = true;
       }
+    } catch (error) {
+      // Ignore errors - tables might already exist
     }
-
-    // If we get here, at least one table is missing
-    throw new Error('One or more tables are missing');
-  } catch (error) {
-    console.error('\n⚠️  ERROR: Database tables not found!');
-    console.log('\n📋 SOLUTION: Create these tables in your Supabase Dashboard:');
-    console.log('━'.repeat(80));
-    console.log(`
-1. Go to https://app.supabase.com
-2. Select your project
-3. Go to "SQL Editor"
-4. Click "New Query"
-5. Copy and paste this SQL:
-
-────────────────────────────────────────────────────────────────────────────────
-
--- Create users table
-CREATE TABLE IF NOT EXISTS public.users (
-  id BIGSERIAL PRIMARY KEY,
-  telegram_id BIGINT UNIQUE NOT NULL,
-  username TEXT,
-  first_name TEXT,
-  gold BIGINT DEFAULT 5000,
-  wood BIGINT DEFAULT 2500,
-  stone BIGINT DEFAULT 2500,
-  meat BIGINT DEFAULT 500,
-  jabcoins BIGINT DEFAULT 0,
-  referral_count INTEGER DEFAULT 0,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create user_buildings table
-CREATE TABLE IF NOT EXISTS public.user_buildings (
-  id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  building_type TEXT NOT NULL,
-  building_number INTEGER NOT NULL,
-  level INTEGER DEFAULT 1,
-  collected_amount BIGINT DEFAULT 0,
-  production_rate BIGINT NOT NULL,
-  last_collected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(user_id, building_type, building_number)
-);
-
--- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON public.users(telegram_id);
-CREATE INDEX IF NOT EXISTS idx_user_buildings_user_id ON public.user_buildings(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_buildings_type ON public.user_buildings(building_type);
-
-────────────────────────────────────────────────────────────────────────────────
-
-6. Click "Run" (CMD+Enter or CTRL+Enter)
-7. Restart your application
-
-⏳ The application will continue to run, but features will not work until tables are created.
-    `);
-    console.log('━'.repeat(80) + '\n');
   }
+
+  // Verify table creation by attempting queries
+  const { error: usersCheckError } = await supabase
+    .from('users')
+    .select('id')
+    .limit(1)
+    .catch(() => ({ error: { code: 'PGRST116' } }));
+
+  const { error: buildingsCheckError } = await supabase
+    .from('user_buildings')
+    .select('id')
+    .limit(1)
+    .catch(() => ({ error: { code: 'PGRST116' } }));
+
+  return {
+    usersTableExists: !usersCheckError || usersCheckError.code !== 'PGRST116',
+    buildingsTableExists: !buildingsCheckError || buildingsCheckError.code !== 'PGRST116',
+  };
 }
 
-// Initialize Supabase tables
+// Initialize Supabase tables - automatically creates them if they don't exist
 async function initializeDatabase() {
   try {
     console.log('🚀 Initializing database...');
-    await createTablesIfNeeded();
+
+    // Try to create tables
+    const { usersTableExists, buildingsTableExists } = await executeSqlStatements();
+
+    if (usersTableExists) {
+      console.log('✅ Users table exists');
+    } else {
+      console.log('⚠️  Users table not found');
+    }
+
+    if (buildingsTableExists) {
+      console.log('✅ User buildings table exists');
+    } else {
+      console.log('⚠️  User buildings table not found');
+    }
+
+    if (!usersTableExists || !buildingsTableExists) {
+      console.log('');
+      console.log('📋 IMPORTANT: Tables were not automatically created.');
+      console.log('Please manually run the SQL from src/db-schema.sql in your Supabase SQL Editor:');
+      console.log(`   1. Go to ${process.env.SUPABASE_URL}`);
+      console.log('   2. Click on SQL Editor');
+      console.log('   3. Copy and paste the SQL from src/db-schema.sql');
+      console.log('   4. Run the script');
+      console.log('   5. Restart the bot');
+      console.log('');
+    } else {
+      console.log('✅ Database initialization completed successfully!');
+    }
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error('❌ Database initialization error:', error.message);
+    console.log('Continuing anyway - tables may exist or will be created on next startup');
   }
 }
 

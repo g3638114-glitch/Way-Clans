@@ -685,15 +685,22 @@ async function exchangeGold() {
 // Quests Modal Functions
 async function loadQuests() {
   try {
+    console.log('Loading quests for userId:', userId);
     const response = await fetch(`/api/user/${userId}/quests`);
+
     if (!response.ok) {
-      console.error('Failed to load quests');
+      const errorData = await response.json();
+      console.error('Failed to load quests:', response.status, errorData);
+      tg.showAlert('Ошибка загрузки заданий');
       return [];
     }
 
-    return await response.json();
+    const quests = await response.json();
+    console.log('Quests loaded:', quests);
+    return quests;
   } catch (error) {
     console.error('Error loading quests:', error);
+    tg.showAlert('Ошибка загрузки заданий');
     return [];
   }
 }

@@ -457,13 +457,17 @@ app.get('/api/user/:userId/quests', async (req, res) => {
     // Get user
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, referral_count')
+      .select('*')
       .eq('telegram_id', userId)
       .single();
 
     if (userError) {
+      console.error('Error fetching user for quests:', userError);
       return res.status(404).json({ error: 'User not found' });
     }
+
+    // Get referral count (0 if field doesn't exist)
+    const referralCount = user.referral_count || 0;
 
     // Define quests
     const quests = [
@@ -479,26 +483,26 @@ app.get('/api/user/:userId/quests', async (req, res) => {
       {
         id: 'referral_1',
         title: '1 реферал',
-        description: `Пригласите друга (${user.referral_count || 0}/1)`,
+        description: `Пригласите друга (${referralCount}/1)`,
         reward: 'Шахта +1',
         icon: '👥',
-        completed: (user.referral_count || 0) >= 1,
+        completed: referralCount >= 1,
       },
       {
         id: 'referral_2',
         title: '2 реферала',
-        description: `Пригласите друзей (${user.referral_count || 0}/2)`,
+        description: `Пригласите друзей (${referralCount}/2)`,
         reward: 'Шахта +1',
         icon: '👥👥',
-        completed: (user.referral_count || 0) >= 2,
+        completed: referralCount >= 2,
       },
       {
         id: 'referral_3',
         title: '3 реферала',
-        description: `Пригласите друзей (${user.referral_count || 0}/3)`,
+        description: `Пригласите друзей (${referralCount}/3)`,
         reward: 'Шахта +2',
         icon: '👥👥👥',
-        completed: (user.referral_count || 0) >= 3,
+        completed: referralCount >= 3,
       },
     ];
 

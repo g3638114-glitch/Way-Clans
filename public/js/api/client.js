@@ -30,6 +30,18 @@ export const apiClient = {
     return response.json();
   },
 
+  // Activate building
+  async activateBuilding(userId, buildingId) {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/activate`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to activate building');
+    }
+    return response.json();
+  },
+
   // Upgrade building
   async upgradeBuilding(userId, buildingId) {
     const response = await fetch(`/api/user/${userId}/building/${buildingId}/upgrade`, {
@@ -38,22 +50,6 @@ export const apiClient = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to upgrade building');
-    }
-    return response.json();
-  },
-
-  // Purchase building
-  async purchaseBuilding(userId, buildingType) {
-    const response = await fetch(`/api/user/${userId}/building/purchase`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ buildingType }),
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to purchase building');
     }
     return response.json();
   },

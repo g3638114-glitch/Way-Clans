@@ -20,7 +20,7 @@
   gap: 15px;
 }
 
-/* Building Card */
+/* ========== BUILDING CARD ==========*/
 .building-card {
   background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
   border: 2px solid rgba(76, 111, 166, 0.4);
@@ -28,7 +28,18 @@
   padding: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(212, 175, 55, 0.02);
   transition: all 0.3s ease;
-  opacity: 1;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .building-card:hover {
@@ -42,95 +53,101 @@
   box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
 }
 
-.building-card.locked {
-  opacity: 0.6;
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.locked-card {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(160, 130, 30, 0.1) 100%);
-  border: 2px dashed rgba(212, 175, 55, 0.4);
-}
-
-/* Building Header */
-.building-header {
+/* ========== BUILDING CARD HEADER ==========*/
+.building-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
 }
 
-.building-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #fff;
+.building-card-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.building-level {
-  font-size: 12px;
-  color: #d4af37;
-  background: rgba(212, 175, 55, 0.15);
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid rgba(212, 175, 55, 0.5);
-}
-
-/* Building Info Grid */
-.building-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 12px;
-  font-size: 14px;
+  flex: 1;
 }
 
-.info-item {
+.building-icon {
+  font-size: 28px;
+}
+
+.building-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  margin: 0;
+}
+
+/* ========== BUILDING STATS ==========*/
+.building-card-stats {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px;
+  gap: 8px;
+  margin-bottom: 15px;
+  font-size: 13px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   border-left: 3px solid rgba(212, 175, 55, 0.5);
 }
 
-.info-label {
-  font-size: 12px;
+.stat-label {
   color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
-.info-value {
-  font-size: 14px;
-  font-weight: bold;
+.stat-value {
   color: #d4af37;
+  font-weight: bold;
+  font-size: 14px;
 }
 
-/* Production Progress Bar */
-.production-bar {
+.stat-time {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
   width: 100%;
-  height: 12px;
+}
+
+/* ========== CAPACITY PROGRESS BAR ==========*/
+.capacity-progress-container {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.capacity-progress-bar {
+  width: 100%;
+  height: 16px;
   background: rgba(0, 0, 0, 0.4);
   border-radius: 20px;
   overflow: hidden;
-  margin-bottom: 12px;
   border: 1.5px solid rgba(212, 175, 55, 0.3);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.production-fill {
+.capacity-progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #4c6fa6 0%, #d4af37 100%);
   transition: width 0.5s ease;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
   position: relative;
 }
 
-.production-fill::after {
+.capacity-progress-fill.full {
+  background: linear-gradient(90deg, #d4af37 0%, #f0e68c 100%);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.8), inset 0 0 8px rgba(240, 230, 140, 0.3);
+}
+
+.capacity-progress-fill::after {
   content: '';
   position: absolute;
   top: 0;
@@ -138,35 +155,124 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
 }
 
-/* Building Actions */
-.building-actions {
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ========== BUILDING ACTIONS ==========*/
+.building-card-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
 }
 
-/* Locked Info Section */
-.locked-info {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px;
-  background: rgba(212, 175, 55, 0.1);
+/* Base button styles */
+.btn {
+  padding: 10px 14px;
+  border: none;
   border-radius: 8px;
-  margin-bottom: 12px;
   font-size: 13px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.cost-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.8);
+.btn:active {
+  transform: scale(0.98);
 }
 
-.cost-item strong {
-  color: #d4af37;
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Activate Button */
+.btn-activate {
+  background: linear-gradient(135deg, #4c6fa6 0%, #356b8d 100%);
+  color: #fff;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.btn-activate:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a7cb8 0%, #3f789f 100%);
+  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.5);
+}
+
+/* Collect Button */
+.btn-collect {
+  background: linear-gradient(135deg, #d4af37 0%, #f0e68c 100%);
+  color: #222;
+  border: 1px solid rgba(240, 230, 140, 0.6);
+  font-weight: 700;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.7);
+  }
+}
+
+.btn-collect:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f0e68c 0%, #fff8dc 100%);
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.8) !important;
+  transform: scale(1.02);
+}
+
+/* Upgrade Button */
+.btn-upgrade {
+  background: linear-gradient(135deg, #5a7cb8 0%, #4c6fa6 100%);
+  color: #fff;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.btn-upgrade:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6b8dc8 0%, #5a7cb8 100%);
+  box-shadow: 0 4px 12px rgba(90, 124, 184, 0.5);
+}
+
+/* Maxed Button */
+.btn-maxed {
+  background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 100%);
+  color: #999;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .building-card-stats {
+    font-size: 12px;
+  }
+
+  .stat-row {
+    padding: 6px 8px;
+  }
+
+  .stat-value {
+    font-size: 13px;
+  }
+
+  .building-card-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .btn {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
 }

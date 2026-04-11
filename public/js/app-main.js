@@ -32,14 +32,10 @@ async function loadUserData() {
 async function loadBuildings() {
   try {
     console.log('Loading buildings for userId:', appState.userId);
-    appState.allBuildings = await apiClient.getBuildings(appState.userId);
+    const response = await apiClient.getBuildings(appState.userId);
 
-    // Initialize decimal trackers for all buildings
-    appState.allBuildings.forEach(building => {
-      if (!building._collected_decimal) {
-        building._collected_decimal = building.collected_amount || 0;
-      }
-    });
+    // Handle response format from backend
+    appState.allBuildings = response.buildings || response;
 
     console.log('Buildings loaded:', appState.allBuildings.length, 'buildings');
   } catch (error) {
@@ -51,13 +47,16 @@ async function loadBuildings() {
 async function initializeApp() {
   // Initialize user ID
   initializeUserId();
-  
+
   // Load initial data
   await loadUserData();
-  
+
+  // Load buildings data
+  await loadBuildings();
+
   // Setup all event listeners
   setupEventListeners();
-  
+
   // Show main page
   showPage('main');
 }

@@ -11,6 +11,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 
 /**
  * Create initial buildings for a new user (free buildings: mine, quarry, lumber_mill, farm)
+ * Each player starts with 1 of each building type at level 1
  */
 async function createInitialBuildings(userId) {
   try {
@@ -26,9 +27,37 @@ async function createInitialBuildings(userId) {
       return;
     }
 
-    // Create 4 initial free buildings (not added yet, only available to purchase)
-    // They will be created as "locked" cards that the user can buy for free
-    console.log(`✅ User ${user.id} created. Free buildings available for purchase: mine, quarry, lumber_mill, farm`);
+    // Create initial buildings: mine, quarry, lumber_mill, farm
+    const buildingTypes = ['mine', 'quarry', 'lumber_mill', 'farm'];
+    const productionRates = {
+      mine: 100,
+      quarry: 80,
+      lumber_mill: 90,
+      farm: 70,
+    };
+
+    const buildingsToCreate = buildingTypes.map((type) => ({
+      user_id: user.id,
+      building_type: type,
+      building_number: 1,
+      level: 1,
+      collected_amount: 0,
+      production_rate: productionRates[type],
+      last_activated: null,
+      created_at: new Date().toISOString(),
+    }));
+
+    const { data: createdBuildings, error: createError } = await supabase
+      .from('user_buildings')
+      .insert(buildingsToCreate)
+      .select();
+
+    if (createError) {
+      console.error('Error creating initial buildings:', createError);
+      return;
+    }
+
+    console.log(`✅ Created ${createdBuildings.length} initial buildings for user ${user.id}`);
   } catch (error) {
     console.error('Error creating initial buildings:', error);
   }

@@ -1,71 +1,152 @@
 import { appState } from '../utils/state.js';
-import { updateCollectedAmounts, calculateTimeRemaining } from './calculations.js';
+import { getProductionRate, getCapacity, getResourceEmoji } from './config.js';
 
-// Update building card values (smooth update without re-rendering)
+/**
+ * Calculate accumulated resources for a building
+ */
+function calculateBuildingProgress(building) {
+  if (!building.last_activated) {
+    return {
+      accumulated: 0,
+      isFull: false,
+    };
+  }
+
+  const level = building.level || 1;
+  const productionRate = getProductionRate(building.building_type, level);
+  const capacity = getCapacity(building.building_type, level);
+
+  const lastActivated = new Date(building.last_activated);
+  const now = new Date();
+  const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
+
+  const totalAccumulated = (building.collected_amount || 0) + hoursPassed * productionRate;
+  const accumulated = Math.floor(Math.min(totalAccumulated, capacity));
+  const isFull = accumulated >= capacity;
+
+  return {
+    accumulated,
+    capacity,
+    productionRate,
+    isFull,
+  };
+}
+
+/**
+ * Update a single building card's values (smooth update without re-rendering)
+ */
 function updateBuildingCardValues(building) {
   const card = document.querySelector(`[data-building-id="${building.id}"]`);
   if (!card) return;
 
-  const collectedAmount = Math.floor(building._collected_decimal || building.collected_amount || 0);
-  const productionRate = building.production_rate || 100;
-  const maxCapacity = productionRate * 24;
-  const progressPercent = (collectedAmount / maxCapacity) * 100;
-  const isReady = collectedAmount >= maxCapacity;
+  const level = building.level || 1;
+  const progress = calculateBuildingProgress(building);
+  const capacity = getCapacity(building.building_type, level);
+  const progressPercent = (progress.accumulated / capacity) * 100;
+  const resourceEmoji = getResourceEmoji(building.building_type);
 
-  // Update collected value
-  const infoValue = card.querySelector('.info-value-collected');
-  if (infoValue) {
-    infoValue.textContent = `${collectedAmount}/${maxCapacity}`;
+  // ===== Update capacity stat row =====
+  const statRows = card.querySelectorAll('.stat-row');
+  if (statRows.length >= 2) {
+    // Second stat row is capacity
+    const capacityStatValue = statRows[1].querySelector('.stat-value');
+    if (capacityStatValue) {
+      capacityStatValue.textContent = `${progress.accumulated}/${capacity}${resourceEmoji}`;
+    }
   }
 
-  // Update progress bar
-  const progressFill = card.querySelector('.production-fill');
+  // ===== Update progress bar =====
+  const progressFill = card.querySelector('.capacity-progress-fill');
   if (progressFill) {
     progressFill.style.width = `${Math.min(progressPercent, 100)}%`;
-  }
 
-  // Update time remaining
-  const timeDiv = card.querySelector('[data-time-remaining]');
-  if (timeDiv) {
-    const timeRemaining = calculateTimeRemaining(collectedAmount, productionRate, maxCapacity);
-    timeDiv.textContent = `Время до заполнения: ${timeRemaining}`;
-  }
-
-  // Update collect button state
-  const collectBtn = card.querySelector('.collect-btn');
-  if (collectBtn) {
-    collectBtn.disabled = !isReady;
-    if (isReady) {
-      collectBtn.classList.add('ready');
-      collectBtn.classList.remove('collecting');
+    // Add full class when at capacity
+    if (progress.isFull) {
+      progressFill.classList.add('full');
     } else {
-      collectBtn.classList.remove('ready');
-      collectBtn.classList.add('collecting');
+      progressFill.classList.remove('full');
+    }
+  }
+
+  // ===== Update action buttons =====
+  const actionsContainer = card.querySelector('.building-card-actions');
+  if (actionsContainer) {
+    const activateBtn = actionsContainer.querySelector('.btn-activate');
+    const collectBtn = actionsContainer.querySelector('.btn-collect');
+
+    const isActivated = building.last_activated !== null && building.last_activated !== undefined;
+
+    // Manage activate button visibility
+    if (!isActivated || (isActivated && progress.isFull)) {
+      // Should have activate button
+      if (!activateBtn) {
+        const newActivateBtn = document.createElement('button');
+        newActivateBtn.className = 'btn btn-activate';
+        newActivateBtn.textContent = 'Активировать';
+        newActivateBtn.addEventListener('click', () => {
+          window.activateBuilding(building.id);
+        });
+        actionsContainer.insertBefore(newActivateBtn, actionsContainer.firstChild);
+      }
+    } else {
+      // Should not have activate button
+      if (activateBtn) {
+        activateBtn.remove();
+      }
+    }
+
+    // Manage collect button visibility
+    if (progress.isFull) {
+      // Should have collect button
+      if (!collectBtn) {
+        const newCollectBtn = document.createElement('button');
+        newCollectBtn.className = 'btn btn-collect';
+        newCollectBtn.innerHTML = `<span>Собрать</span> ${capacity}${resourceEmoji}`;
+        newCollectBtn.addEventListener('click', () => {
+          window.collectResources(building.id);
+        });
+        actionsContainer.insertBefore(newCollectBtn, actionsContainer.firstChild);
+      } else {
+        // Update collect button text in case capacity changed
+        collectBtn.innerHTML = `<span>Собрать</span> ${capacity}${resourceEmoji}`;
+      }
+    } else {
+      // Should not have collect button
+      if (collectBtn) {
+        collectBtn.remove();
+      }
     }
   }
 }
 
-// Smooth production updates - only update values, no re-render
+/**
+ * Smooth production update - updates card values every second without full re-render
+ */
 export function smoothUpdateProduction() {
-  updateCollectedAmounts(appState.allBuildings);
+  if (!appState.allBuildings || appState.allBuildings.length === 0) return;
 
-  // Update UI for each building card only
-  appState.allBuildings.forEach(building => {
+  // Update each building card
+  appState.allBuildings.forEach((building) => {
     updateBuildingCardValues(building);
   });
 }
 
+/**
+ * Start smooth production updates
+ */
 export function startProductionRefresh() {
-  // Update production every second with smooth updates
-  if (appState.productionRefreshInterval) return; // Prevent multiple intervals
-  
+  if (appState.productionRefreshInterval) return;
+
   appState.productionRefreshInterval = setInterval(() => {
-    if (appState.currentPage === 'mining' && appState.allBuildings.length > 0) {
+    if (appState.currentPage === 'mining' && appState.allBuildings && appState.allBuildings.length > 0) {
       smoothUpdateProduction();
     }
   }, 1000);
 }
 
+/**
+ * Stop production updates
+ */
 export function stopProductionRefresh() {
   if (appState.productionRefreshInterval) {
     clearInterval(appState.productionRefreshInterval);

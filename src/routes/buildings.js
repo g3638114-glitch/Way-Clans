@@ -2,10 +2,35 @@ import express from 'express';
 import {
   collectResourcesFromBuilding,
   upgradeBuilding,
-  purchaseBuilding,
+  activateBuilding,
+  getUserBuildings,
 } from '../services/buildingService.js';
 
 const router = express.Router();
+
+// GET /api/user/:userId/buildings
+router.get('/:userId/buildings', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const buildings = await getUserBuildings(userId);
+    res.json({ success: true, buildings });
+  } catch (error) {
+    console.error('Error fetching buildings:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+// POST /api/user/:userId/building/:buildingId/activate
+router.post('/:userId/building/:buildingId/activate', async (req, res) => {
+  try {
+    const { userId, buildingId } = req.params;
+    const result = await activateBuilding(userId, buildingId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error activating building:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
 
 // POST /api/user/:userId/building/:buildingId/collect
 router.post('/:userId/building/:buildingId/collect', async (req, res) => {
@@ -27,19 +52,6 @@ router.post('/:userId/building/:buildingId/upgrade', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error upgrading building:', error);
-    res.status(400).json({ error: error.message || 'Server error' });
-  }
-});
-
-// POST /api/user/:userId/building/purchase
-router.post('/:userId/building/purchase', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { buildingType } = req.body;
-    const result = await purchaseBuilding(userId, buildingType);
-    res.json(result);
-  } catch (error) {
-    console.error('Error purchasing building:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

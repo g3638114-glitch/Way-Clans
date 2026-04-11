@@ -3,38 +3,93 @@ import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { renderBuildings } from '../builders.js';
 import { formatNumber } from '../../utils/formatters.js';
-import { calculateUpgradeCost } from '../../game/calculations.js';
-import { BUILDING_CONFIGS } from '../../game/config.js';
+import { getUpgradeCost, getProductionRate, getBuildingConfig } from '../../game/config.js';
 
 export function openUpgradeModal(buildingId, currentLevel) {
-  const building = appState.allBuildings.find(b => b.id === buildingId);
+  const building = appState.allBuildings.find((b) => b.id === buildingId);
   if (!building) return;
+
+  // Can't upgrade beyond level 5
+  if (currentLevel >= 5) {
+    window.tg.showAlert('Здание уже на максимальном уровне (5)');
+    return;
+  }
 
   appState.upgradeModalData.buildingId = buildingId;
   appState.upgradeModalData.currentLevel = currentLevel;
 
+  const nextLevel = currentLevel + 1;
+  const config = getBuildingConfig(building.building_type);
+  const buildingName = `${config.name}`;
+
   // Update modal content
-  const config = BUILDING_CONFIGS[building.building_type];
-  const buildingName = `${config.name} #${building.building_number}`;
   document.getElementById('upgrade-building-name').textContent = buildingName;
-
-  // Current level and production
   document.getElementById('upgrade-current-level').textContent = currentLevel;
-  document.getElementById('upgrade-new-level').textContent = currentLevel + 1;
-  document.getElementById('upgrade-current-production').textContent = building.production_rate;
+  document.getElementById('upgrade-new-level').textContent = nextLevel;
 
-  // Calculate new production rate (20% increase per level)
-  const newProductionRate = Math.floor(building.production_rate * 1.2);
-  document.getElementById('upgrade-new-production').textContent = newProductionRate;
+  // Current and new production rates
+  const currentProduction = getProductionRate(building.building_type, currentLevel);
+  const newProduction = getProductionRate(building.building_type, nextLevel);
+  const resourceEmoji = config.resourceEmoji;
 
-  // Cost
-  const upgradeCost = calculateUpgradeCost(currentLevel);
-  document.getElementById('upgrade-cost-value').textContent = formatNumber(upgradeCost);
-  document.getElementById('upgrade-player-gold').textContent = formatNumber(appState.currentUser.gold);
+  document.getElementById('upgrade-current-production').textContent = `${currentProduction}${resourceEmoji}/час`;
+  document.getElementById('upgrade-new-production').textContent = `${newProduction}${resourceEmoji}/час`;
 
-  // Enable/disable upgrade button based on gold
+  // Get upgrade cost
+  const costData = getUpgradeCost(building.building_type, nextLevel);
   const upgradeBtn = document.getElementById('upgrade-confirm-btn');
-  if (appState.currentUser.gold >= upgradeCost) {
+
+  if (!costData) {
+    upgradeBtn.disabled = true;
+    document.getElementById('upgrade-modal').classList.add('active');
+    return;
+  }
+
+  // Update cost display based on building type
+  let canAfford = true;
+  const costSection = document.querySelector('.upgrade-cost-section');
+  const costDisplay = costSection.querySelector('.cost-display');
+  const playerGoldInfo = costSection.querySelector('.player-gold-info');
+
+  if (building.building_type === 'mine') {
+    // Mine costs stone + wood
+    const hasStone = appState.currentUser.stone >= costData.stone;
+    const hasWood = appState.currentUser.wood >= costData.wood;
+    canAfford = hasStone && hasWood;
+
+    costDisplay.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+          <span>Камень:</span>
+          <span style="color: ${!hasStone ? '#ff6b6b' : '#d4af37'}; font-weight: bold;">
+            ${formatNumber(costData.stone)} 🪨 / ${formatNumber(appState.currentUser.stone || 0)}
+          </span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+          <span>Дерево:</span>
+          <span style="color: ${!hasWood ? '#ff6b6b' : '#d4af37'}; font-weight: bold;">
+            ${formatNumber(costData.wood)} 🌲 / ${formatNumber(appState.currentUser.wood || 0)}
+          </span>
+        </div>
+      </div>
+    `;
+    playerGoldInfo.innerHTML = '';
+  } else {
+    // Others cost gold
+    const hasGold = appState.currentUser.gold >= costData.gold;
+    canAfford = hasGold;
+
+    costDisplay.innerHTML = `
+      <span class="cost-value" style="color: ${!hasGold ? '#ff6b6b' : '#d4af37'}">
+        ${formatNumber(costData.gold)}
+      </span>
+      <span class="cost-icon">💰</span>
+    `;
+    playerGoldInfo.innerHTML = `Ваше золото: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
+  }
+
+  // Enable/disable upgrade button
+  if (canAfford) {
     upgradeBtn.classList.remove('disabled');
     upgradeBtn.disabled = false;
   } else {
@@ -59,20 +114,20 @@ export async function confirmUpgrade() {
     updateUI(appState.currentUser);
 
     // Update building in local array
-    const buildingIndex = appState.allBuildings.findIndex(b => b.id === appState.upgradeModalData.buildingId);
+    const buildingIndex = appState.allBuildings.findIndex(
+      (b) => b.id === appState.upgradeModalData.buildingId
+    );
     if (buildingIndex !== -1) {
       appState.allBuildings[buildingIndex] = result.building;
-      // Maintain decimal value tracking across upgrades
-      if (!appState.allBuildings[buildingIndex]._collected_decimal) {
-        appState.allBuildings[buildingIndex]._collected_decimal = 0;
-      }
     }
 
     closeUpgradeModal();
     renderBuildings();
-    tg.showAlert(`✅ Building upgraded! New level: ${appState.upgradeModalData.currentLevel + 1}`);
+    window.tg.showAlert(
+      `✅ Здание улучшено! Новый уровень: ${appState.upgradeModalData.currentLevel + 1}`
+    );
   } catch (error) {
     console.error('Error upgrading building:', error);
-    tg.showAlert(error.message || 'Error during upgrade');
+    window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
   }
 }

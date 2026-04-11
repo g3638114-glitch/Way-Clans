@@ -1,183 +1,173 @@
 import { appState } from '../utils/state.js';
 import { formatNumber } from '../utils/formatters.js';
-import { calculateTimeRemaining, updateCollectedAmounts } from '../game/calculations.js';
-import { BUILDING_CONFIGS } from '../game/config.js';
-import { collectResources, upgradeBuilding, purchaseBuilding } from '../game/buildings.js';
+import {
+  getProductionRate,
+  getCapacity,
+  getBuildingConfig,
+  getResourceEmoji,
+} from '../game/config.js';
+import { activateBuilding, collectResources, upgradeBuilding } from '../game/buildings.js';
 
 // Make functions available globally for onclick handlers
+window.activateBuilding = activateBuilding;
 window.collectResources = collectResources;
 window.upgradeBuilding = upgradeBuilding;
-window.purchaseBuilding = purchaseBuilding;
 
-// Render buildings - creates cards on first render, updates values on subsequent renders
+/**
+ * Render all buildings of selected type
+ */
 export function renderBuildings() {
-  updateCollectedAmounts(appState.allBuildings); // Update production before rendering
-
   const container = document.getElementById('buildings-container');
-  const filteredBuildings = appState.allBuildings.filter(b => b.building_type === appState.selectedBuildingType);
+  if (!container) return;
 
-  // Always clear and rebuild - ensures correct filter is applied
+  const filteredBuildings = appState.allBuildings.filter(
+    (b) => b.building_type === appState.selectedBuildingType
+  );
+
+  // Clear and rebuild
   container.innerHTML = '';
 
-  // Show owned buildings
   filteredBuildings.forEach((building, index) => {
     const card = createBuildingCard(building);
     card.style.animationDelay = `${index * 0.1}s`;
     container.appendChild(card);
   });
-
-  // If no buildings of this type owned, show "Buy first building" card
-  if (filteredBuildings.length === 0) {
-    const lockedCard = createLockedBuildingCard(appState.selectedBuildingType);
-    container.appendChild(lockedCard);
-  }
 }
 
-// Create building card
+/**
+ * Create a building card with new capacity-based mechanics
+ */
 export function createBuildingCard(building) {
   const card = document.createElement('div');
   card.className = 'building-card';
   card.dataset.buildingId = building.id;
 
-  const config = BUILDING_CONFIGS[building.building_type];
+  const config = getBuildingConfig(building.building_type);
   const level = building.level || 1;
-  const collectedAmount = Math.floor(building._collected_decimal || building.collected_amount || 0);
-  const productionRate = building.production_rate || 100;
-  const maxCapacity = productionRate * 24; // Capacity for 24 hours
+  const productionRate = getProductionRate(building.building_type, level);
+  const capacity = getCapacity(building.building_type, level);
 
-  const progressPercent = (collectedAmount / maxCapacity) * 100;
+  // Current accumulated amount (with smooth decimals if available)
+  const currentAccumulated = Math.floor(
+    building.currentAccumulated !== undefined ? building.currentAccumulated : 0
+  );
+  const isFull = currentAccumulated >= capacity;
+  const isActivated = building.last_activated !== null && building.last_activated !== undefined;
 
-  // Building Header
-  const header = document.createElement('div');
-  header.className = 'building-header';
-  header.innerHTML = `
-    <div class="building-title">
-      <span>${config.icon}</span>
-      <span>${config.name} #${building.building_number}</span>
-    </div>
-    <div class="building-level">Уровень: ${level}</div>
-  `;
+  // Calculate progress percentage
+  const progressPercent = capacity > 0 ? (currentAccumulated / capacity) * 100 : 0;
 
-  // Building Info
-  const info = document.createElement('div');
-  info.className = 'building-info';
-  info.innerHTML = `
-    <div class="info-item">
-      <span class="info-label">Производство/час</span>
-      <span class="info-value">${productionRate}</span>
-    </div>
-    <div class="info-item">
-      <span class="info-label">Собрано</span>
-      <span class="info-value info-value-collected">${collectedAmount}/${maxCapacity}</span>
-    </div>
-  `;
-
-  // Production Progress Bar
-  const progressBar = document.createElement('div');
-  progressBar.className = 'production-bar';
-  const fill = document.createElement('div');
-  fill.className = 'production-fill';
-  fill.style.width = `${progressPercent}%`;
-  progressBar.appendChild(fill);
-
-  // Time remaining
-  const timeRemaining = calculateTimeRemaining(collectedAmount, productionRate, maxCapacity);
-  const timeDiv = document.createElement('div');
-  timeDiv.className = 'time-remaining';
-  timeDiv.dataset.timeRemaining = '';
-  timeDiv.style.fontSize = '12px';
-  timeDiv.style.color = 'rgba(255, 255, 255, 0.7)';
-  timeDiv.style.marginBottom = '12px';
-  timeDiv.textContent = `Время до заполнения: ${timeRemaining}`;
-
-  // Buttons
-  const actions = document.createElement('div');
-  actions.className = 'building-actions';
-
-  const collectBtn = document.createElement('button');
-  collectBtn.className = 'btn building-btn collect-btn';
-  const isReady = collectedAmount >= maxCapacity;
-  if (isReady) {
-    collectBtn.classList.add('ready');
-    collectBtn.textContent = `Собрать`;
-  } else {
-    collectBtn.classList.add('collecting');
-    collectBtn.textContent = `Собрать`;
-    collectBtn.disabled = true;
+  // Calculate time to fill (if not full and activated)
+  let timeToFillText = '';
+  if (!isFull && isActivated) {
+    const resourcesNeeded = capacity - currentAccumulated;
+    const hoursNeeded = resourcesNeeded / productionRate;
+    timeToFillText = formatTimeToFill(hoursNeeded);
   }
-  collectBtn.addEventListener('click', () => collectResources(building.id));
 
-  const upgradeBtn = document.createElement('button');
-  upgradeBtn.className = 'btn building-btn upgrade-btn';
-  upgradeBtn.textContent = `Улучшить`;
-  upgradeBtn.addEventListener('click', () => upgradeBuilding(building.id, level));
+  const resourceEmoji = getResourceEmoji(building.building_type);
 
-  actions.appendChild(collectBtn);
-  actions.appendChild(upgradeBtn);
+  // ========== Card Header ==========
+  const header = document.createElement('div');
+  header.className = 'building-card-header';
+  header.innerHTML = `
+    <div class="building-card-title">
+      <span class="building-icon">${config.icon}</span>
+      <h3 class="building-name">${config.name} (Уровень ${level})</h3>
+    </div>
+  `;
 
-  // Assemble card
+  // ========== Card Stats ==========
+  const stats = document.createElement('div');
+  stats.className = 'building-card-stats';
+  stats.innerHTML = `
+    <div class="stat-row">
+      <span class="stat-label">Производство/час:</span>
+      <span class="stat-value">${productionRate}${resourceEmoji}/час</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Вместимость:</span>
+      <span class="stat-value">${currentAccumulated}/${capacity}${resourceEmoji}</span>
+    </div>
+    ${timeToFillText ? `<div class="stat-row"><span class="stat-time">${timeToFillText}</span></div>` : ''}
+  `;
+
+  // ========== Capacity Progress Bar ==========
+  const progressContainer = document.createElement('div');
+  progressContainer.className = 'capacity-progress-container';
+  const progressBar = document.createElement('div');
+  progressBar.className = 'capacity-progress-bar';
+  const fill = document.createElement('div');
+  fill.className = 'capacity-progress-fill';
+  fill.style.width = `${Math.min(progressPercent, 100)}%`;
+  if (isFull) {
+    fill.classList.add('full');
+  }
+  progressBar.appendChild(fill);
+  progressContainer.appendChild(progressBar);
+
+  // ========== Action Buttons ==========
+  const actions = document.createElement('div');
+  actions.className = 'building-card-actions';
+
+  // Activate button (visible when not activated or when empty)
+  if (!isActivated || (isActivated && isFull)) {
+    const activateBtn = document.createElement('button');
+    activateBtn.className = 'btn btn-activate';
+    activateBtn.textContent = 'Активировать';
+    activateBtn.addEventListener('click', () => activateBuilding(building.id));
+    actions.appendChild(activateBtn);
+  }
+
+  // Collect button (visible only when full)
+  if (isFull) {
+    const collectBtn = document.createElement('button');
+    collectBtn.className = 'btn btn-collect';
+    collectBtn.innerHTML = `<span>Собрать</span> ${capacity}${resourceEmoji}`;
+    collectBtn.addEventListener('click', () => collectResources(building.id));
+    actions.appendChild(collectBtn);
+  }
+
+  // Upgrade button
+  if (level < 5) {
+    const upgradeBtn = document.createElement('button');
+    upgradeBtn.className = 'btn btn-upgrade';
+    upgradeBtn.textContent = `Улучшить до уровня ${level + 1}`;
+    upgradeBtn.addEventListener('click', () => upgradeBuilding(building.id));
+    actions.appendChild(upgradeBtn);
+  } else {
+    const maxedBtn = document.createElement('button');
+    maxedBtn.className = 'btn btn-maxed';
+    maxedBtn.textContent = 'Максимальный уровень';
+    maxedBtn.disabled = true;
+    actions.appendChild(maxedBtn);
+  }
+
+  // ========== Assemble Card ==========
   card.appendChild(header);
-  card.appendChild(info);
-  card.appendChild(progressBar);
-  card.appendChild(timeDiv);
+  card.appendChild(stats);
+  card.appendChild(progressContainer);
   card.appendChild(actions);
 
   return card;
 }
 
-// Create locked building card for purchase
-export function createLockedBuildingCard(buildingType) {
-  const card = document.createElement('div');
-  card.className = 'building-card locked-card';
-
-  const config = BUILDING_CONFIGS[buildingType];
-  const production = config.productionRate;
-  const cost = config.cost;
-
-  // Header
-  const header = document.createElement('div');
-  header.className = 'building-header';
-  header.innerHTML = `
-    <div class="building-title">
-      <span>${config.icon}</span>
-      <span>${config.name} #1</span>
-    </div>
-    <div class="building-level">Уровень: 1</div>
-  `;
-
-  // Locked info
-  const lockedInfo = document.createElement('div');
-  lockedInfo.className = 'locked-info';
-  lockedInfo.innerHTML = `
-    <div class="info-item">
-      <span class="info-label">Производство/час</span>
-      <span class="info-value">${production}</span>
-    </div>
-    <div class="cost-item">
-      <span>Стоимость первого здания:</span>
-      <strong>${cost === 0 ? 'БЕСПЛАТНО' : formatNumber(cost) + ' 💰'}</strong>
-    </div>
-    <div class="cost-item">
-      <span>Ваше золото:</span>
-      <strong>${formatNumber(appState.currentUser.gold)} 💰</strong>
-    </div>
-  `;
-
-  // Buy button
-  const actions = document.createElement('div');
-  actions.className = 'building-actions';
-
-  const buyBtn = document.createElement('button');
-  buyBtn.className = 'btn building-btn buy-btn';
-  buyBtn.textContent = cost === 0 ? 'Купить (Бесплатно)' : `Купить (${formatNumber(cost)})`;
-  buyBtn.addEventListener('click', () => purchaseBuilding(buildingType));
-
-  actions.appendChild(buyBtn);
-
-  // Assemble card
-  card.appendChild(header);
-  card.appendChild(lockedInfo);
-  card.appendChild(actions);
-
-  return card;
+/**
+ * Format time remaining (hours/minutes)
+ */
+function formatTimeToFill(hours) {
+  if (hours < 0.016) {
+    // Less than 1 minute
+    return '< 1 мин';
+  }
+  if (hours < 1) {
+    const minutes = Math.ceil(hours * 60);
+    return `~${minutes} мин`;
+  }
+  if (hours < 24) {
+    const roundedHours = Math.ceil(hours);
+    return `~${roundedHours}ч`;
+  }
+  const days = Math.ceil(hours / 24);
+  return `~${days}д`;
 }

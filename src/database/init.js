@@ -71,7 +71,7 @@ async function executeSqlStatements() {
         level INT DEFAULT 1,
         collected_amount BIGINT DEFAULT 0,
         production_rate BIGINT DEFAULT 100,
-        last_collected TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        last_activated TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         UNIQUE(user_id, building_type, building_number)

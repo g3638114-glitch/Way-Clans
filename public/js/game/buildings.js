@@ -3,9 +3,35 @@ import { apiClient } from '../api/client.js';
 import { updateUI } from '../ui/dom.js';
 import { renderBuildings } from '../ui/builders.js';
 import { openUpgradeModal } from '../ui/modals/index.js';
-import { BUILDING_CONFIGS } from './config.js';
+import { getBuildingConfig, getCapacity } from './config.js';
 
-// Collect resources from building
+/**
+ * Activate a building to start production
+ */
+export async function activateBuilding(buildingId) {
+  try {
+    const result = await apiClient.activateBuilding(appState.userId, buildingId);
+
+    // Update building in local array
+    const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
+    if (buildingIndex !== -1) {
+      appState.allBuildings[buildingIndex] = result.building;
+      appState.allBuildings[buildingIndex].currentAccumulated = 0;
+    }
+
+    renderBuildings();
+
+    const config = getBuildingConfig(result.building.building_type);
+    window.tg.showAlert(`✅ ${config.name} активирована и начинает производство!`);
+  } catch (error) {
+    console.error('Error activating building:', error);
+    window.tg.showAlert(error.message || 'Ошибка при активировании здания');
+  }
+}
+
+/**
+ * Collect resources from a building (when at full capacity)
+ */
 export async function collectResources(buildingId) {
   try {
     const result = await apiClient.collectResources(appState.userId, buildingId);
@@ -13,43 +39,59 @@ export async function collectResources(buildingId) {
     updateUI(appState.currentUser);
 
     // Update building in local array
-    const buildingIndex = appState.allBuildings.findIndex(b => b.id === buildingId);
+    const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
     if (buildingIndex !== -1) {
       appState.allBuildings[buildingIndex] = result.building;
-      // Reset decimal tracker
-      appState.allBuildings[buildingIndex]._collected_decimal = 0;
+      appState.allBuildings[buildingIndex].currentAccumulated = 0;
     }
 
     renderBuildings();
-    tg.showAlert(`✅ Собрано ${Math.floor(result.collected)} ресурсов!`);
+
+    const config = getBuildingConfig(result.building.building_type);
+    const emoji = config.resourceEmoji;
+    window.tg.showAlert(
+      `✅ Собрано ${result.collectedAmount}${emoji}! Здание перезагрузилось.`
+    );
   } catch (error) {
     console.error('Error collecting resources:', error);
-    tg.showAlert(error.message || 'Ошибка при сборе ресурсов');
+    window.tg.showAlert(error.message || 'Ошибка при сборе ресурсов');
   }
 }
 
-// Purchase a building
-export async function purchaseBuilding(buildingType) {
+/**
+ * Upgrade building - opens modal with cost details
+ */
+export function upgradeBuilding(buildingId) {
+  // Find the building to get its current level
+  const building = appState.allBuildings.find((b) => b.id === buildingId);
+  if (building) {
+    openUpgradeModal(buildingId, building.level || 1);
+  }
+}
+
+/**
+ * Confirm upgrade after modal
+ */
+export async function confirmUpgradeBuilding(buildingId) {
   try {
-    const result = await apiClient.purchaseBuilding(appState.userId, buildingType);
+    const result = await apiClient.upgradeBuilding(appState.userId, buildingId);
     appState.currentUser = result.user;
-    appState.allBuildings.push(result.building);
-
-    // Initialize decimal tracker for new building
-    result.building._collected_decimal = 0;
-
     updateUI(appState.currentUser);
+
+    // Update building in local array
+    const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
+    if (buildingIndex !== -1) {
+      appState.allBuildings[buildingIndex] = result.building;
+    }
+
     renderBuildings();
 
-    const buildingName = BUILDING_CONFIGS[buildingType].name;
-    tg.showAlert(`✅ ${buildingName} #1 куплена!`);
+    const config = getBuildingConfig(result.building.building_type);
+    window.tg.showAlert(
+      `⬆️ ${config.name} улучшена до уровня ${result.building.level}!`
+    );
   } catch (error) {
-    console.error('Error purchasing building:', error);
-    tg.showAlert(error.message || 'Ошибка при покупке здания');
+    console.error('Error upgrading building:', error);
+    window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
   }
-}
-
-// Upgrade building - opens modal instead of confirm dialog
-export function upgradeBuilding(buildingId, currentLevel) {
-  openUpgradeModal(buildingId, currentLevel);
 }

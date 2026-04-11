@@ -8,10 +8,22 @@ let currentPage = 'main';
 let allBuildings = [];
 let selectedBuildingType = 'mine';
 
-// Parse userId from URL
+// Parse userId from URL or Telegram WebApp
 function getUserIdFromUrl() {
+  // First try to get from URL (for bot links)
   const params = new URLSearchParams(window.location.search);
-  return params.get('userId');
+  const urlUserId = params.get('userId');
+  if (urlUserId) {
+    return urlUserId;
+  }
+
+  // Fallback: get from Telegram WebApp initData
+  const initDataUnsafe = window.Telegram?.WebApp?.initDataUnsafe;
+  if (initDataUnsafe && initDataUnsafe.user && initDataUnsafe.user.id) {
+    return initDataUnsafe.user.id.toString();
+  }
+
+  return null;
 }
 
 // Load user data
@@ -167,30 +179,20 @@ function renderBuildings() {
   const container = document.getElementById('buildings-container');
   const filteredBuildings = allBuildings.filter(b => b.building_type === selectedBuildingType);
 
-  // Check if cards already exist for owned buildings
-  const existingCards = container.querySelectorAll('[data-building-id]');
+  // Always clear and rebuild - ensures correct filter is applied
+  container.innerHTML = '';
 
-  if (existingCards.length === 0) {
-    // First render - create all cards
-    container.innerHTML = '';
+  // Show owned buildings
+  filteredBuildings.forEach((building, index) => {
+    const card = createBuildingCard(building);
+    card.style.animationDelay = `${index * 0.1}s`;
+    container.appendChild(card);
+  });
 
-    // Show owned buildings
-    filteredBuildings.forEach((building, index) => {
-      const card = createBuildingCard(building);
-      card.style.animationDelay = `${index * 0.1}s`;
-      container.appendChild(card);
-    });
-
-    // If no buildings of this type owned, show "Buy first building" card
-    if (filteredBuildings.length === 0) {
-      const lockedCard = createLockedBuildingCard(selectedBuildingType);
-      container.appendChild(lockedCard);
-    }
-  } else {
-    // Subsequent renders - update values in place
-    filteredBuildings.forEach((building) => {
-      updateBuildingCard(building);
-    });
+  // If no buildings of this type owned, show "Buy first building" card
+  if (filteredBuildings.length === 0) {
+    const lockedCard = createLockedBuildingCard(selectedBuildingType);
+    container.appendChild(lockedCard);
   }
 }
 

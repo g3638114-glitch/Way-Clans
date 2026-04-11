@@ -33,6 +33,9 @@ body {
   padding: 15px;
   background: rgba(255, 255, 255, 0.05);
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .resource-item {
@@ -222,7 +225,9 @@ body {
   padding: 10px;
   background: rgba(255, 255, 255, 0.05);
   border-top: 2px solid rgba(255, 255, 255, 0.1);
-  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
 
 .nav-item {
@@ -508,6 +513,7 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1;
+  padding-bottom: 70px;
 }
 
 .page:not(#main-page) {

@@ -16,7 +16,7 @@ import {
   openQuestsModal,
   closeQuestsModal,
   setupModalHandlers,
-} from './ui/modals.js';
+} from './ui/modals/index.js';
 import { renderBuildings } from './ui/builders.js';
 
 // Register all event listeners

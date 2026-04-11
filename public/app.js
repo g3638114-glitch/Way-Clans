@@ -131,24 +131,21 @@ function showPage(page) {
   currentPage = page;
 
   // Hide all pages
-  document.getElementById('main-page').style.display = 'none';
-  document.getElementById('mining-page').style.display = 'none';
+  document.getElementById('main-page').classList.remove('active');
+  document.getElementById('mining-page').classList.remove('active');
+
+  // Update nav items
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => item.classList.remove('active'));
 
   // Show selected page
   if (page === 'main') {
-    document.getElementById('main-page').style.display = 'flex';
+    document.getElementById('main-page').classList.add('active');
     document.getElementById('nav-main').classList.add('active');
-    document.getElementById('nav-mining').classList.remove('active');
-    document.getElementById('nav-barracks').classList.remove('active');
     stopProductionRefresh();
   } else if (page === 'mining') {
-    document.getElementById('mining-page').style.display = 'flex';
-    document.getElementById('nav-main').classList.remove('active');
+    document.getElementById('mining-page').classList.add('active');
     document.getElementById('nav-mining').classList.add('active');
-    document.getElementById('nav-barracks').classList.remove('active');
-    document.getElementById('nav-main-from-mining').classList.remove('active');
-    document.getElementById('nav-mining-active').classList.add('active');
-    document.getElementById('nav-barracks-from-mining').classList.remove('active');
     loadBuildings(); // Load buildings when switching to mining page
     startProductionRefresh();
   }
@@ -685,14 +682,8 @@ document.getElementById('attack-btn').addEventListener('click', () => {
 
 document.getElementById('nav-main').addEventListener('click', () => showPage('main'));
 document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));
-document.getElementById('nav-main-from-mining').addEventListener('click', () => showPage('main'));
-document.getElementById('nav-mining-active').addEventListener('click', () => showPage('mining'));
 
 document.getElementById('nav-barracks').addEventListener('click', () => {
-  tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
-});
-
-document.getElementById('nav-barracks-from-mining').addEventListener('click', () => {
   tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
 });
 

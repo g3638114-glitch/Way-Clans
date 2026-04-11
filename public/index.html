@@ -10,112 +10,84 @@
 <body>
   <!-- Main Container -->
   <div class="app-container">
-    <!-- Main Page -->
-    <div id="main-page" class="page">
-      <!-- Header with Resources -->
-      <div class="resources-header">
-        <div class="resource-item">
-          <span class="resource-icon">💰</span>
-          <span class="resource-value" id="gold-value">5 000</span>
-        </div>
-        <div class="resource-item">
-          <span class="resource-icon">🌲</span>
-          <span class="resource-value" id="wood-value">2 500</span>
-        </div>
-        <div class="resource-item">
-          <span class="resource-icon">🪨</span>
-          <span class="resource-value" id="stone-value">2 500</span>
-        </div>
-        <div class="resource-item">
-          <span class="resource-icon">🍖</span>
-          <span class="resource-value" id="meat-value">500</span>
-        </div>
-        <div class="resource-item">
-          <span class="resource-icon">💎</span>
-          <span class="resource-value" id="jabcoins-value">0</span>
-        </div>
+    <!-- Header with Resources - FIXED AT TOP -->
+    <div class="resources-header">
+      <div class="resource-item">
+        <span class="resource-icon">💰</span>
+        <span class="resource-value" id="gold-value">5 000</span>
       </div>
-
-      <!-- Player Card -->
-      <div class="player-card">
-        <div class="player-header">
-          <h2 id="player-name">PlayerName</h2>
-        </div>
-        <div class="player-info">
-          <div class="player-avatar">
-            <div class="avatar-placeholder">🧑</div>
-            <span id="player-username">@username</span>
-          </div>
-          <div class="player-id">
-            ID: <span id="player-id">123456789</span>
-          </div>
-        </div>
+      <div class="resource-item">
+        <span class="resource-icon">🌲</span>
+        <span class="resource-value" id="wood-value">2 500</span>
       </div>
-
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        <button class="btn btn-storage" id="storage-btn">📦 Склад</button>
-        <button class="btn btn-exchange" id="exchange-btn">💱 Обмен</button>
+      <div class="resource-item">
+        <span class="resource-icon">🪨</span>
+        <span class="resource-value" id="stone-value">2 500</span>
       </div>
-
-      <div class="action-buttons">
-        <button class="btn btn-attack" id="attack-btn">⚔️ Атаковать</button>
+      <div class="resource-item">
+        <span class="resource-icon">🍖</span>
+        <span class="resource-value" id="meat-value">500</span>
       </div>
-
-      <!-- Bottom Navigation Menu -->
-      <nav class="bottom-nav">
-        <button class="nav-item active" id="nav-main">🏠 Главная</button>
-        <button class="nav-item" id="nav-mining">⛏ Добыча</button>
-        <button class="nav-item" id="nav-barracks">🛡 Казарма</button>
-      </nav>
+      <div class="resource-item">
+        <span class="resource-icon">💎</span>
+        <span class="resource-value" id="jabcoins-value">0</span>
+      </div>
     </div>
 
-    <!-- Mining Page -->
-    <div id="mining-page" class="page">
-      <!-- Resources Header -->
-      <div class="resources-header">
-        <div class="resource-item">
-          <span class="resource-icon">💰</span>
-          <span class="resource-value" id="mining-gold-value">5 000</span>
+    <!-- Pages Container - SCROLLABLE CONTENT -->
+    <div class="pages-container">
+      <!-- Main Page -->
+      <div id="main-page" class="page">
+        <!-- Player Card -->
+        <div class="player-card">
+          <div class="player-header">
+            <h2 id="player-name">PlayerName</h2>
+          </div>
+          <div class="player-info">
+            <div class="player-avatar">
+              <div class="avatar-placeholder">🧑</div>
+              <span id="player-username">@username</span>
+            </div>
+            <div class="player-id">
+              ID: <span id="player-id">123456789</span>
+            </div>
+          </div>
         </div>
-        <div class="resource-item">
-          <span class="resource-icon">🌲</span>
-          <span class="resource-value" id="mining-wood-value">2 500</span>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn btn-storage" id="storage-btn">📦 Склад</button>
+          <button class="btn btn-exchange" id="exchange-btn">💱 Обмен</button>
         </div>
-        <div class="resource-item">
-          <span class="resource-icon">🪨</span>
-          <span class="resource-value" id="mining-stone-value">2 500</span>
-        </div>
-        <div class="resource-item">
-          <span class="resource-icon">🍖</span>
-          <span class="resource-value" id="mining-meat-value">500</span>
-        </div>
-        <div class="resource-item">
-          <span class="resource-icon">💎</span>
-          <span class="resource-value" id="mining-jabcoins-value">0</span>
+
+        <div class="action-buttons">
+          <button class="btn btn-attack" id="attack-btn">⚔️ Атаковать</button>
         </div>
       </div>
 
-      <!-- Building Type Tabs -->
-      <div class="building-tabs">
-        <button class="tab-btn active" data-type="mine">⛏ Шахты</button>
-        <button class="tab-btn" data-type="quarry">🪨 Каменоломня</button>
-        <button class="tab-btn" data-type="lumber_mill">🌲 Лесопилка</button>
-        <button class="tab-btn" data-type="farm">🍖 Ферма</button>
-      </div>
+      <!-- Mining Page -->
+      <div id="mining-page" class="page">
+        <!-- Building Type Tabs -->
+        <div class="building-tabs">
+          <button class="tab-btn active" data-type="mine">⛏ Шахты</button>
+          <button class="tab-btn" data-type="quarry">🪨 Каменоломня</button>
+          <button class="tab-btn" data-type="lumber_mill">🌲 Лесопилка</button>
+          <button class="tab-btn" data-type="farm">🍖 Ферма</button>
+        </div>
 
-      <!-- Buildings Container -->
-      <div class="buildings-container" id="buildings-container">
-        <!-- Building cards will be dynamically inserted here -->
+        <!-- Buildings Container -->
+        <div class="buildings-container" id="buildings-container">
+          <!-- Building cards will be dynamically inserted here -->
+        </div>
       </div>
-
-      <!-- Bottom Navigation -->
-      <nav class="bottom-nav">
-        <button class="nav-item" id="nav-main-from-mining">🏠 Главная</button>
-        <button class="nav-item active" id="nav-mining-active">⛏ Добыча</button>
-        <button class="nav-item" id="nav-barracks-from-mining">🛡 Казарма</button>
-      </nav>
     </div>
+
+    <!-- Bottom Navigation - FIXED AT BOTTOM -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="nav-item active" id="nav-main">🏠 Главная</button>
+      <button class="nav-item" id="nav-mining">⛏ Добыча</button>
+      <button class="nav-item" id="nav-barracks">🛡 Казарма</button>
+    </nav>
   </div>
 
   <!-- Storage Modal -->

@@ -506,17 +506,24 @@ body {
   margin-top: 10px;
 }
 
-/* Page Management */
-.page {
-  display: flex;
-  flex-direction: column;
+/* Pages Container - Scrollable Content Area */
+.pages-container {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  display: flex;
 }
 
-.page:not(#main-page) {
+/* Page Management */
+.page {
   display: none;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+}
+
+.page.active {
+  display: flex;
 }
 
 /* Building Tabs */

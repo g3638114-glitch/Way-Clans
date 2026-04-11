@@ -116,17 +116,28 @@ async function executeSqlStatements() {
   }
 
   // Verify table creation by attempting queries
-  const { error: usersCheckError } = await supabase
-    .from('users')
-    .select('id')
-    .limit(1)
-    .catch(() => ({ error: { code: 'PGRST116' } }));
+  let usersCheckError = null;
+  let buildingsCheckError = null;
 
-  const { error: buildingsCheckError } = await supabase
-    .from('user_buildings')
-    .select('id')
-    .limit(1)
-    .catch(() => ({ error: { code: 'PGRST116' } }));
+  try {
+    const result = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+    usersCheckError = result.error;
+  } catch (error) {
+    usersCheckError = { code: 'PGRST116', message: error.message };
+  }
+
+  try {
+    const result = await supabase
+      .from('user_buildings')
+      .select('id')
+      .limit(1);
+    buildingsCheckError = result.error;
+  } catch (error) {
+    buildingsCheckError = { code: 'PGRST116', message: error.message };
+  }
 
   return {
     usersTableExists: !usersCheckError || usersCheckError.code !== 'PGRST116',

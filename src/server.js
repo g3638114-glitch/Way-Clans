@@ -23,8 +23,9 @@ app.use(express.json());
 app.use(express.static(join(__dirname, '../public')));
 
 // API Routes
+// Order matters: more specific routes first, then general routes
 app.use('/webhook', webhookRouter);
-app.use('/api/user', userRouter);
+app.use('/api/user', userRouter);  // Includes /api/user/auth/verify (specific) and /api/user/:userId (dynamic)
 app.use('/api/user', buildingsRouter);
 app.use('/api/user', resourcesRouter);
 app.use('/api/user', questsRouter);

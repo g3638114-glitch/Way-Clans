@@ -45,20 +45,42 @@ async function loadBuildings() {
 
 // Initialize app
 async function initializeApp() {
-  // Initialize user ID
-  initializeUserId();
+  try {
+    // Initialize user ID (now async - may verify on server)
+    const userId = await initializeUserId();
 
-  // Load initial data
-  await loadUserData();
+    if (!userId) {
+      console.error('❌ Failed to get userId - user cannot be identified');
+      // Show error message to user
+      const pagesContainer = document.querySelector('.pages-container');
+      if (pagesContainer) {
+        pagesContainer.innerHTML = `
+          <div style="padding: 20px; color: #ff6b6b; text-align: center;">
+            <h2>⚠️ Ошибка загрузки</h2>
+            <p>Не удалось загрузить данные игрока.</p>
+            <p>Пожалуйста, откройте приложение через кнопку бота в Telegram.</p>
+          </div>
+        `;
+      }
+      return;
+    }
 
-  // Load buildings data
-  await loadBuildings();
+    console.log(`✅ User ID initialized: ${userId}`);
 
-  // Setup all event listeners
-  setupEventListeners();
+    // Load initial data
+    await loadUserData();
 
-  // Show main page
-  showPage('main');
+    // Load buildings data
+    await loadBuildings();
+
+    // Setup all event listeners
+    setupEventListeners();
+
+    // Show main page
+    showPage('main');
+  } catch (error) {
+    console.error('❌ Fatal error during app initialization:', error);
+  }
 }
 
 // Start the app when DOM is ready

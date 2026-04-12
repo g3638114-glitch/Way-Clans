@@ -20,25 +20,61 @@ export const appState = {
 };
 
 // Initialize user ID from URL or Telegram WebApp
-export function initializeUserId() {
-  // First try to get from URL parameters
+export async function initializeUserId() {
+  // First try to get from URL parameters (direct link with userId)
   const params = new URLSearchParams(window.location.search);
   const urlUserId = params.get('userId');
 
   if (urlUserId) {
+    console.log(`📌 Got userId from URL: ${urlUserId}`);
     appState.userId = urlUserId;
     return urlUserId;
   }
 
   // If no userId in URL, try to get from Telegram WebApp
   try {
-    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+    // Check if running inside Telegram Web App
+    if (!window.Telegram || !window.Telegram.WebApp) {
+      console.warn('⚠️ Not running inside Telegram Web App');
+      return null;
+    }
+
+    const tg = window.Telegram.WebApp;
+
+    // Try method 1: initDataUnsafe (available immediately, not verified)
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+      console.log(`📌 Got userId from initDataUnsafe: ${tg.initDataUnsafe.user.id}`);
       appState.userId = tg.initDataUnsafe.user.id;
       return tg.initDataUnsafe.user.id;
     }
-  } catch (error) {
-    console.warn('Could not get userId from Telegram WebApp:', error);
-  }
 
-  return null;
+    // Try method 2: Verify initData on server (more secure)
+    if (tg.initData) {
+      console.log('🔐 Verifying initData on server...');
+      try {
+        const response = await fetch('/api/user/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`✅ Server verified userId: ${data.userId}`);
+          appState.userId = data.userId;
+          return data.userId;
+        } else {
+          console.warn('⚠️ Server could not verify initData:', await response.json());
+        }
+      } catch (fetchError) {
+        console.warn('⚠️ Failed to verify initData on server:', fetchError.message);
+      }
+    }
+
+    console.warn('⚠️ Could not get userId from Telegram WebApp');
+    return null;
+  } catch (error) {
+    console.warn('⚠️ Error initializing userId:', error.message);
+    return null;
+  }
 }

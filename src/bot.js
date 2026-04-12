@@ -58,40 +58,77 @@ async function createInitialBuildings(userRecord) {
 }
 
 /**
- * Get profile photo URL for a Telegram user using raw Telegram Bot API
+ * Get profile photo URL for a Telegram user using direct Telegram Bot API
  * Returns the URL of the user's profile photo if available
  * Includes retry logic for reliability
  */
-async function getUserProfilePhotoUrl(telegramClient, userId, maxRetries = 2) {
+async function getUserProfilePhotoUrl(userId, maxRetries = 2) {
   let lastError;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+
+  if (!botToken) {
+    console.error('❌ TELEGRAM_BOT_TOKEN is not set');
+    return null;
+  }
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      // Use raw Telegram Bot API call for maximum compatibility
-      const photos = await telegramClient.api.call('getUserProfilePhotos', {
-        user_id: userId,
-        offset: 0,
-        limit: 1,
-      });
+      // Call Telegram Bot API directly to get user profile photos
+      const response = await fetch(
+        `https://api.telegram.org/bot${botToken}/getUserProfilePhotos`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            offset: 0,
+            limit: 1,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Telegram API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.ok) {
+        throw new Error(`Telegram API returned error: ${result.description}`);
+      }
+
+      const photos = result.result;
 
       if (photos && photos.photos && photos.photos.length > 0) {
         // Get the largest photo (usually the last one in the array)
         const photoArray = photos.photos[0];
         if (photoArray && photoArray.length > 0) {
           const largestPhoto = photoArray[photoArray.length - 1];
-          // Get the file info to construct the download URL
-          const file = await telegramClient.api.call('getFile', {
-            file_id: largestPhoto.file_id,
-          });
 
-          if (file && file.file_path) {
-            // Construct the photo URL
-            const photoUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+          // Get file info to construct the download URL
+          const fileResponse = await fetch(
+            `https://api.telegram.org/bot${botToken}/getFile`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ file_id: largestPhoto.file_id }),
+            }
+          );
+
+          if (!fileResponse.ok) {
+            throw new Error(`Telegram getFile error: ${fileResponse.status}`);
+          }
+
+          const fileResult = await fileResponse.json();
+
+          if (fileResult.ok && fileResult.result && fileResult.result.file_path) {
+            const photoUrl = `https://api.telegram.org/file/bot${botToken}/${fileResult.result.file_path}`;
             console.log(`✅ Successfully fetched profile photo for user ${userId}`);
             return photoUrl;
           }
         }
       }
+
       // User has no profile photo
       console.log(`ℹ️ User ${userId} has no profile photo`);
       return null;
@@ -118,7 +155,7 @@ bot.command('start', async (ctx) => {
 
   try {
     // Get user's profile photo URL from Telegram with retry logic
-    const photoUrl = await getUserProfilePhotoUrl(bot.telegram, userId);
+    const photoUrl = await getUserProfilePhotoUrl(userId);
 
     // Get or create user in Supabase
     let { data: user, error: selectError } = await supabase

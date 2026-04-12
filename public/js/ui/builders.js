@@ -110,8 +110,8 @@ export function createBuildingCard(building) {
   const actions = document.createElement('div');
   actions.className = 'building-card-actions';
 
-  // Activate button (visible when not activated or when empty)
-  if (!isActivated || (isActivated && isFull)) {
+  // Activate button (visible only when not activated yet)
+  if (!isActivated) {
     const activateBtn = document.createElement('button');
     activateBtn.className = 'btn btn-activate';
     activateBtn.textContent = 'Активировать';

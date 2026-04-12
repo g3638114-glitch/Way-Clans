@@ -349,47 +349,67 @@
 .coin-button-container {
   display: flex;
   justify-content: center;
-  padding: 15px;
+  padding: 20px;
 }
 
 .btn-coin {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   padding: 0;
   border-radius: 50%;
-  font-size: 48px;
-  background: linear-gradient(135deg, #d4af37 0%, #a8860e 100%);
+  font-size: 60px;
+  background: radial-gradient(circle at 30% 30%, #ffd966 0%, #d4af37 40%, #a8860e 100%);
   color: #000;
-  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4), inset 0 2px 10px rgba(255, 255, 255, 0.2);
-  border: 3px solid #8b6914;
-  transition: all 0.2s ease;
+  box-shadow:
+    0 12px 30px rgba(212, 175, 55, 0.5),
+    inset -2px -2px 8px rgba(0, 0, 0, 0.3),
+    inset 2px 2px 8px rgba(255, 255, 255, 0.4);
+  border: 4px solid #8b6914;
+  transition: all 0.3s ease;
   flex: none;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
 }
 
 .btn-coin:hover {
-  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.6), inset 0 2px 10px rgba(255, 255, 255, 0.3);
-  transform: translateY(-3px);
+  box-shadow:
+    0 14px 35px rgba(212, 175, 55, 0.7),
+    inset -2px -2px 8px rgba(0, 0, 0, 0.3),
+    inset 2px 2px 8px rgba(255, 255, 255, 0.5);
+  transform: translateY(-4px) scale(1.05);
 }
 
 .btn-coin:active {
-  transform: scale(0.9);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4), inset 0 2px 10px rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px) scale(0.98);
+  box-shadow:
+    0 8px 20px rgba(212, 175, 55, 0.4),
+    inset -2px -2px 8px rgba(0, 0, 0, 0.3),
+    inset 2px 2px 8px rgba(255, 255, 255, 0.4);
 }
 
 .btn-coin.coin-click {
-  animation: coinClick 0.6s ease-out;
+  animation: coinClick 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 @keyframes coinClick {
   0% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.15) rotate(-5deg);
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.2) rotate(5deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(-2deg);
   }
   100% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
   }
 }

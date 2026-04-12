@@ -61,7 +61,7 @@ export function setupEventListeners() {
       // Remove animation class after animation completes
       setTimeout(() => {
         coinBtn.classList.remove('coin-click');
-      }, 600);
+      }, 700);
     }
   });
 

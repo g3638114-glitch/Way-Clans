@@ -16,6 +16,12 @@
   letter-spacing: 0.5px;
   position: relative;
   overflow: hidden;
+  outline: none;
+}
+
+.btn:focus,
+.btn:focus-visible {
+  outline: none;
 }
 
 .btn::before {
@@ -100,6 +106,14 @@
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
+  outline: none;
+}
+
+.btn-primary:focus,
+.btn-primary:focus-visible,
+.btn-secondary:focus,
+.btn-secondary:focus-visible {
+  outline: none;
 }
 
 .btn-primary {
@@ -158,6 +172,11 @@
 
 .building-btn:hover::before {
   left: 100%;
+}
+
+.building-btn:focus,
+.building-btn:focus-visible {
+  outline: none;
 }
 
 .collect-btn {
@@ -374,6 +393,12 @@
   justify-content: center;
   cursor: pointer;
   line-height: 1;
+  outline: none;
+}
+
+.btn-coin:focus,
+.btn-coin:focus-visible {
+  outline: none;
 }
 
 .btn-coin:hover {
@@ -393,23 +418,17 @@
 }
 
 .btn-coin.coin-click {
-  animation: coinClick 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  animation: coinClick 0.5s ease-out;
 }
 
 @keyframes coinClick {
   0% {
-    transform: scale(1) rotate(0deg);
-  }
-  25% {
-    transform: scale(1.15) rotate(-5deg);
+    transform: scale(1);
   }
   50% {
-    transform: scale(1.2) rotate(5deg);
-  }
-  75% {
-    transform: scale(1.1) rotate(-2deg);
+    transform: scale(1.08);
   }
   100% {
-    transform: scale(1) rotate(0deg);
+    transform: scale(1);
   }
 }

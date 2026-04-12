@@ -15,3 +15,13 @@ body {
   padding: 10px;
   background-attachment: fixed;
 }
+
+/* Remove focus outline from all buttons */
+button {
+  outline: none;
+}
+
+button:focus,
+button:focus-visible {
+  outline: none;
+}

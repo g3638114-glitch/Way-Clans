@@ -472,3 +472,36 @@
     transform: scale(1);
   }
 }
+
+/* Coin Mining Header */
+.coin-mining-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px 20px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%);
+  border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+  border-radius: 12px;
+  margin: 20px;
+}
+
+.jamcoin-earned {
+  text-align: center;
+}
+
+.earned-label {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #d4af37;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.earned-amount {
+  margin: 0;
+  font-size: 32px;
+  color: #ffd966;
+  font-weight: bold;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+}

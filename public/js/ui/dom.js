@@ -32,6 +32,7 @@ export function updateUI(currentUser) {
 
   // Update resources - use short format for header to prevent wrapping
   const goldText = formatNumberShort(currentUser.gold);
+  const goldFullText = formatNumber(currentUser.gold);
   const woodText = formatNumberShort(currentUser.wood);
   const stoneText = formatNumberShort(currentUser.stone);
   const meatText = formatNumberShort(currentUser.meat);
@@ -49,6 +50,10 @@ export function updateUI(currentUser) {
   if (stoneEl) stoneEl.textContent = stoneText;
   if (meatEl) meatEl.textContent = meatText;
   if (jabcoinsEl) jabcoinsEl.textContent = jabcoinsText;
+
+  // Update Jamcoin earned display on mining page with full number (no abbreviations)
+  const jamcoinEarnedEl = document.getElementById('jamcoin-earned-display');
+  if (jamcoinEarnedEl) jamcoinEarnedEl.textContent = goldFullText;
 
   // Update player card
   document.getElementById('player-name').textContent = currentUser.first_name || 'Player';

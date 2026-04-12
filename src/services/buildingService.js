@@ -193,13 +193,11 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
   const totalAccumulated = (building.collected_amount || 0) + (hoursPassed * productionRate);
   const accumulated = Math.floor(Math.min(totalAccumulated, capacity));
 
-  // Can only collect if at full capacity
-  if (accumulated < capacity) {
-    const percentFull = Math.floor((accumulated / capacity) * 100);
-    throw new Error(`Building is only ${percentFull}% full. Capacity: ${accumulated}/${capacity}`);
-  }
+  // Can collect at any time if building is activated, but collect only what accumulated
+  // Determine how much to collect
+  const collectedAmount = Math.floor(accumulated);
 
-  // Collect all resources
+  // Collect accumulated resources
   const { data: updatedBuilding, error: updateError } = await supabase
     .from('user_buildings')
     .update({
@@ -214,10 +212,10 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
     throw new Error('Failed to collect resources');
   }
 
-  // Add resources to user
+  // Add accumulated resources to user
   const resourceType = getResourceType(building.building_type);
   const updateData = {};
-  updateData[resourceType] = (user[resourceType] || 0) + capacity;
+  updateData[resourceType] = (user[resourceType] || 0) + collectedAmount;
 
   const { data: updatedUser, error: userUpdateError } = await supabase
     .from('users')
@@ -232,7 +230,7 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
 
   return {
     success: true,
-    collectedAmount: capacity,
+    collectedAmount: collectedAmount,
     resourceType,
     user: updatedUser,
     building: updatedBuilding,

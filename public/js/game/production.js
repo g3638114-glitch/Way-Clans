@@ -95,20 +95,20 @@ function updateBuildingCardValues(building) {
       }
     }
 
-    // Manage collect button visibility
-    if (progress.isFull) {
+    // Manage collect button visibility - show when activated
+    if (isActivated) {
       // Should have collect button
       if (!collectBtn) {
         const newCollectBtn = document.createElement('button');
         newCollectBtn.className = 'btn btn-collect';
-        newCollectBtn.innerHTML = `<span>Собрать</span> ${capacity}${resourceEmoji}`;
+        newCollectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceEmoji}`;
         newCollectBtn.addEventListener('click', () => {
           window.collectResources(building.id);
         });
         actionsContainer.insertBefore(newCollectBtn, actionsContainer.firstChild);
       } else {
-        // Update collect button text in case capacity changed
-        collectBtn.innerHTML = `<span>Собрать</span> ${capacity}${resourceEmoji}`;
+        // Update collect button text with current accumulated amount
+        collectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceEmoji}`;
       }
     } else {
       // Should not have collect button

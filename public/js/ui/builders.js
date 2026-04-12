@@ -119,11 +119,11 @@ export function createBuildingCard(building) {
     actions.appendChild(activateBtn);
   }
 
-  // Collect button (visible only when full)
-  if (isFull) {
+  // Collect button (visible when activated, at any time)
+  if (isActivated) {
     const collectBtn = document.createElement('button');
     collectBtn.className = 'btn btn-collect';
-    collectBtn.innerHTML = `<span>Собрать</span> ${capacity}${resourceEmoji}`;
+    collectBtn.innerHTML = `<span>Собрать</span> ${currentAccumulated}${resourceEmoji}`;
     collectBtn.addEventListener('click', () => collectResources(building.id));
     actions.appendChild(collectBtn);
   }

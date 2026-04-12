@@ -55,6 +55,13 @@ export function updateUI(currentUser) {
   const jamcoinEarnedEl = document.getElementById('jamcoin-earned-display');
   if (jamcoinEarnedEl) jamcoinEarnedEl.textContent = goldFullText;
 
+  // Update Jamcoin from clicks display
+  const jamcoinsFromClicksEl = document.getElementById('jamcoins-from-clicks-display');
+  if (jamcoinsFromClicksEl) {
+    const jamcoinsFromClicks = currentUser.jamcoins_from_clicks || 0;
+    jamcoinsFromClicksEl.textContent = formatNumber(jamcoinsFromClicks);
+  }
+
   // Update player card
   document.getElementById('player-name').textContent = currentUser.first_name || 'Player';
   document.getElementById('player-username').textContent = `@${currentUser.username || 'unknown'}`;

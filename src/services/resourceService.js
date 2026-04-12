@@ -183,6 +183,7 @@ export async function addGold(userId, goldAmount) {
     .from('users')
     .update({
       gold: user.gold + goldAmount,
+      jamcoins_from_clicks: (user.jamcoins_from_clicks || 0) + goldAmount,
     })
     .eq('telegram_id', userId)
     .select()

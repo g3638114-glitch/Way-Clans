@@ -386,8 +386,9 @@
   justify-content: center;
   align-items: center;
   flex: 1;
-  padding: 40px 20px;
-  min-height: 100%;
+  padding: 20px 20px 20px;
+  min-height: auto;
+  order: 0;
 }
 
 .coin-wrapper {
@@ -407,11 +408,11 @@
 }
 
 .btn-coin {
-  width: 220px;
-  height: 220px;
+  width: 300px;
+  height: 300px;
   padding: 0;
   border-radius: 50% !important;
-  font-size: 110px;
+  font-size: 150px;
   flex: none !important;
   background: radial-gradient(circle at 30% 30%, #ffd966 0%, #d4af37 40%, #a8860e 100%);
   color: #000;
@@ -478,11 +479,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 30px 20px 20px;
+  padding: 25px 20px 15px;
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%);
   border-bottom: 2px solid rgba(212, 175, 55, 0.2);
-  border-radius: 12px;
-  margin: 20px;
+  border-radius: 0;
+  margin: 0;
+  order: -2;
 }
 
 .jamcoin-earned {
@@ -504,4 +506,35 @@
   color: #ffd966;
   font-weight: bold;
   text-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+}
+
+/* Coin Mining Stats */
+.coin-mining-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px 20px 20px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.03) 100%);
+  order: 1;
+}
+
+.clicks-earned {
+  text-align: center;
+}
+
+.clicks-label {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #b8860b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.clicks-amount {
+  margin: 0;
+  font-size: 24px;
+  color: #ffd966;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
 }

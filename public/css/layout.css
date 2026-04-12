@@ -34,3 +34,27 @@
 .page.active {
   display: flex;
 }
+
+/* Coin Mining Page - Special Layout */
+#coin-mining-page {
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+#coin-mining-page .coin-mining-header {
+  order: -2;
+  flex-shrink: 0;
+}
+
+#coin-mining-page .coin-button-container {
+  order: 0;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+#coin-mining-page .coin-mining-stats {
+  order: 1;
+  flex-shrink: 0;
+}

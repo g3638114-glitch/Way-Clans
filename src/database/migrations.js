@@ -43,6 +43,10 @@ const migrations = [
     name: 'Add photo_url column to users if missing',
     sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS photo_url TEXT;`,
   },
+  {
+    name: 'Add jamcoins_from_clicks column to users if missing',
+    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS jamcoins_from_clicks BIGINT DEFAULT 0;`,
+  },
 
   // === USER_BUILDINGS TABLE ===
   {

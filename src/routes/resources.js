@@ -1,5 +1,5 @@
 import express from 'express';
-import { sellResources, exchangeGold } from '../services/resourceService.js';
+import { sellResources, exchangeGold, addGold } from '../services/resourceService.js';
 
 const router = express.Router();
 
@@ -25,6 +25,18 @@ router.post('/:userId/exchange', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error exchanging gold:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+// POST /api/user/:userId/coin-click
+router.post('/:userId/coin-click', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await addGold(userId, 100);
+    res.json(result);
+  } catch (error) {
+    console.error('Error adding gold:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

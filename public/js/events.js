@@ -1,5 +1,7 @@
 import { appState } from './utils/state.js';
 import { showPage } from './ui/pages.js';
+import { updateUI } from './ui/dom.js';
+import { apiClient } from './api/client.js';
 import {
   openStorageModal,
   closeStorageModal,
@@ -34,6 +36,33 @@ export function setupEventListeners() {
   // Attack button (not implemented yet)
   document.getElementById('attack-btn').addEventListener('click', () => {
     tg.showAlert('🔧 Функция "Атаковать" скоро будет доступна!');
+  });
+
+  // Coin button click handler
+  document.getElementById('coin-btn').addEventListener('click', async () => {
+    const coinBtn = document.getElementById('coin-btn');
+
+    try {
+      // Add animation
+      coinBtn.classList.add('coin-click');
+
+      // Send request to add gold
+      const result = await apiClient.clickCoin(appState.userId);
+
+      // Update UI with new user data
+      if (result.user) {
+        appState.currentUser = result.user;
+        updateUI(appState.currentUser);
+      }
+    } catch (error) {
+      console.error('Error clicking coin:', error);
+      tg.showAlert('❌ Ошибка при добавлении золота');
+    } finally {
+      // Remove animation class after animation completes
+      setTimeout(() => {
+        coinBtn.classList.remove('coin-click');
+      }, 600);
+    }
   });
 
   // Navigation buttons

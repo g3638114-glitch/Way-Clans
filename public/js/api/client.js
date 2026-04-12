@@ -106,4 +106,16 @@ export const apiClient = {
     }
     return response.json();
   },
+
+  // Click coin button to get +100 gold
+  async clickCoin(userId) {
+    const response = await fetch(`/api/user/${userId}/coin-click`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to add gold');
+    }
+    return response.json();
+  },
 };

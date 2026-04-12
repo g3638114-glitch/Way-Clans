@@ -29,6 +29,13 @@ export function updateUI(currentUser) {
   document.getElementById('player-username').textContent = `@${currentUser.username || 'unknown'}`;
   document.getElementById('player-id').textContent = currentUser.telegram_id;
 
+  // Update avatar with Telegram profile photo if available
+  const avatarEl = document.getElementById('avatar-image');
+  if (avatarEl && currentUser.photo_url) {
+    avatarEl.style.backgroundImage = `url('${currentUser.photo_url}')`;
+    avatarEl.textContent = ''; // Clear emoji placeholder
+  }
+
   // Update storage modal
   const storageWoodEl = document.getElementById('storage-wood');
   const storageStonEl = document.getElementById('storage-stone');

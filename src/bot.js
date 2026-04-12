@@ -57,6 +57,37 @@ async function createInitialBuildings(userRecord) {
   }
 }
 
+/**
+ * Get profile photo URL for a Telegram user
+ * Returns the URL of the user's profile photo if available
+ */
+async function getUserProfilePhotoUrl(ctx) {
+  try {
+    const userId = ctx.from.id;
+    // Get user profile photos
+    const photos = await ctx.telegram.getProfilePhotos(userId, 0, 1);
+
+    if (photos && photos.photos && photos.photos.length > 0) {
+      // Get the largest photo (usually the last one in the array)
+      const photoArray = photos.photos[0];
+      if (photoArray && photoArray.length > 0) {
+        const largestPhoto = photoArray[photoArray.length - 1];
+        // Get the file info to construct the download URL
+        const file = await ctx.telegram.getFile(largestPhoto.file_id);
+        if (file && file.file_path) {
+          // Construct the photo URL
+          const photoUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+          return photoUrl;
+        }
+      }
+    }
+    return null;
+  } catch (error) {
+    console.warn('Error getting user profile photo:', error.message);
+    return null;
+  }
+}
+
 // Handle /start command
 bot.command('start', async (ctx) => {
   const userId = ctx.from.id;
@@ -64,6 +95,9 @@ bot.command('start', async (ctx) => {
   const firstName = ctx.from.first_name || '';
 
   try {
+    // Get user's profile photo URL from Telegram
+    const photoUrl = await getUserProfilePhotoUrl(ctx);
+
     // Get or create user in Supabase
     let { data: user, error: selectError } = await supabase
       .from('users')
@@ -79,6 +113,7 @@ bot.command('start', async (ctx) => {
           telegram_id: userId,
           username: username,
           first_name: firstName,
+          photo_url: photoUrl,
           gold: 5000,
           wood: 2500,
           stone: 2500,
@@ -98,6 +133,12 @@ bot.command('start', async (ctx) => {
       }
     } else if (selectError) {
       console.error('Error fetching user:', selectError);
+    } else if (photoUrl && (!user.photo_url || user.photo_url !== photoUrl)) {
+      // Update existing user's photo if it changed
+      await supabase
+        .from('users')
+        .update({ photo_url: photoUrl })
+        .eq('telegram_id', userId);
     }
 
     // Send welcome message with MiniApp button

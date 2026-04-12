@@ -89,3 +89,30 @@ export async function exchangeGold(userId, goldAmount) {
 
   return { success: true, user: updatedUser, jabcoinsGained };
 }
+
+export async function addGold(userId, goldAmount) {
+  const { data: user, error: fetchError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', userId)
+    .single();
+
+  if (fetchError) {
+    throw new Error('User not found');
+  }
+
+  const { data: updatedUser, error: updateError } = await supabase
+    .from('users')
+    .update({
+      gold: user.gold + goldAmount,
+    })
+    .eq('telegram_id', userId)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new Error('Failed to add gold');
+  }
+
+  return { success: true, user: updatedUser };
+}

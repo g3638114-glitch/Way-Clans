@@ -39,6 +39,10 @@ const migrations = [
     name: 'Add referral_count column to users if missing',
     sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_count INT DEFAULT 0;`,
   },
+  {
+    name: 'Add photo_url column to users if missing',
+    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS photo_url TEXT;`,
+  },
 
   // === USER_BUILDINGS TABLE ===
   {

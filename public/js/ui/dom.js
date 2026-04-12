@@ -1,5 +1,31 @@
 import { formatNumberShort, formatNumber } from '../utils/formatters.js';
 
+/**
+ * Generate initials or fallback emoji for avatar
+ * Returns user's initials (e.g., "JD" for John Doe) or emoji fallback
+ */
+function generateAvatarInitials(user) {
+  if (!user) return '🧑';
+
+  // Try to get initials from first name and username
+  const firstName = user.first_name || '';
+  const username = user.username || '';
+
+  if (firstName && username) {
+    // Use first letter of first name + first letter of username
+    return (firstName.charAt(0) + username.charAt(0)).toUpperCase();
+  } else if (firstName) {
+    // Use first two letters of first name
+    return firstName.substring(0, 2).toUpperCase();
+  } else if (username) {
+    // Use first two letters of username
+    return username.substring(0, 2).toUpperCase();
+  }
+
+  // Default emoji if no name available
+  return '🧑';
+}
+
 // Update UI with user data
 export function updateUI(currentUser) {
   if (!currentUser) return;
@@ -29,11 +55,23 @@ export function updateUI(currentUser) {
   document.getElementById('player-username').textContent = `@${currentUser.username || 'unknown'}`;
   document.getElementById('player-id').textContent = currentUser.telegram_id;
 
-  // Update avatar with Telegram profile photo if available
+  // Update avatar with Telegram profile photo if available, otherwise show initials/fallback
   const avatarEl = document.getElementById('avatar-image');
-  if (avatarEl && currentUser.photo_url) {
-    avatarEl.style.backgroundImage = `url('${currentUser.photo_url}')`;
-    avatarEl.textContent = ''; // Clear emoji placeholder
+  if (avatarEl) {
+    if (currentUser.photo_url) {
+      // Use Telegram profile photo
+      avatarEl.style.backgroundImage = `url('${currentUser.photo_url}')`;
+      avatarEl.textContent = ''; // Clear emoji placeholder
+      avatarEl.classList.add('avatar-has-photo');
+      avatarEl.classList.remove('avatar-fallback');
+    } else {
+      // Show fallback avatar with initials or emoji
+      avatarEl.style.backgroundImage = '';
+      const initials = generateAvatarInitials(currentUser);
+      avatarEl.textContent = initials;
+      avatarEl.classList.add('avatar-fallback');
+      avatarEl.classList.remove('avatar-has-photo');
+    }
   }
 
   // Update storage modal

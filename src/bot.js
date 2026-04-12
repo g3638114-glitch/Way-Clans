@@ -60,32 +60,48 @@ async function createInitialBuildings(userRecord) {
 /**
  * Get profile photo URL for a Telegram user
  * Returns the URL of the user's profile photo if available
+ * Includes retry logic for reliability
  */
-async function getUserProfilePhotoUrl(ctx) {
-  try {
-    const userId = ctx.from.id;
-    // Get user profile photos
-    const photos = await ctx.telegram.getProfilePhotos(userId, 0, 1);
+async function getUserProfilePhotoUrl(ctx, maxRetries = 2) {
+  const userId = ctx.from.id;
+  let lastError;
 
-    if (photos && photos.photos && photos.photos.length > 0) {
-      // Get the largest photo (usually the last one in the array)
-      const photoArray = photos.photos[0];
-      if (photoArray && photoArray.length > 0) {
-        const largestPhoto = photoArray[photoArray.length - 1];
-        // Get the file info to construct the download URL
-        const file = await ctx.telegram.getFile(largestPhoto.file_id);
-        if (file && file.file_path) {
-          // Construct the photo URL
-          const photoUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
-          return photoUrl;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      // Get user profile photos
+      const photos = await ctx.telegram.getProfilePhotos(userId, 0, 1);
+
+      if (photos && photos.photos && photos.photos.length > 0) {
+        // Get the largest photo (usually the last one in the array)
+        const photoArray = photos.photos[0];
+        if (photoArray && photoArray.length > 0) {
+          const largestPhoto = photoArray[photoArray.length - 1];
+          // Get the file info to construct the download URL
+          const file = await ctx.telegram.getFile(largestPhoto.file_id);
+          if (file && file.file_path) {
+            // Construct the photo URL
+            const photoUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+            console.log(`✅ Successfully fetched profile photo for user ${userId}`);
+            return photoUrl;
+          }
         }
       }
+      // User has no profile photo
+      console.log(`ℹ️ User ${userId} has no profile photo`);
+      return null;
+    } catch (error) {
+      lastError = error;
+      console.warn(`⚠️ Attempt ${attempt + 1}/${maxRetries + 1} - Error getting user profile photo:`, error.message);
+
+      // Wait before retrying (exponential backoff: 500ms, 1000ms)
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt)));
+      }
     }
-    return null;
-  } catch (error) {
-    console.warn('Error getting user profile photo:', error.message);
-    return null;
   }
+
+  console.error(`❌ Failed to get profile photo after ${maxRetries + 1} attempts:`, lastError?.message);
+  return null;
 }
 
 // Handle /start command
@@ -95,7 +111,7 @@ bot.command('start', async (ctx) => {
   const firstName = ctx.from.first_name || '';
 
   try {
-    // Get user's profile photo URL from Telegram
+    // Get user's profile photo URL from Telegram with retry logic
     const photoUrl = await getUserProfilePhotoUrl(ctx);
 
     // Get or create user in Supabase
@@ -107,6 +123,7 @@ bot.command('start', async (ctx) => {
 
     if (selectError && selectError.code === 'PGRST116') {
       // User doesn't exist, create new with initial resources
+      console.log(`📝 Creating new user ${userId}`);
       const { data: newUser, error: insertError } = await supabase
         .from('users')
         .insert({
@@ -125,20 +142,37 @@ bot.command('start', async (ctx) => {
         .single();
 
       if (insertError) {
-        console.error('Error creating user:', insertError);
-      } else {
-        user = newUser;
-        // Create initial buildings for the user
-        await createInitialBuildings(user);
+        console.error('❌ Error creating user:', insertError);
+        await ctx.reply('Произошла ошибка при создании аккаунта. Попробуйте позже.');
+        return;
       }
+
+      user = newUser;
+      console.log(`✅ User ${userId} created successfully`);
+      // Create initial buildings for the user
+      await createInitialBuildings(user);
     } else if (selectError) {
-      console.error('Error fetching user:', selectError);
-    } else if (photoUrl && (!user.photo_url || user.photo_url !== photoUrl)) {
-      // Update existing user's photo if it changed
-      await supabase
+      console.error('❌ Error fetching user:', selectError);
+      await ctx.reply('Произошла ошибка при загрузке вашего аккаунта. Попробуйте позже.');
+      return;
+    } else {
+      // User exists - update profile info and photo
+      console.log(`📝 Updating existing user ${userId}`);
+      const { error: updateError } = await supabase
         .from('users')
-        .update({ photo_url: photoUrl })
+        .update({
+          username: username,
+          first_name: firstName,
+          photo_url: photoUrl,
+        })
         .eq('telegram_id', userId);
+
+      if (updateError) {
+        console.error('⚠️ Error updating user profile:', updateError);
+        // Continue anyway - the user can still play
+      } else {
+        console.log(`✅ User ${userId} profile updated`);
+      }
     }
 
     // Send welcome message with MiniApp button
@@ -157,7 +191,7 @@ bot.command('start', async (ctx) => {
       },
     });
   } catch (error) {
-    console.error('Error in /start command:', error);
+    console.error('❌ Error in /start command:', error);
     await ctx.reply('Произошла ошибка. Попробуйте позже.');
   }
 });

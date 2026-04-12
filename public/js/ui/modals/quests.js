@@ -1,4 +1,6 @@
 import { loadQuests, checkQuestProgress, claimQuestReward } from '../../game/quests.js';
+import { renderBuildings } from '../builders.js';
+import { appState } from '../../utils/state.js';
 
 export async function openQuestsModal() {
   const quests = await loadQuests();
@@ -86,5 +88,10 @@ window.handleClaimReward = async (questId) => {
   if (result) {
     const quests = await loadQuests();
     renderQuestsList(quests);
+
+    // If we're on the mining page, refresh building display
+    if (appState.currentPage === 'mining') {
+      renderBuildings();
+    }
   }
 };

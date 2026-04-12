@@ -1,4 +1,5 @@
 import { supabase, bot } from '../bot.js';
+import { getProductionRate } from '../config/buildings.js';
 
 const QUEST_DEFINITIONS = [
   {
@@ -155,6 +156,9 @@ export async function claimQuestReward(userId, questId) {
       ? maxBuilding[0].building_number + 1
       : 1;
 
+    // Get correct production rate for level 1
+    const productionRate = getProductionRate('mine', 1);
+
     const { data: newBuilding, error: createError } = await supabase
       .from('user_buildings')
       .insert({
@@ -163,8 +167,8 @@ export async function claimQuestReward(userId, questId) {
         building_number: nextBuildingNumber,
         level: 1,
         collected_amount: 0,
-        production_rate: 80,
-        last_collected: new Date().toISOString(),
+        production_rate: productionRate,
+        last_activated: null,
         created_at: new Date().toISOString(),
       })
       .select()

@@ -10,7 +10,7 @@ export async function loadQuests() {
     return quests;
   } catch (error) {
     console.error('Error loading quests:', error);
-    tg.showAlert('Ошибка загрузки заданий');
+    window.tg.showAlert('Ошибка загрузки заданий');
     return [];
   }
 }
@@ -18,22 +18,22 @@ export async function loadQuests() {
 // Check if quest is completed
 export async function checkQuestProgress(questId) {
   const quests = await loadQuests();
-  
+
   // Find the quest
   const quest = quests.find(q => q.id === questId);
 
   if (!quest) {
-    tg.showAlert('❌ Задание не найдено');
+    window.tg.showAlert('❌ Задание не найдено');
     return quests;
   }
 
   if (quest.completed) {
-    tg.showAlert('✅ Задание выполнено! Вы можете получить награду.');
+    window.tg.showAlert('✅ Задание выполнено! Вы можете получить награду.');
   } else {
     if (questId === 'subscribe_channel') {
-      tg.showAlert('❌ Вы еще не подписаны на канал.\n\nПожалуйста:\n1. Нажмите "Перейти на канал"\n2. Подпишитесь на канал\n3. Вернитесь и нажмите "Проверить" ещё раз');
+      window.tg.showAlert('❌ Вы еще не подписаны на канал.\n\nПожалуйста:\n1. Нажмите "Перейти на канал"\n2. Подпишитесь на канал\n3. Вернитесь и нажмите "Проверить" ещё раз');
     } else {
-      tg.showAlert('❌ Условие квеста еще не выполнено.\n\nВам нужно пригласить больше друзей.');
+      window.tg.showAlert('❌ Условие квеста еще не выполнено.\n\nВам нужно пригласить больше друзей.');
     }
   }
 
@@ -48,15 +48,20 @@ export async function claimQuestReward(questId) {
     // Add new buildings to local array
     if (result.buildings && result.buildings.length > 0) {
       result.buildings.forEach(building => {
-        building._collected_decimal = 0;
         appState.allBuildings.push(building);
       });
     }
 
-    tg.showAlert(result.message || `✅ Получено ${result.minesAdded} шахт!`);
+    // Show success message
+    window.tg.showAlert(result.message || `✅ Получено ${result.minesAdded} шахт!`);
+
+    // Reload buildings data to ensure we have fresh data with progress
+    const response = await apiClient.getBuildings(appState.userId);
+    appState.allBuildings = response.buildings || response;
+
     return result;
   } catch (error) {
     console.error('Error claiming reward:', error);
-    tg.showAlert(error.message || 'Ошибка при получении награды');
+    window.tg.showAlert(error.message || 'Ошибка при получении награды');
   }
 }

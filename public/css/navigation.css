@@ -41,16 +41,17 @@
   box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3);
 }
 
-.nav-item:active {
-  transform: scale(0.95) !important;
-  background: rgba(76, 111, 166, 0.15) !important;
-}
-
+.nav-item:active,
 .nav-item:focus,
 .nav-item:focus-visible,
 .nav-item:focus-within {
   outline: none !important;
+  border-color: #d4af37 !important;
   box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3) !important;
-  background: rgba(76, 111, 166, 0.15) !important;
-  border-color: transparent !important;
+  background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%) !important;
+  color: #fff !important;
+}
+
+.nav-item:active {
+  transform: scale(0.95) !important;
 }

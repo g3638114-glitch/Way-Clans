@@ -18,10 +18,16 @@ body {
 
 /* Remove focus outline from all buttons */
 button {
-  outline: none;
+  outline: none !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:focus,
 button:focus-visible {
-  outline: none;
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: inherit !important;
 }

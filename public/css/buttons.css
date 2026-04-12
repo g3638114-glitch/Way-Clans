@@ -16,12 +16,15 @@
   letter-spacing: 0.5px;
   position: relative;
   overflow: hidden;
-  outline: none;
+  outline: none !important;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn:focus,
 .btn:focus-visible {
-  outline: none;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .btn::before {
@@ -113,7 +116,8 @@
 .btn-primary:focus-visible,
 .btn-secondary:focus,
 .btn-secondary:focus-visible {
-  outline: none;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .btn-primary {
@@ -176,7 +180,8 @@
 
 .building-btn:focus,
 .building-btn:focus-visible {
-  outline: none;
+  outline: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
 }
 
 .collect-btn {
@@ -398,7 +403,11 @@
 
 .btn-coin:focus,
 .btn-coin:focus-visible {
-  outline: none;
+  outline: none !important;
+  box-shadow:
+    0 12px 30px rgba(212, 175, 55, 0.5) !important,
+    inset -2px -2px 8px rgba(0, 0, 0, 0.3) !important,
+    inset 2px 2px 8px rgba(255, 255, 255, 0.4) !important;
 }
 
 .btn-coin:hover {

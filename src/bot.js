@@ -13,17 +13,11 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
  * Create initial buildings for a new user (free buildings: mine, quarry, lumber_mill, farm)
  * Each player starts with 1 of each building type at level 1
  */
-async function createInitialBuildings(userId) {
+async function createInitialBuildings(userRecord) {
   try {
-    // Get user from Supabase
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('telegram_id', userId)
-      .single();
-
-    if (userError || !user) {
-      console.error('Error fetching user for initial buildings:', userError);
+    // userRecord is already the user object from Supabase, no need to query again
+    if (!userRecord || !userRecord.id) {
+      console.error('Error: Invalid user record for initial buildings');
       return;
     }
 
@@ -37,7 +31,7 @@ async function createInitialBuildings(userId) {
     };
 
     const buildingsToCreate = buildingTypes.map((type) => ({
-      user_id: user.id,
+      user_id: userRecord.id,
       building_type: type,
       building_number: 1,
       level: 1,
@@ -57,7 +51,7 @@ async function createInitialBuildings(userId) {
       return;
     }
 
-    console.log(`✅ Created ${createdBuildings.length} initial buildings for user ${user.id}`);
+    console.log(`✅ Created ${createdBuildings.length} initial buildings for user ${userRecord.id}`);
   } catch (error) {
     console.error('Error creating initial buildings:', error);
   }
@@ -100,7 +94,7 @@ bot.command('start', async (ctx) => {
       } else {
         user = newUser;
         // Create initial buildings for the user
-        await createInitialBuildings(user.id);
+        await createInitialBuildings(user);
       }
     } else if (selectError) {
       console.error('Error fetching user:', selectError);

@@ -384,7 +384,10 @@
 .coin-button-container {
   display: flex;
   justify-content: center;
-  padding: 20px;
+  align-items: center;
+  flex: 1;
+  padding: 40px 20px;
+  min-height: 100%;
 }
 
 .coin-wrapper {
@@ -404,11 +407,11 @@
 }
 
 .btn-coin {
-  width: 180px;
-  height: 180px;
+  width: 220px;
+  height: 220px;
   padding: 0;
   border-radius: 50% !important;
-  font-size: 90px;
+  font-size: 110px;
   flex: none !important;
   background: radial-gradient(circle at 30% 30%, #ffd966 0%, #d4af37 40%, #a8860e 100%);
   color: #000;

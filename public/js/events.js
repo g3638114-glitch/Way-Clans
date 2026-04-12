@@ -68,6 +68,7 @@ export function setupEventListeners() {
   // Navigation buttons
   document.getElementById('nav-main').addEventListener('click', () => showPage('main'));
   document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));
+  document.getElementById('nav-coin-mining').addEventListener('click', () => showPage('coin-mining'));
 
   document.getElementById('nav-barracks').addEventListener('click', () => {
     tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');

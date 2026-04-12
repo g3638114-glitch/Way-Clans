@@ -9,6 +9,7 @@ export function showPage(page) {
   // Hide all pages
   document.getElementById('main-page').classList.remove('active');
   document.getElementById('mining-page').classList.remove('active');
+  document.getElementById('coin-mining-page').classList.remove('active');
 
   // Update nav items
   const navItems = document.querySelectorAll('.nav-item');
@@ -24,5 +25,9 @@ export function showPage(page) {
     document.getElementById('nav-mining').classList.add('active');
     renderBuildings(); // Load buildings when switching to mining page
     startProductionRefresh();
+  } else if (page === 'coin-mining') {
+    document.getElementById('coin-mining-page').classList.add('active');
+    document.getElementById('nav-coin-mining').classList.add('active');
+    stopProductionRefresh();
   }
 }

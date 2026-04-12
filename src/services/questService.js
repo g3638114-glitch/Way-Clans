@@ -1,6 +1,103 @@
 import { supabase, bot } from '../bot.js';
 import { getProductionRate } from '../config/buildings.js';
 
+/**
+ * Create initial buildings for a user (mine, quarry, lumber_mill, farm)
+ */
+async function createInitialBuildings(userRecord) {
+  try {
+    if (!userRecord || !userRecord.id) {
+      console.error('Error: Invalid user record for initial buildings');
+      return;
+    }
+
+    const buildingTypes = ['mine', 'quarry', 'lumber_mill', 'farm'];
+    const productionRates = {
+      mine: 100,
+      quarry: 80,
+      lumber_mill: 90,
+      farm: 70,
+    };
+
+    const buildingsToCreate = buildingTypes.map((type) => ({
+      user_id: userRecord.id,
+      building_type: type,
+      building_number: 1,
+      level: 1,
+      collected_amount: 0,
+      production_rate: productionRates[type],
+      last_activated: null,
+      created_at: new Date().toISOString(),
+    }));
+
+    const { data: createdBuildings, error: createError } = await supabase
+      .from('user_buildings')
+      .insert(buildingsToCreate)
+      .select();
+
+    if (createError) {
+      console.error('Error creating initial buildings:', createError);
+      return;
+    }
+
+    console.log(`✅ Created ${createdBuildings.length} initial buildings for user ${userRecord.id}`);
+  } catch (error) {
+    console.error('Error creating initial buildings:', error);
+  }
+}
+
+/**
+ * Get a user by telegram_id, create if doesn't exist
+ */
+async function getOrCreateUser(telegramId) {
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .single();
+
+  // User exists - return it
+  if (!error) {
+    return user;
+  }
+
+  // User doesn't exist - create new
+  if (error.code === 'PGRST116') {
+    console.log(`📝 Creating new user ${telegramId}`);
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        telegram_id: telegramId,
+        username: `user_${telegramId}`,
+        first_name: `Player`,
+        photo_url: null,
+        gold: 5000,
+        wood: 2500,
+        stone: 2500,
+        meat: 500,
+        jabcoins: 0,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Error creating user:', insertError);
+      throw new Error('Failed to create user');
+    }
+
+    console.log(`✅ User ${telegramId} created successfully`);
+
+    // Create initial buildings for the user
+    await createInitialBuildings(newUser);
+
+    return newUser;
+  }
+
+  // Some other error occurred
+  throw new Error('User not found');
+}
+
 const QUEST_DEFINITIONS = [
   {
     id: 'subscribe_channel',
@@ -53,20 +150,11 @@ async function isUserSubscribed(userId) {
 }
 
 export async function getQuests(userId) {
-  // Get user
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
+  // Get user (creates if doesn't exist)
+  const user = await getOrCreateUser(userId);
 
-  // Get referral count (0 if user not found)
-  let referralCount = 0;
-  if (!userError && user) {
-    referralCount = user.referral_count || 0;
-  } else if (userError && userError.code !== 'PGRST116') {
-    console.error('Error fetching user for quests:', userError);
-  }
+  // Get referral count
+  const referralCount = user.referral_count || 0;
 
   // Check if user is subscribed to channel
   const isSubscribed = await isUserSubscribed(userId);
@@ -109,16 +197,8 @@ export async function getQuests(userId) {
 }
 
 export async function claimQuestReward(userId, questId) {
-  // Get user
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (userError) {
-    throw new Error('User not found');
-  }
+  // Get user (creates if doesn't exist)
+  const user = await getOrCreateUser(userId);
 
   // Find quest definition
   const questDef = QUEST_DEFINITIONS.find(q => q.id === questId);

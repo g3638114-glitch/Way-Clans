@@ -2,6 +2,104 @@ import { supabase } from '../bot.js';
 import { getProductionRate, getCapacity, getUpgradeCost, getResourceType } from '../config/buildings.js';
 
 /**
+ * Create initial buildings for a user (mine, quarry, lumber_mill, farm)
+ * Each player starts with 1 of each building type at level 1
+ */
+async function createInitialBuildings(userRecord) {
+  try {
+    if (!userRecord || !userRecord.id) {
+      console.error('Error: Invalid user record for initial buildings');
+      return;
+    }
+
+    const buildingTypes = ['mine', 'quarry', 'lumber_mill', 'farm'];
+    const productionRates = {
+      mine: 100,
+      quarry: 80,
+      lumber_mill: 90,
+      farm: 70,
+    };
+
+    const buildingsToCreate = buildingTypes.map((type) => ({
+      user_id: userRecord.id,
+      building_type: type,
+      building_number: 1,
+      level: 1,
+      collected_amount: 0,
+      production_rate: productionRates[type],
+      last_activated: null,
+      created_at: new Date().toISOString(),
+    }));
+
+    const { data: createdBuildings, error: createError } = await supabase
+      .from('user_buildings')
+      .insert(buildingsToCreate)
+      .select();
+
+    if (createError) {
+      console.error('Error creating initial buildings:', createError);
+      return;
+    }
+
+    console.log(`✅ Created ${createdBuildings.length} initial buildings for user ${userRecord.id}`);
+  } catch (error) {
+    console.error('Error creating initial buildings:', error);
+  }
+}
+
+/**
+ * Get a user by telegram_id, create if doesn't exist
+ */
+async function getOrCreateUser(telegramId) {
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .single();
+
+  // User exists - return it
+  if (!error) {
+    return user;
+  }
+
+  // User doesn't exist - create new
+  if (error.code === 'PGRST116') {
+    console.log(`📝 Creating new user ${telegramId}`);
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        telegram_id: telegramId,
+        username: `user_${telegramId}`,
+        first_name: `Player`,
+        photo_url: null,
+        gold: 5000,
+        wood: 2500,
+        stone: 2500,
+        meat: 500,
+        jabcoins: 0,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Error creating user:', insertError);
+      throw new Error('Failed to create user');
+    }
+
+    console.log(`✅ User ${telegramId} created successfully`);
+
+    // Create initial buildings for the user
+    await createInitialBuildings(newUser);
+
+    return newUser;
+  }
+
+  // Some other error occurred
+  throw new Error('User not found');
+}
+
+/**
  * Get a user by telegram_id
  */
 async function getUserByTelegramId(telegramId) {
@@ -23,7 +121,7 @@ async function getUserByTelegramId(telegramId) {
  * Resources will accumulate from this point until capacity is reached
  */
 export async function activateBuilding(userId, buildingId) {
-  const user = await getUserByTelegramId(userId);
+  const user = await getOrCreateUser(userId);
 
   const { data: building, error: buildError } = await supabase
     .from('user_buildings')
@@ -59,7 +157,7 @@ export async function activateBuilding(userId, buildingId) {
  * Can only collect if building is at full capacity
  */
 export async function collectResourcesFromBuilding(userId, buildingId) {
-  const user = await getUserByTelegramId(userId);
+  const user = await getOrCreateUser(userId);
 
   const { data: building, error: buildError } = await supabase
     .from('user_buildings')
@@ -142,7 +240,7 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
  * Others require gold
  */
 export async function upgradeBuilding(userId, buildingId) {
-  const user = await getUserByTelegramId(userId);
+  const user = await getOrCreateUser(userId);
 
   const { data: building, error: buildError } = await supabase
     .from('user_buildings')
@@ -252,7 +350,7 @@ export async function upgradeBuilding(userId, buildingId) {
  * Get all buildings for a user with current progress
  */
 export async function getUserBuildings(userId) {
-  const user = await getUserByTelegramId(userId);
+  const user = await getOrCreateUser(userId);
 
   const { data: buildings, error } = await supabase
     .from('user_buildings')

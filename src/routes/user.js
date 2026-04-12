@@ -5,6 +5,103 @@ import { supabase } from '../bot.js';
 const router = express.Router();
 
 /**
+ * Create initial buildings for a user (mine, quarry, lumber_mill, farm)
+ */
+async function createInitialBuildings(userRecord) {
+  try {
+    if (!userRecord || !userRecord.id) {
+      console.error('Error: Invalid user record for initial buildings');
+      return;
+    }
+
+    const buildingTypes = ['mine', 'quarry', 'lumber_mill', 'farm'];
+    const productionRates = {
+      mine: 100,
+      quarry: 80,
+      lumber_mill: 90,
+      farm: 70,
+    };
+
+    const buildingsToCreate = buildingTypes.map((type) => ({
+      user_id: userRecord.id,
+      building_type: type,
+      building_number: 1,
+      level: 1,
+      collected_amount: 0,
+      production_rate: productionRates[type],
+      last_activated: null,
+      created_at: new Date().toISOString(),
+    }));
+
+    const { data: createdBuildings, error: createError } = await supabase
+      .from('user_buildings')
+      .insert(buildingsToCreate)
+      .select();
+
+    if (createError) {
+      console.error('Error creating initial buildings:', createError);
+      return;
+    }
+
+    console.log(`✅ Created ${createdBuildings.length} initial buildings for user ${userRecord.id}`);
+  } catch (error) {
+    console.error('Error creating initial buildings:', error);
+  }
+}
+
+/**
+ * Get a user by telegram_id, create if doesn't exist
+ */
+async function getOrCreateUser(telegramId) {
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .single();
+
+  // User exists - return it
+  if (!error) {
+    return user;
+  }
+
+  // User doesn't exist - create new
+  if (error.code === 'PGRST116') {
+    console.log(`📝 Creating new user ${telegramId}`);
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        telegram_id: telegramId,
+        username: `user_${telegramId}`,
+        first_name: `Player`,
+        photo_url: null,
+        gold: 5000,
+        wood: 2500,
+        stone: 2500,
+        meat: 500,
+        jabcoins: 0,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Error creating user:', insertError);
+      throw new Error('Failed to create user');
+    }
+
+    console.log(`✅ User ${telegramId} created successfully`);
+
+    // Create initial buildings for the user
+    await createInitialBuildings(newUser);
+
+    return newUser;
+  }
+
+  // Some other error occurred
+  throw new Error('User not found');
+}
+
+/**
  * Verify Telegram initData signature to extract userId securely
  * initData is sent by Telegram when Web App is opened through a web_app button
  */
@@ -91,16 +188,7 @@ router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('telegram_id', userId)
-      .single();
-
-    if (error) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
+    const user = await getOrCreateUser(userId);
     res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);

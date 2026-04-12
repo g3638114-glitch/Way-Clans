@@ -11,21 +11,110 @@ const EXCHANGE_CONFIG = {
   EXCHANGE_RATE: 1000000, // 1000000 gold = 1 jabcoin
 };
 
-export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
-  // Calculate gold from sold resources
-  const goldEarned = (wood || 0) * RESOURCE_PRICES.wood 
-    + (stone || 0) * RESOURCE_PRICES.stone 
-    + (meat || 0) * RESOURCE_PRICES.meat;
+/**
+ * Create initial buildings for a user (mine, quarry, lumber_mill, farm)
+ */
+async function createInitialBuildings(userRecord) {
+  try {
+    if (!userRecord || !userRecord.id) {
+      console.error('Error: Invalid user record for initial buildings');
+      return;
+    }
 
-  const { data: user, error: fetchError } = await supabase
+    const buildingTypes = ['mine', 'quarry', 'lumber_mill', 'farm'];
+    const productionRates = {
+      mine: 100,
+      quarry: 80,
+      lumber_mill: 90,
+      farm: 70,
+    };
+
+    const buildingsToCreate = buildingTypes.map((type) => ({
+      user_id: userRecord.id,
+      building_type: type,
+      building_number: 1,
+      level: 1,
+      collected_amount: 0,
+      production_rate: productionRates[type],
+      last_activated: null,
+      created_at: new Date().toISOString(),
+    }));
+
+    const { data: createdBuildings, error: createError } = await supabase
+      .from('user_buildings')
+      .insert(buildingsToCreate)
+      .select();
+
+    if (createError) {
+      console.error('Error creating initial buildings:', createError);
+      return;
+    }
+
+    console.log(`✅ Created ${createdBuildings.length} initial buildings for user ${userRecord.id}`);
+  } catch (error) {
+    console.error('Error creating initial buildings:', error);
+  }
+}
+
+/**
+ * Get a user by telegram_id, create if doesn't exist
+ */
+async function getOrCreateUser(telegramId) {
+  const { data: user, error } = await supabase
     .from('users')
     .select('*')
-    .eq('telegram_id', userId)
+    .eq('telegram_id', telegramId)
     .single();
 
-  if (fetchError) {
-    throw new Error('User not found');
+  // User exists - return it
+  if (!error) {
+    return user;
   }
+
+  // User doesn't exist - create new
+  if (error.code === 'PGRST116') {
+    console.log(`📝 Creating new user ${telegramId}`);
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        telegram_id: telegramId,
+        username: `user_${telegramId}`,
+        first_name: `Player`,
+        photo_url: null,
+        gold: 5000,
+        wood: 2500,
+        stone: 2500,
+        meat: 500,
+        jabcoins: 0,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Error creating user:', insertError);
+      throw new Error('Failed to create user');
+    }
+
+    console.log(`✅ User ${telegramId} created successfully`);
+
+    // Create initial buildings for the user
+    await createInitialBuildings(newUser);
+
+    return newUser;
+  }
+
+  // Some other error occurred
+  throw new Error('User not found');
+}
+
+export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
+  // Calculate gold from sold resources
+  const goldEarned = (wood || 0) * RESOURCE_PRICES.wood
+    + (stone || 0) * RESOURCE_PRICES.stone
+    + (meat || 0) * RESOURCE_PRICES.meat;
+
+  const user = await getOrCreateUser(userId);
 
   // Check if user has enough resources
   if ((wood || 0) > user.wood || (stone || 0) > user.stone || (meat || 0) > user.meat) {
@@ -57,15 +146,7 @@ export async function exchangeGold(userId, goldAmount) {
     throw new Error(`Minimum exchange is ${EXCHANGE_CONFIG.MIN_EXCHANGE} gold`);
   }
 
-  const { data: user, error: fetchError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (fetchError) {
-    throw new Error('User not found');
-  }
+  const user = await getOrCreateUser(userId);
 
   if (user.gold < goldAmount) {
     throw new Error('Not enough gold');
@@ -91,15 +172,7 @@ export async function exchangeGold(userId, goldAmount) {
 }
 
 export async function addGold(userId, goldAmount) {
-  const { data: user, error: fetchError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (fetchError) {
-    throw new Error('User not found');
-  }
+  const user = await getOrCreateUser(userId);
 
   const { data: updatedUser, error: updateError } = await supabase
     .from('users')

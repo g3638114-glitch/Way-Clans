@@ -21,7 +21,7 @@ async function loadUserData() {
       return;
     }
 
-    appState.currentUser = await apiClient.getUser(appState.userId);
+    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
     updateUI(appState.currentUser);
   } catch (error) {
     console.error('Error loading user data:', error);

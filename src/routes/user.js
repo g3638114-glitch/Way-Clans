@@ -52,7 +52,7 @@ async function createInitialBuildings(userRecord) {
 /**
  * Get a user by telegram_id, create if doesn't exist
  */
-async function getOrCreateUser(telegramId) {
+async function getOrCreateUser(telegramId, userInfo = null) {
   const { data: user, error } = await supabase
     .from('users')
     .select('*')
@@ -67,12 +67,17 @@ async function getOrCreateUser(telegramId) {
   // User doesn't exist - create new
   if (error.code === 'PGRST116') {
     console.log(`📝 Creating new user ${telegramId}`);
+
+    // Use provided Telegram user info or defaults
+    const username = userInfo?.username || `user_${telegramId}`;
+    const firstName = userInfo?.first_name || 'Player';
+
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
         telegram_id: telegramId,
-        username: `user_${telegramId}`,
-        first_name: `Player`,
+        username: username,
+        first_name: firstName,
         photo_url: null,
         gold: 5000,
         wood: 2500,
@@ -89,7 +94,7 @@ async function getOrCreateUser(telegramId) {
       throw new Error('Failed to create user');
     }
 
-    console.log(`✅ User ${telegramId} created successfully`);
+    console.log(`✅ User ${telegramId} created successfully (${firstName}/${username})`);
 
     // Create initial buildings for the user
     await createInitialBuildings(newUser);
@@ -183,12 +188,26 @@ router.post('/auth/verify', async (req, res) => {
   }
 });
 
-// GET /api/user/:userId
+// GET/POST /api/user/:userId
+// Supports both GET (legacy) and POST (with userInfo from MiniApp)
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
     const user = await getOrCreateUser(userId);
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { userInfo } = req.body;
+
+    const user = await getOrCreateUser(userId, userInfo);
     res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);

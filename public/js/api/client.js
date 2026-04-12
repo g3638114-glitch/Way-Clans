@@ -1,8 +1,15 @@
 // API Client for communicating with server
 export const apiClient = {
   // Get user data
-  async getUser(userId) {
-    const response = await fetch(`/api/user/${userId}`);
+  async getUser(userId, userInfo = null) {
+    const headers = { 'Content-Type': 'application/json' };
+    const body = userInfo ? JSON.stringify({ userInfo }) : undefined;
+
+    const response = await fetch(`/api/user/${userId}`, {
+      method: userInfo ? 'POST' : 'GET',
+      headers,
+      body,
+    });
     if (!response.ok) {
       throw new Error('Failed to load user data');
     }

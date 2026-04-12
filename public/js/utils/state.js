@@ -3,6 +3,7 @@ export const appState = {
   // User data
   currentUser: null,
   userId: null,
+  userInfo: null, // Telegram user info (username, first_name, etc.)
 
   // Game data
   allBuildings: [],
@@ -45,6 +46,8 @@ export async function initializeUserId() {
     if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
       console.log(`📌 Got userId from initDataUnsafe: ${tg.initDataUnsafe.user.id}`);
       appState.userId = tg.initDataUnsafe.user.id;
+      // Save user info for later use (username, first_name, etc.)
+      appState.userInfo = tg.initDataUnsafe.user;
       return tg.initDataUnsafe.user.id;
     }
 
@@ -62,6 +65,10 @@ export async function initializeUserId() {
           const data = await response.json();
           console.log(`✅ Server verified userId: ${data.userId}`);
           appState.userId = data.userId;
+          // Save user info from initDataUnsafe if available
+          if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            appState.userInfo = tg.initDataUnsafe.user;
+          }
           return data.userId;
         } else {
           console.warn('⚠️ Server could not verify initData:', await response.json());

@@ -47,9 +47,9 @@ export function openUpgradeModal(buildingId, currentLevel) {
 
   // Update cost display based on building type
   let canAfford = true;
-  const costSection = document.querySelector('.upgrade-cost-section');
-  const costDisplay = costSection.querySelector('.cost-display');
-  const playerGoldInfo = costSection.querySelector('.player-gold-info');
+  const costValueEl = document.getElementById('upgrade-cost-value');
+  const costIconEl = document.querySelector('.cost-icon');
+  const playerGoldInfoEl = document.querySelector('.player-gold-info');
 
   if (building.building_type === 'mine') {
     // Mine costs stone + wood
@@ -57,35 +57,36 @@ export function openUpgradeModal(buildingId, currentLevel) {
     const hasWood = appState.currentUser.wood >= costData.wood;
     canAfford = hasStone && hasWood;
 
-    costDisplay.innerHTML = `
+    costValueEl.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+        <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
           <span>Камень:</span>
           <span style="color: ${!hasStone ? '#ff6b6b' : '#d4af37'}; font-weight: bold;">
-            ${formatNumber(costData.stone)} 🪨 / ${formatNumber(appState.currentUser.stone || 0)}
+            ${formatNumber(costData.stone)} / ${formatNumber(appState.currentUser.stone || 0)}
           </span>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+        <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
           <span>Дерево:</span>
           <span style="color: ${!hasWood ? '#ff6b6b' : '#d4af37'}; font-weight: bold;">
-            ${formatNumber(costData.wood)} 🌲 / ${formatNumber(appState.currentUser.wood || 0)}
+            ${formatNumber(costData.wood)} / ${formatNumber(appState.currentUser.wood || 0)}
           </span>
         </div>
       </div>
     `;
-    playerGoldInfo.innerHTML = '';
+    if (costIconEl) costIconEl.style.display = 'none';
+    playerGoldInfoEl.textContent = '';
   } else {
     // Others cost gold
     const hasGold = appState.currentUser.gold >= costData.gold;
     canAfford = hasGold;
 
-    costDisplay.innerHTML = `
-      <span class="cost-value" style="color: ${!hasGold ? '#ff6b6b' : '#d4af37'}">
-        ${formatNumber(costData.gold)}
-      </span>
-      <span class="cost-icon">💰</span>
-    `;
-    playerGoldInfo.innerHTML = `Ваше золото: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
+    costValueEl.textContent = formatNumber(costData.gold);
+    costValueEl.style.color = hasGold ? '#d4af37' : '#ff6b6b';
+    if (costIconEl) {
+      costIconEl.style.display = 'inline';
+      costIconEl.textContent = '💰';
+    }
+    playerGoldInfoEl.innerHTML = `Ваше золото: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
   }
 
   // Enable/disable upgrade button

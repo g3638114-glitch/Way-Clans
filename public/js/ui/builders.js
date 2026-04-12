@@ -9,7 +9,6 @@ import {
 import { activateBuilding, collectResources, upgradeBuilding } from '../game/buildings.js';
 
 // Make functions available globally for onclick handlers
-window.activateBuilding = activateBuilding;
 window.collectResources = collectResources;
 window.upgradeBuilding = upgradeBuilding;
 
@@ -109,15 +108,6 @@ export function createBuildingCard(building) {
   // ========== Action Buttons ==========
   const actions = document.createElement('div');
   actions.className = 'building-card-actions';
-
-  // Activate button (visible only when not activated yet)
-  if (!isActivated) {
-    const activateBtn = document.createElement('button');
-    activateBtn.className = 'btn btn-activate';
-    activateBtn.textContent = 'Активировать';
-    activateBtn.addEventListener('click', () => activateBuilding(building.id));
-    actions.appendChild(activateBtn);
-  }
 
   // Collect button (visible only when full)
   if (isFull) {

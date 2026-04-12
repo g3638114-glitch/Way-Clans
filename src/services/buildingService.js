@@ -27,7 +27,7 @@ async function createInitialBuildings(userRecord) {
       level: 1,
       collected_amount: 0,
       production_rate: productionRates[type],
-      last_activated: null,
+      last_activated: new Date().toISOString(),
       created_at: new Date().toISOString(),
     }));
 

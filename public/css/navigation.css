@@ -28,6 +28,11 @@
   outline: none !important;
   -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  background-clip: padding-box;
 }
 
 .nav-item.active {
@@ -37,13 +42,15 @@
 }
 
 .nav-item:active {
-  transform: scale(0.95);
+  transform: scale(0.95) !important;
+  background: rgba(76, 111, 166, 0.15) !important;
 }
 
 .nav-item:focus,
-.nav-item:focus-visible {
+.nav-item:focus-visible,
+.nav-item:focus-within {
   outline: none !important;
   box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3) !important;
-  background: rgba(76, 111, 166, 0.15);
-  border-color: transparent;
+  background: rgba(76, 111, 166, 0.15) !important;
+  border-color: transparent !important;
 }

@@ -14,6 +14,19 @@ body {
   min-height: 100vh;
   padding: 10px;
   background-attachment: fixed;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+body *::selection {
+  background: transparent;
+  color: inherit;
+}
+
+body *::-moz-selection {
+  background: transparent;
+  color: inherit;
 }
 
 /* Remove focus outline from all buttons */
@@ -23,11 +36,22 @@ button {
   -moz-appearance: none;
   appearance: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 button:focus,
-button:focus-visible {
+button:focus-visible,
+button:focus-within {
   outline: none !important;
   box-shadow: none !important;
   border-color: inherit !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+button::-moz-focus-inner {
+  border: 0 !important;
+  outline: none !important;
 }

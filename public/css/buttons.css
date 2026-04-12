@@ -19,12 +19,23 @@
   outline: none !important;
   -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .btn:focus,
-.btn:focus-visible {
+.btn:focus-visible,
+.btn:focus-within {
   outline: none !important;
   box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.btn::-moz-focus-inner {
+  border: 0 !important;
+  outline: none !important;
 }
 
 .btn::before {

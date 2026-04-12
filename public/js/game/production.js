@@ -76,8 +76,8 @@ function updateBuildingCardValues(building) {
 
     const isActivated = building.last_activated !== null && building.last_activated !== undefined;
 
-    // Manage activate button visibility
-    if (!isActivated || (isActivated && progress.isFull)) {
+    // Manage activate button visibility - only show on first activation
+    if (!isActivated) {
       // Should have activate button
       if (!activateBtn) {
         const newActivateBtn = document.createElement('button');

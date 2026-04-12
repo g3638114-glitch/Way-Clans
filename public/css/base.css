@@ -8,15 +8,27 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%);
-  min-height: 100vh;
-  padding: 10px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
   background-attachment: fixed;
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
+  touch-action: none;
 }
 
 body *::selection {

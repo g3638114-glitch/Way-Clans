@@ -146,8 +146,6 @@ export function updateStorageModal(user) {
 
   document.getElementById('storage-meat-amount').textContent = formatNumber(user.meat || 0);
   document.getElementById('storage-meat-limit').textContent = formatNumber(storageCapacity);
-
-  document.getElementById('storage-gold-amount').textContent = formatNumber(user.gold || 0);
 }
 
 // Update Storage/Treasury upgrade modals with cost and capacity info

@@ -323,10 +323,6 @@
             <span class="resource-name">🍖 Мясо</span>
             <span class="resource-info"><span id="storage-meat-amount">0</span> / <span id="storage-meat-limit">5 000</span></span>
           </div>
-          <div class="storage-resource-item">
-            <span class="resource-name">💰 Золото</span>
-            <span class="resource-info"><span id="storage-gold-amount">0</span> / ∞</span>
-          </div>
         </div>
       </div>
 
@@ -555,54 +551,6 @@
     </div>
   </div>
 
-  <!-- Old Storage Modal (keep for backward compatibility, but update it) -->
-  <div class="modal" id="storage-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>📦 Склад</h2>
-        <button class="close-btn" onclick="closeStorageModal()">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="resource-input-group">
-          <div class="resource-row">
-            <span>🌲 Дерево: <span id="storage-wood">2 500</span></span>
-            <div class="input-controls">
-              <input type="number" id="wood-input" min="0" placeholder="0">
-              <button class="max-btn" onclick="setMaxWood()">Макс</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="resource-input-group">
-          <div class="resource-row">
-            <span>🪨 Камень: <span id="storage-stone">2 500</span></span>
-            <div class="input-controls">
-              <input type="number" id="stone-input" min="0" placeholder="0">
-              <button class="max-btn" onclick="setMaxStone()">Макс</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="resource-input-group">
-          <div class="resource-row">
-            <span>🍖 Мясо: <span id="storage-meat">500</span></span>
-            <div class="input-controls">
-              <input type="number" id="meat-input" min="0" placeholder="0">
-              <button class="max-btn" onclick="setMaxMeat()">Макс</button>
-            </div>
-          </div>
-        </div>
-
-        <p class="storage-hint">(Введите количество ресурсов для продажи)</p>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="sellResources()">Продать</button>
-        <button class="btn btn-secondary" onclick="closeStorageModal()">Закрыть</button>
-      </div>
-    </div>
-  </div>
 
   <script type="module" src="app.js"></script>
 </body>

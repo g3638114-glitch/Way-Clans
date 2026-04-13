@@ -47,6 +47,13 @@ export async function sellResources() {
     tg.showAlert('✅ Resources sold successfully!');
   } catch (error) {
     console.error('Error selling resources:', error);
+
+    // Handle treasury full error separately - show as notification, not error
+    if (error.message.includes('Treasury is full')) {
+      tg.showAlert('🏦 Казна переполнена! Обменяйте золото на Jabcoins или потратьте его, чтобы продолжить продажу.');
+      return;
+    }
+
     tg.showAlert(error.message || 'Error selling resources');
   }
 }

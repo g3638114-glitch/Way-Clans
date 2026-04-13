@@ -67,7 +67,13 @@ export function setupEventListeners() {
       }
     } catch (error) {
       console.error('Error clicking coin:', error);
-      tg.showAlert('❌ Ошибка при добавлении золота');
+
+      // Handle treasury full error separately - show as notification, not error
+      if (error.message.includes('Treasury is full')) {
+        tg.showAlert('🏦 Казна переполнена! Обменяйте золото на Jabcoins или потратьте его, чтобы продолжить сбор.');
+      } else {
+        tg.showAlert('❌ Ошибка при добавлении золота');
+      }
     } finally {
       // Remove animation class after animation completes
       setTimeout(() => {

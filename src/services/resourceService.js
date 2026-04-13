@@ -1,6 +1,4 @@
 import { supabase } from '../bot.js';
-import { getTreasuryCapacity } from '../config/buildings.js';
-import { transactionSellResources, transactionExchangeGold, transactionAddGold, transactionGetOrCreateUser } from './transactionService.js';
 
 const RESOURCE_PRICES = {
   wood: 10,
@@ -59,56 +57,141 @@ async function createInitialBuildings(userRecord) {
 }
 
 /**
- * Get a user by UUID or telegram_id, create if doesn't exist
- * Accepts either a UUID (internal user ID) or a telegram ID (numeric)
- * Uses database transactions to prevent race conditions
+ * Get a user by telegram_id, create if doesn't exist
  */
-async function getOrCreateUser(userIdentifier, userInfo = null) {
-  try {
-    // Use transactional version that handles concurrent creation and both UUID/telegram ID formats
-    const user = await transactionGetOrCreateUser(userIdentifier, userInfo);
+async function getOrCreateUser(telegramId, userInfo = null) {
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .single();
 
-    if (!user) {
-      throw new Error('Failed to get or create user');
+  // User exists - return it
+  if (!error) {
+    return user;
+  }
+
+  // User doesn't exist - create new
+  if (error.code === 'PGRST116') {
+    console.log(`📝 Creating new user ${telegramId}`);
+
+    // Use provided Telegram user info or defaults
+    const username = userInfo?.username || `user_${telegramId}`;
+    const firstName = userInfo?.first_name || 'Player';
+
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        telegram_id: telegramId,
+        username: username,
+        first_name: firstName,
+        photo_url: null,
+        gold: 5000,
+        wood: 2500,
+        stone: 2500,
+        meat: 500,
+        jabcoins: 0,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Error creating user:', insertError);
+      throw new Error('Failed to create user');
     }
 
-    console.log(`✅ User ready (${user.first_name}/${user.username})`);
-    return user;
-  } catch (error) {
-    console.error('❌ Error in getOrCreateUser:', error.message);
-    throw new Error('Failed to get or create user');
+    console.log(`✅ User ${telegramId} created successfully (${firstName}/${username})`);
+
+    // Create initial buildings for the user
+    await createInitialBuildings(newUser);
+
+    return newUser;
   }
+
+  // Some other error occurred
+  throw new Error('User not found');
 }
 
 export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
-  try {
-    // Use transactional version to ensure atomicity
-    const result = await transactionSellResources(userId, wood, stone, meat);
-    return result;
-  } catch (error) {
-    console.error('Error selling resources:', error.message);
-    throw error;
+  // Calculate gold from sold resources
+  const goldEarned = (wood || 0) * RESOURCE_PRICES.wood
+    + (stone || 0) * RESOURCE_PRICES.stone
+    + (meat || 0) * RESOURCE_PRICES.meat;
+
+  const user = await getOrCreateUser(userId);
+
+  // Check if user has enough resources
+  if ((wood || 0) > user.wood || (stone || 0) > user.stone || (meat || 0) > user.meat) {
+    throw new Error('Not enough resources');
   }
+
+  // Update user resources
+  const { data: updatedUser, error: updateError } = await supabase
+    .from('users')
+    .update({
+      wood: user.wood - (wood || 0),
+      stone: user.stone - (stone || 0),
+      meat: user.meat - (meat || 0),
+      gold: user.gold + goldEarned,
+    })
+    .eq('telegram_id', userId)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new Error('Failed to update resources');
+  }
+
+  return { success: true, user: updatedUser };
 }
 
 export async function exchangeGold(userId, goldAmount) {
-  try {
-    // Use transactional version to ensure atomicity
-    const result = await transactionExchangeGold(userId, goldAmount);
-    return result;
-  } catch (error) {
-    console.error('Error exchanging gold:', error.message);
-    throw error;
+  if (goldAmount < EXCHANGE_CONFIG.MIN_EXCHANGE) {
+    throw new Error(`Minimum exchange is ${EXCHANGE_CONFIG.MIN_EXCHANGE} gold`);
   }
+
+  const user = await getOrCreateUser(userId);
+
+  if (user.gold < goldAmount) {
+    throw new Error('Not enough gold');
+  }
+
+  const jabcoinsGained = Math.floor(goldAmount / EXCHANGE_CONFIG.EXCHANGE_RATE);
+
+  const { data: updatedUser, error: updateError } = await supabase
+    .from('users')
+    .update({
+      gold: user.gold - goldAmount,
+      jabcoins: user.jabcoins + jabcoinsGained,
+    })
+    .eq('telegram_id', userId)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new Error('Failed to exchange gold');
+  }
+
+  return { success: true, user: updatedUser, jabcoinsGained };
 }
 
 export async function addGold(userId, goldAmount) {
-  try {
-    // Use transactional version to ensure atomicity
-    const result = await transactionAddGold(userId, goldAmount);
-    return result;
-  } catch (error) {
-    console.error('Error adding gold:', error.message);
-    throw error;
+  const user = await getOrCreateUser(userId);
+
+  const { data: updatedUser, error: updateError } = await supabase
+    .from('users')
+    .update({
+      gold: user.gold + goldAmount,
+      jamcoins_from_clicks: (user.jamcoins_from_clicks || 0) + goldAmount,
+    })
+    .eq('telegram_id', userId)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new Error('Failed to add gold');
   }
+
+  return { success: true, user: updatedUser };
 }

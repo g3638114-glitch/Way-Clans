@@ -125,28 +125,4 @@ export const apiClient = {
     }
     return response.json();
   },
-
-  // Upgrade Treasury
-  async upgradeTreasury(userId) {
-    const response = await fetch(`/api/user/${userId}/treasury/upgrade`, {
-      method: 'POST',
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to upgrade treasury');
-    }
-    return response.json();
-  },
-
-  // Upgrade Storage
-  async upgradeStorage(userId) {
-    const response = await fetch(`/api/user/${userId}/storage/upgrade`, {
-      method: 'POST',
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to upgrade storage');
-    }
-    return response.json();
-  },
 };

@@ -47,14 +47,6 @@ const migrations = [
     name: 'Add jamcoins_from_clicks column to users if missing',
     sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS jamcoins_from_clicks BIGINT DEFAULT 0;`,
   },
-  {
-    name: 'Add treasury_level column to users if missing',
-    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS treasury_level INT DEFAULT 1;`,
-  },
-  {
-    name: 'Add storage_level column to users if missing',
-    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS storage_level INT DEFAULT 1;`,
-  },
 
   // === USER_BUILDINGS TABLE ===
   {
@@ -133,25 +125,15 @@ const migrations = [
   // === DISABLE ROW LEVEL SECURITY ===
   {
     name: 'Disable RLS on users table',
-    sql: `ALTER TABLE IF EXISTS users DISABLE ROW LEVEL SECURITY;`,
+    sql: `ALTER TABLE users DISABLE ROW LEVEL SECURITY;`,
   },
   {
     name: 'Disable RLS on user_buildings table',
-    sql: `ALTER TABLE IF EXISTS user_buildings DISABLE ROW LEVEL SECURITY;`,
+    sql: `ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;`,
   },
   {
     name: 'Disable RLS on completed_quests table',
-    sql: `ALTER TABLE IF EXISTS completed_quests DISABLE ROW LEVEL SECURITY;`,
-  },
-
-  // === FIX NULL VALUES FOR TREASURY AND STORAGE LEVELS ===
-  {
-    name: 'Fix NULL treasury_level to default 1',
-    sql: `UPDATE users SET treasury_level = 1 WHERE treasury_level IS NULL;`,
-  },
-  {
-    name: 'Fix NULL storage_level to default 1',
-    sql: `UPDATE users SET storage_level = 1 WHERE storage_level IS NULL;`,
+    sql: `ALTER TABLE completed_quests DISABLE ROW LEVEL SECURITY;`,
   },
 ];
 

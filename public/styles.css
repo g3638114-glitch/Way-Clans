@@ -17,7 +17,7 @@ body {
   margin: 0 auto;
   background: #1a1a2e;
   color: #fff;
-  border-radius: 0px;
+  border-radius: 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;

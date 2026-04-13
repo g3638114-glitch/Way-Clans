@@ -1,53 +1,5 @@
 import { appState } from '../utils/state.js';
-import {
-  getProductionRate,
-  getCapacity,
-  getResourceEmoji,
-  getTreasuryCapacity,
-  getStorageCapacity,
-  getResourceType,
-} from './config.js';
-
-/**
- * Check if resources can be collected based on current treasury/storage capacity
- * This is the same logic as in builders.js but called during production updates
- */
-function canCollectResourcesNow(building) {
-  if (!appState.currentUser) return false;
-  if (!building.last_activated) return false;
-
-  const level = building.level || 1;
-  const productionRate = getProductionRate(building.building_type, level);
-  const capacity = getCapacity(building.building_type, level);
-
-  // Calculate hours passed and accumulated resources
-  const lastActivated = new Date(building.last_activated);
-  const now = new Date();
-  const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
-  const totalAccumulated = (building.collected_amount || 0) + (hoursPassed * productionRate);
-  const collectedAmount = Math.floor(Math.min(totalAccumulated, capacity));
-
-  // If nothing to collect, can't collect
-  if (collectedAmount <= 0) return false;
-
-  // Check if collection would exceed treasury/storage capacity
-  const resourceType = getResourceType(building.building_type);
-  const currentResourceAmount = appState.currentUser[resourceType] || 0;
-  const newResourceAmount = currentResourceAmount + collectedAmount;
-
-  // Get appropriate capacity limit
-  let maxCapacity;
-  if (resourceType === 'gold') {
-    const treasuryLevel = appState.currentUser.treasury_level || 1;
-    maxCapacity = getTreasuryCapacity(treasuryLevel);
-  } else {
-    const storageLevel = appState.currentUser.storage_level || 1;
-    maxCapacity = getStorageCapacity(storageLevel);
-  }
-
-  // Can only collect if it doesn't exceed capacity
-  return newResourceAmount <= maxCapacity;
-}
+import { getProductionRate, getCapacity, getResourceEmoji } from './config.js';
 
 /**
  * Calculate accumulated resources for a building
@@ -154,31 +106,9 @@ function updateBuildingCardValues(building) {
           window.collectResources(building.id);
         });
         actionsContainer.insertBefore(newCollectBtn, actionsContainer.firstChild);
-        collectBtn = newCollectBtn; // Update reference for state check below
-      }
-
-      // RE-CHECK button state every update (this fixes the "forever disabled" bug)
-      if (collectBtn) {
-        const canCollect = canCollectResourcesNow(building);
-        const resourceType = getResourceType(building.building_type);
-
-        if (canCollect) {
-          // Can collect - button is enabled
-          collectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceEmoji}`;
-          collectBtn.disabled = false;
-          collectBtn.classList.remove('btn-disabled');
-        } else if (progress.accumulated > 0) {
-          // Resources available but storage/treasury is full
-          const containerName = resourceType === 'gold' ? 'Казна' : 'Склад';
-          collectBtn.innerHTML = `<span>${containerName} переполнена!</span> ${progress.accumulated}${resourceEmoji}`;
-          collectBtn.disabled = true;
-          collectBtn.classList.add('btn-disabled');
-        } else {
-          // Nothing accumulated yet
-          collectBtn.innerHTML = `<span>Собирается...</span> ${progress.accumulated}${resourceEmoji}`;
-          collectBtn.disabled = true;
-          collectBtn.classList.add('btn-disabled');
-        }
+      } else {
+        // Update collect button text with current accumulated amount
+        collectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceEmoji}`;
       }
     } else {
       // Should not have collect button

@@ -1,4 +1,5 @@
 import { supabase } from '../bot.js';
+import { getTreasuryCapacity } from '../config/buildings.js';
 
 const RESOURCE_PRICES = {
   wood: 10,
@@ -126,6 +127,15 @@ export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
     throw new Error('Not enough resources');
   }
 
+  // Check treasury capacity
+  const treasuryLevel = user.treasury_level || 1;
+  const capacity = getTreasuryCapacity(treasuryLevel);
+  const newGoldAmount = (user.gold || 0) + goldEarned;
+
+  if (newGoldAmount > capacity) {
+    throw new Error(`Treasury is full! Cannot add ${goldEarned} gold. Capacity: ${capacity}, Current: ${user.gold || 0}`);
+  }
+
   // Update user resources
   const { data: updatedUser, error: updateError } = await supabase
     .from('users')
@@ -133,7 +143,7 @@ export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
       wood: user.wood - (wood || 0),
       stone: user.stone - (stone || 0),
       meat: user.meat - (meat || 0),
-      gold: user.gold + goldEarned,
+      gold: newGoldAmount,
     })
     .eq('telegram_id', userId)
     .select()
@@ -179,10 +189,19 @@ export async function exchangeGold(userId, goldAmount) {
 export async function addGold(userId, goldAmount) {
   const user = await getOrCreateUser(userId);
 
+  // Check treasury capacity
+  const treasuryLevel = user.treasury_level || 1;
+  const capacity = getTreasuryCapacity(treasuryLevel);
+  const newGoldAmount = (user.gold || 0) + goldAmount;
+
+  if (newGoldAmount > capacity) {
+    throw new Error(`Treasury is full! Capacity: ${capacity}, Current: ${user.gold || 0}`);
+  }
+
   const { data: updatedUser, error: updateError } = await supabase
     .from('users')
     .update({
-      gold: user.gold + goldAmount,
+      gold: newGoldAmount,
       jamcoins_from_clicks: (user.jamcoins_from_clicks || 0) + goldAmount,
     })
     .eq('telegram_id', userId)

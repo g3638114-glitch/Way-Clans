@@ -214,6 +214,18 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
 
   // Add accumulated resources to user
   const resourceType = getResourceType(building.building_type);
+
+  // Check treasury capacity if collecting gold
+  if (resourceType === 'gold') {
+    const treasuryLevel = user.treasury_level || 1;
+    const capacity = getTreasuryCapacity(treasuryLevel);
+    const newGoldAmount = (user.gold || 0) + collectedAmount;
+
+    if (newGoldAmount > capacity) {
+      throw new Error(`Treasury is full! Cannot collect ${collectedAmount} gold. Capacity: ${capacity}, Current: ${user.gold || 0}`);
+    }
+  }
+
   const updateData = {};
   updateData[resourceType] = (user[resourceType] || 0) + collectedAmount;
 

@@ -5,6 +5,9 @@ import {
   getCapacity,
   getBuildingConfig,
   getResourceEmoji,
+  getTreasuryCapacity,
+  getStorageCapacity,
+  getResourceType,
 } from '../game/config.js';
 import { activateBuilding, collectResources, upgradeBuilding } from '../game/buildings.js';
 
@@ -32,6 +35,46 @@ export function renderBuildings() {
     card.style.animationDelay = `${index * 0.1}s`;
     container.appendChild(card);
   });
+}
+
+/**
+ * Check if resources can be collected based on current treasury/storage capacity
+ */
+function canCollectResources(building) {
+  if (!appState.currentUser) return false;
+  if (!building.last_activated) return false;
+
+  const level = building.level || 1;
+  const productionRate = getProductionRate(building.building_type, level);
+  const capacity = getCapacity(building.building_type, level);
+
+  // Calculate hours passed and accumulated resources
+  const lastActivated = new Date(building.last_activated);
+  const now = new Date();
+  const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
+  const totalAccumulated = (building.collected_amount || 0) + (hoursPassed * productionRate);
+  const collectedAmount = Math.floor(Math.min(totalAccumulated, capacity));
+
+  // If nothing to collect, can't collect
+  if (collectedAmount <= 0) return false;
+
+  // Check if collection would exceed treasury/storage capacity
+  const resourceType = getResourceType(building.building_type);
+  const currentResourceAmount = appState.currentUser[resourceType] || 0;
+  const newResourceAmount = currentResourceAmount + collectedAmount;
+
+  // Get appropriate capacity limit
+  let maxCapacity;
+  if (resourceType === 'gold') {
+    const treasuryLevel = appState.currentUser.treasury_level || 1;
+    maxCapacity = getTreasuryCapacity(treasuryLevel);
+  } else {
+    const storageLevel = appState.currentUser.storage_level || 1;
+    maxCapacity = getStorageCapacity(storageLevel);
+  }
+
+  // Can only collect if it doesn't exceed capacity
+  return newResourceAmount <= maxCapacity;
 }
 
 /**
@@ -123,8 +166,28 @@ export function createBuildingCard(building) {
   if (isActivated) {
     const collectBtn = document.createElement('button');
     collectBtn.className = 'btn btn-collect';
-    collectBtn.innerHTML = `<span>Собрать</span> ${currentAccumulated}${resourceEmoji}`;
-    collectBtn.addEventListener('click', () => collectResources(building.id));
+
+    // Check if collection is possible
+    const canCollect = canCollectResources(building);
+
+    if (canCollect) {
+      // Can collect - button is enabled
+      collectBtn.innerHTML = `<span>Собрать</span> ${currentAccumulated}${resourceEmoji}`;
+      collectBtn.addEventListener('click', () => collectResources(building.id));
+    } else if (currentAccumulated > 0) {
+      // Resources available but storage/treasury is full
+      const resourceType = getResourceType(building.building_type);
+      const containerName = resourceType === 'gold' ? 'Казна' : 'Склад';
+      collectBtn.innerHTML = `<span>${containerName} переполнена!</span> ${currentAccumulated}${resourceEmoji}`;
+      collectBtn.disabled = true;
+      collectBtn.classList.add('btn-disabled');
+    } else {
+      // Nothing accumulated yet
+      collectBtn.innerHTML = `<span>Собирается...</span> ${currentAccumulated}${resourceEmoji}`;
+      collectBtn.disabled = true;
+      collectBtn.classList.add('btn-disabled');
+    }
+
     actions.appendChild(collectBtn);
   }
 

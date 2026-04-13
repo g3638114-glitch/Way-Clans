@@ -20,18 +20,14 @@ import {
   openTreasuryModal,
   closeTreasuryModal,
   upgradeTreasuryToLevel,
-  openWarehouseModal,
-  closeWarehouseModal,
-  upgradeWarehouseToLevel,
-  openWarehouseSellModal,
   setupModalHandlers,
 } from './ui/modals/index.js';
 import { renderBuildings } from './ui/builders.js';
 
 // Register all event listeners
 export function setupEventListeners() {
-  // Warehouse modal buttons (storage-btn now opens warehouse instead of storage)
-  document.getElementById('storage-btn').addEventListener('click', openWarehouseModal);
+  // Storage modal buttons
+  document.getElementById('storage-btn').addEventListener('click', openStorageModal);
 
   // Exchange modal buttons
   document.getElementById('exchange-btn').addEventListener('click', openExchangeModal);
@@ -128,9 +124,4 @@ export function setupEventListeners() {
   window.openTreasuryModal = openTreasuryModal;
   window.closeTreasuryModal = closeTreasuryModal;
   window.upgradeTreasuryToLevel = upgradeTreasuryToLevel;
-
-  window.openWarehouseModal = openWarehouseModal;
-  window.closeWarehouseModal = closeWarehouseModal;
-  window.upgradeWarehouseToLevel = upgradeWarehouseToLevel;
-  window.openWarehouseSellModal = openWarehouseSellModal;
 }

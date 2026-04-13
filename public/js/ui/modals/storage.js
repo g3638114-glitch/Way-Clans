@@ -36,7 +36,7 @@ export async function sellResources() {
     const meat = parseInt(document.getElementById('meat-input').value) || 0;
 
     if (wood === 0 && stone === 0 && meat === 0) {
-      tg.showAlert('Select resources to sell');
+      tg.showAlert('Выберите ресурсы для продажи');
       return;
     }
 
@@ -44,7 +44,7 @@ export async function sellResources() {
     appState.currentUser = result.user;
     updateUI(appState.currentUser);
     closeStorageModal();
-    tg.showAlert('✅ Resources sold successfully!');
+    tg.showAlert('✅ Ресурсы успешно проданы!');
   } catch (error) {
     console.error('Error selling resources:', error);
 
@@ -54,6 +54,6 @@ export async function sellResources() {
       return;
     }
 
-    tg.showAlert(error.message || 'Error selling resources');
+    tg.showAlert(error.message || 'Ошибка при продаже ресурсов');
   }
 }

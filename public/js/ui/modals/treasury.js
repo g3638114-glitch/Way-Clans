@@ -63,7 +63,7 @@ async function renderTreasuryContent() {
 
   } catch (error) {
     console.error('Error loading treasury data:', error);
-    tg.showAlert(error.message || 'Error loading treasury data');
+    tg.showAlert(error.message || 'Ошибка при загрузке казначейских данных.');
   }
 }
 
@@ -139,6 +139,6 @@ export async function upgradeTreasuryToLevel() {
     tg.showAlert(`✅ Казна улучшена до уровня ${result.newLevel}! Новая вместимость: ${result.newCapacity}`);
   } catch (error) {
     console.error('Error upgrading treasury:', error);
-    tg.showAlert(error.message || 'Error upgrading treasury');
+    tg.showAlert(error.message || 'Ошибка при обновлении казначейства.');
   }
 }

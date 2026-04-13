@@ -1,6 +1,6 @@
 import { supabase } from '../bot.js';
 import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getTreasuryCost, getTreasuryMaxLevel, getStorageCapacity, getStorageCost, getStorageMaxLevel } from '../config/buildings.js';
-import { transactionCollectResources, transactionUpgradeBuilding, transactionGetOrCreateUser } from './transactionService.js';
+import { transactionCollectResources, transactionUpgradeBuilding, transactionGetOrCreateUser, transactionUpgradeTreasury, transactionUpgradeStorage } from './transactionService.js';
 
 // Resource storage limits per level
 const RESOURCE_STORAGE_LIMITS = {
@@ -56,19 +56,20 @@ async function createInitialBuildings(userRecord) {
 }
 
 /**
- * Get a user by telegram_id, create if doesn't exist
+ * Get a user by UUID or telegram_id, create if doesn't exist
+ * Accepts either a UUID (internal user ID) or a telegram ID (numeric)
  * Uses database transactions to prevent race conditions
  */
-async function getOrCreateUser(telegramId, userInfo = null) {
+async function getOrCreateUser(userIdentifier, userInfo = null) {
   try {
-    // Use transactional version that handles concurrent creation
-    const user = await transactionGetOrCreateUser(telegramId, userInfo);
+    // Use transactional version that handles concurrent creation and both UUID/telegram ID formats
+    const user = await transactionGetOrCreateUser(userIdentifier, userInfo);
 
     if (!user) {
       throw new Error('Failed to get or create user');
     }
 
-    console.log(`✅ User ${telegramId} ready (${user.first_name}/${user.username})`);
+    console.log(`✅ User ready (${user.first_name}/${user.username})`);
     return user;
   } catch (error) {
     console.error('❌ Error in getOrCreateUser:', error.message);
@@ -214,136 +215,32 @@ export async function getUserBuildings(userId) {
 
 /**
  * Upgrade Treasury (Казна) - increases Jamcoin storage capacity
+ * Uses database transactions to prevent race conditions
+ * ATOMICALLY: checks resources, deducts them, and upgrades treasury level
  */
 export async function upgradeTreasury(userId) {
-  const user = await getOrCreateUser(userId);
-
-  const currentLevel = user.treasury_level || 1;
-  const maxLevel = getTreasuryMaxLevel();
-
-  // Can't upgrade beyond maximum level
-  if (currentLevel >= maxLevel) {
-    throw new Error(`Treasury is already at maximum level (${maxLevel})`);
+  try {
+    // Use transactional version that prevents double-upgrade and resource deduction issues
+    const result = await transactionUpgradeTreasury(userId);
+    return result;
+  } catch (error) {
+    console.error('Error upgrading treasury:', error.message);
+    throw error;
   }
-
-  const nextLevel = currentLevel + 1;
-
-  // Get upgrade cost
-  const costData = getTreasuryCost(nextLevel);
-  if (!costData) {
-    throw new Error('Invalid level for upgrade');
-  }
-
-  // Check resources
-  if ((user.gold || 0) < costData.gold) {
-    throw new Error(`Not enough gold. Need ${costData.gold}, have ${user.gold || 0}`);
-  }
-  if ((user.stone || 0) < costData.stone) {
-    throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
-  }
-  if ((user.wood || 0) < costData.wood) {
-    throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
-  }
-
-  // Deduct resources
-  const { error: updateError } = await supabase
-    .from('users')
-    .update({
-      gold: user.gold - costData.gold,
-      stone: user.stone - costData.stone,
-      wood: user.wood - costData.wood,
-      treasury_level: nextLevel,
-    })
-    .eq('id', user.id);
-
-  if (updateError) {
-    throw new Error('Failed to upgrade treasury');
-  }
-
-  // Get updated user data
-  const { data: updatedUser, error: getUserError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (getUserError) {
-    throw new Error('Failed to get updated user data');
-  }
-
-  return {
-    success: true,
-    cost: costData,
-    newLevel: nextLevel,
-    newCapacity: getTreasuryCapacity(nextLevel),
-    user: updatedUser,
-  };
 }
 
 /**
  * Upgrade Storage (Склад) - increases resource storage capacity
+ * Uses database transactions to prevent race conditions
+ * ATOMICALLY: checks resources, deducts them, and upgrades storage level
  */
 export async function upgradeStorage(userId) {
-  const user = await getOrCreateUser(userId);
-
-  const currentLevel = user.storage_level || 1;
-  const maxLevel = getStorageMaxLevel();
-
-  // Can't upgrade beyond maximum level
-  if (currentLevel >= maxLevel) {
-    throw new Error(`Storage is already at maximum level (${maxLevel})`);
+  try {
+    // Use transactional version that prevents double-upgrade and resource deduction issues
+    const result = await transactionUpgradeStorage(userId);
+    return result;
+  } catch (error) {
+    console.error('Error upgrading storage:', error.message);
+    throw error;
   }
-
-  const nextLevel = currentLevel + 1;
-
-  // Get upgrade cost
-  const costData = getStorageCost(nextLevel);
-  if (!costData) {
-    throw new Error('Invalid level for upgrade');
-  }
-
-  // Check resources
-  if ((user.gold || 0) < costData.gold) {
-    throw new Error(`Not enough gold. Need ${costData.gold}, have ${user.gold || 0}`);
-  }
-  if ((user.stone || 0) < costData.stone) {
-    throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
-  }
-  if ((user.wood || 0) < costData.wood) {
-    throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
-  }
-
-  // Deduct resources
-  const { error: updateError } = await supabase
-    .from('users')
-    .update({
-      gold: user.gold - costData.gold,
-      stone: user.stone - costData.stone,
-      wood: user.wood - costData.wood,
-      storage_level: nextLevel,
-    })
-    .eq('id', user.id);
-
-  if (updateError) {
-    throw new Error('Failed to upgrade storage');
-  }
-
-  // Get updated user data
-  const { data: updatedUser, error: getUserError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (getUserError) {
-    throw new Error('Failed to get updated user data');
-  }
-
-  return {
-    success: true,
-    cost: costData,
-    newLevel: nextLevel,
-    newCapacity: getStorageCapacity(nextLevel),
-    user: updatedUser,
-  };
 }

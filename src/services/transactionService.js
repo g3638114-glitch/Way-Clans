@@ -469,28 +469,227 @@ export async function transactionAddGold(userId, goldAmount) {
 }
 
 /**
- * Execute a transaction for user creation with proper uniqueness handling
- * Uses upsert pattern to handle concurrent creation attempts
+ * Execute a transaction for upgrading treasury
+ * ATOMICALLY: checks resources, deducts them, and upgrades treasury level
+ * Prevents double-upgrade and ensures consistent state
  */
-export async function transactionGetOrCreateUser(telegramId, userInfo = null) {
+export async function transactionUpgradeTreasury(userId) {
   const client = await getTransactionClient();
-  
+
   try {
     await client.connect();
     await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
 
-    // Try to get existing user
-    const existingResult = await client.query(
-      'SELECT * FROM users WHERE telegram_id = $1',
-      [telegramId]
+    // Lock the user row
+    const userResult = await client.query(
+      'SELECT * FROM users WHERE id = $1 FOR UPDATE',
+      [userId]
     );
+
+    if (userResult.rows.length === 0) {
+      throw new Error('User not found');
+    }
+    const user = userResult.rows[0];
+
+    const currentLevel = user.treasury_level || 1;
+
+    // Import helpers
+    const { getTreasuryMaxLevel, getTreasuryCapacity, getTreasuryCost } = await import('../config/buildings.js');
+
+    const maxLevel = getTreasuryMaxLevel();
+
+    if (currentLevel >= maxLevel) {
+      throw new Error(`Treasury is already at maximum level (${maxLevel})`);
+    }
+
+    const nextLevel = currentLevel + 1;
+    const costData = getTreasuryCost(nextLevel);
+
+    if (!costData) {
+      throw new Error('Invalid level for upgrade');
+    }
+
+    // Check resources
+    if ((user.gold || 0) < costData.gold) {
+      throw new Error(`Not enough gold. Need ${costData.gold}, have ${user.gold || 0}`);
+    }
+    if ((user.stone || 0) < costData.stone) {
+      throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
+    }
+    if ((user.wood || 0) < costData.wood) {
+      throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
+    }
+
+    // Deduct resources in SAME transaction
+    const userUpdateResult = await client.query(
+      `UPDATE users
+       SET gold = $1,
+           stone = $2,
+           wood = $3,
+           treasury_level = $4,
+           updated_at = NOW()
+       WHERE id = $5
+       RETURNING *`,
+      [user.gold - costData.gold, user.stone - costData.stone, user.wood - costData.wood, nextLevel, userId]
+    );
+
+    if (userUpdateResult.rows.length === 0) {
+      throw new Error('Failed to upgrade treasury');
+    }
+
+    const updatedUser = userUpdateResult.rows[0];
+
+    // Commit transaction
+    await client.query('COMMIT');
+
+    return {
+      success: true,
+      cost: costData,
+      newLevel: nextLevel,
+      newCapacity: getTreasuryCapacity(nextLevel),
+      user: updatedUser,
+    };
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Execute a transaction for upgrading storage
+ * ATOMICALLY: checks resources, deducts them, and upgrades storage level
+ * Prevents double-upgrade and ensures consistent state
+ */
+export async function transactionUpgradeStorage(userId) {
+  const client = await getTransactionClient();
+
+  try {
+    await client.connect();
+    await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
+
+    // Lock the user row
+    const userResult = await client.query(
+      'SELECT * FROM users WHERE id = $1 FOR UPDATE',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      throw new Error('User not found');
+    }
+    const user = userResult.rows[0];
+
+    const currentLevel = user.storage_level || 1;
+
+    // Import helpers
+    const { getStorageMaxLevel, getStorageCapacity, getStorageCost } = await import('../config/buildings.js');
+
+    const maxLevel = getStorageMaxLevel();
+
+    if (currentLevel >= maxLevel) {
+      throw new Error(`Storage is already at maximum level (${maxLevel})`);
+    }
+
+    const nextLevel = currentLevel + 1;
+    const costData = getStorageCost(nextLevel);
+
+    if (!costData) {
+      throw new Error('Invalid level for upgrade');
+    }
+
+    // Check resources
+    if ((user.gold || 0) < costData.gold) {
+      throw new Error(`Not enough gold. Need ${costData.gold}, have ${user.gold || 0}`);
+    }
+    if ((user.stone || 0) < costData.stone) {
+      throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
+    }
+    if ((user.wood || 0) < costData.wood) {
+      throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
+    }
+
+    // Deduct resources in SAME transaction
+    const userUpdateResult = await client.query(
+      `UPDATE users
+       SET gold = $1,
+           stone = $2,
+           wood = $3,
+           storage_level = $4,
+           updated_at = NOW()
+       WHERE id = $5
+       RETURNING *`,
+      [user.gold - costData.gold, user.stone - costData.stone, user.wood - costData.wood, nextLevel, userId]
+    );
+
+    if (userUpdateResult.rows.length === 0) {
+      throw new Error('Failed to upgrade storage');
+    }
+
+    const updatedUser = userUpdateResult.rows[0];
+
+    // Commit transaction
+    await client.query('COMMIT');
+
+    return {
+      success: true,
+      cost: costData,
+      newLevel: nextLevel,
+      newCapacity: getStorageCapacity(nextLevel),
+      user: updatedUser,
+    };
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Execute a transaction for user creation with proper uniqueness handling
+ * Uses upsert pattern to handle concurrent creation attempts
+ * Accepts either a UUID (internal user ID) or a telegram ID (numeric)
+ */
+export async function transactionGetOrCreateUser(userIdentifier, userInfo = null) {
+  const client = await getTransactionClient();
+
+  try {
+    await client.connect();
+    await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
+
+    // Check if identifier is a UUID or telegram ID
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userIdentifier);
+
+    let existingResult;
+
+    if (isUUID) {
+      // Query by UUID (internal user ID)
+      existingResult = await client.query(
+        'SELECT * FROM users WHERE id = $1',
+        [userIdentifier]
+      );
+    } else {
+      // Query by telegram ID (numeric)
+      const telegramId = parseInt(userIdentifier);
+      existingResult = await client.query(
+        'SELECT * FROM users WHERE telegram_id = $1',
+        [telegramId]
+      );
+    }
 
     if (existingResult.rows.length > 0) {
       await client.query('COMMIT');
       return existingResult.rows[0];
     }
 
+    // If identifier was a UUID and user doesn't exist, that's an error
+    if (isUUID) {
+      throw new Error('User not found');
+    }
+
     // User doesn't exist - create new with proper error handling
+    const telegramId = parseInt(userIdentifier);
     const username = userInfo?.username || `user_${telegramId}`;
     const firstName = userInfo?.first_name || 'Player';
 

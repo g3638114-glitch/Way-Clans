@@ -59,60 +59,25 @@ async function createInitialBuildings(userRecord) {
 }
 
 /**
- * Get a user by telegram_id, create if doesn't exist
+ * Get a user by UUID or telegram_id, create if doesn't exist
+ * Accepts either a UUID (internal user ID) or a telegram ID (numeric)
+ * Uses database transactions to prevent race conditions
  */
-async function getOrCreateUser(telegramId, userInfo = null) {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', telegramId)
-    .single();
+async function getOrCreateUser(userIdentifier, userInfo = null) {
+  try {
+    // Use transactional version that handles concurrent creation and both UUID/telegram ID formats
+    const user = await transactionGetOrCreateUser(userIdentifier, userInfo);
 
-  // User exists - return it
-  if (!error) {
-    return user;
-  }
-
-  // User doesn't exist - create new
-  if (error.code === 'PGRST116') {
-    console.log(`📝 Creating new user ${telegramId}`);
-
-    // Use provided Telegram user info or defaults
-    const username = userInfo?.username || `user_${telegramId}`;
-    const firstName = userInfo?.first_name || 'Player';
-
-    const { data: newUser, error: insertError } = await supabase
-      .from('users')
-      .insert({
-        telegram_id: telegramId,
-        username: username,
-        first_name: firstName,
-        photo_url: null,
-        gold: 5000,
-        wood: 2500,
-        stone: 2500,
-        meat: 500,
-        jabcoins: 0,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('❌ Error creating user:', insertError);
-      throw new Error('Failed to create user');
+    if (!user) {
+      throw new Error('Failed to get or create user');
     }
 
-    console.log(`✅ User ${telegramId} created successfully (${firstName}/${username})`);
-
-    // Create initial buildings for the user
-    await createInitialBuildings(newUser);
-
-    return newUser;
+    console.log(`✅ User ready (${user.first_name}/${user.username})`);
+    return user;
+  } catch (error) {
+    console.error('❌ Error in getOrCreateUser:', error.message);
+    throw new Error('Failed to get or create user');
   }
-
-  // Some other error occurred
-  throw new Error('User not found');
 }
 
 export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {

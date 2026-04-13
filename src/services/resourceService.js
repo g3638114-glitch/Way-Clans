@@ -9,7 +9,7 @@ const RESOURCE_PRICES = {
 
 const EXCHANGE_CONFIG = {
   MIN_EXCHANGE: 1000000,
-  EXCHANGE_RATE: 1000000, // 1000000 gold = 1 jabcoin
+  EXCHANGE_RATE: 1000000, // 1000000 Jamcoin (gold) = 1 jabcoin
 };
 
 /**
@@ -158,13 +158,13 @@ export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
 
 export async function exchangeGold(userId, goldAmount) {
   if (goldAmount < EXCHANGE_CONFIG.MIN_EXCHANGE) {
-    throw new Error(`Minimum exchange is ${EXCHANGE_CONFIG.MIN_EXCHANGE} gold`);
+    throw new Error(`Minimum exchange is ${EXCHANGE_CONFIG.MIN_EXCHANGE} Jamcoin`);
   }
 
   const user = await getOrCreateUser(userId);
 
   if (user.gold < goldAmount) {
-    throw new Error('Not enough gold');
+    throw new Error('Not enough Jamcoin');
   }
 
   const jabcoinsGained = Math.floor(goldAmount / EXCHANGE_CONFIG.EXCHANGE_RATE);
@@ -180,7 +180,7 @@ export async function exchangeGold(userId, goldAmount) {
     .single();
 
   if (updateError) {
-    throw new Error('Failed to exchange gold');
+    throw new Error('Failed to exchange Jamcoin');
   }
 
   return { success: true, user: updatedUser, jabcoinsGained };
@@ -209,7 +209,7 @@ export async function addGold(userId, goldAmount) {
     .single();
 
   if (updateError) {
-    throw new Error('Failed to add gold');
+    throw new Error('Failed to add Jamcoin');
   }
 
   return { success: true, user: updatedUser };

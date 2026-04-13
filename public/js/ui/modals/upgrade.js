@@ -86,7 +86,7 @@ export function openUpgradeModal(buildingId, currentLevel) {
       costIconEl.style.display = 'inline';
       costIconEl.textContent = '💰';
     }
-    playerGoldInfoEl.innerHTML = `Ваше золото: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
+    playerGoldInfoEl.innerHTML = `Ваши Jamcoins: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
   }
 
   // Enable/disable upgrade button
@@ -129,10 +129,6 @@ export async function confirmUpgrade() {
     );
   } catch (error) {
     console.error('Error upgrading building:', error);
-
-    // Remove focus from button to reset its appearance
-    document.activeElement.blur();
-
     window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
   }
 }

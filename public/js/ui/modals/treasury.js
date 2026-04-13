@@ -88,7 +88,7 @@ function renderUpgradeInfo(currentLevel, currentJamcoins) {
         </div>
         <div class="upgrade-stat-item arrow-separator">→</div>
         <div class="upgrade-stat-item">
-          <span class="stat-label">Новый уровень</span>
+          <span class="stat-label">Следующий уровень</span>
           <span class="stat-value">${nextLevel}</span>
         </div>
       </div>

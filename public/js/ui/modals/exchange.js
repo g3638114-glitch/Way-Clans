@@ -24,7 +24,7 @@ export async function exchangeGold() {
     const goldAmount = parseInt(document.getElementById('gold-input').value);
 
     if (!goldAmount || goldAmount < 1000000) {
-      tg.showAlert('Minimum for exchange: 1,000,000 gold');
+      tg.showAlert('Minimum for exchange: 1,000,000 Jamcoin');
       return;
     }
 
@@ -34,7 +34,7 @@ export async function exchangeGold() {
     closeExchangeModal();
     tg.showAlert(`✅ Exchange successful! Received ${result.jabcoinsGained} 💎`);
   } catch (error) {
-    console.error('Error exchanging gold:', error);
+    console.error('Error exchanging Jamcoin:', error);
     tg.showAlert(error.message || 'Error during exchange');
   }
 }

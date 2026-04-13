@@ -64,7 +64,7 @@ export async function collectResources(buildingId) {
 
     // Handle treasury full error separately - show as notification, not error
     if (error.message.includes('Treasury is full')) {
-      window.tg.showAlert('🏦 Казна переполнена! Обменяйте золото на Jabcoins или потратьте его, чтобы продолжить сбор.');
+      window.tg.showAlert('🏦 Казна переполнена! Обменяйте Jamcoin на Jabcoins или потратьте его, чтобы продолжить сбор.');
       return;
     }
 

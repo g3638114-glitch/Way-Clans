@@ -70,9 +70,9 @@ export function setupEventListeners() {
 
       // Handle treasury full error separately - show as notification, not error
       if (error.message.includes('Treasury is full')) {
-        tg.showAlert('🏦 Казна переполнена! Обменяйте золото на Jabcoins или потратьте его, чтобы продолжить сбор.');
+        tg.showAlert('🏦 Казна переполнена! Обменяйте Jamcoin на Jabcoins или потратьте его, чтобы продолжить сбор.');
       } else {
-        tg.showAlert('❌ Ошибка при добавлении золота');
+        tg.showAlert('❌ Ошибка при добавлении Jamcoin');
       }
     } finally {
       // Remove animation class after animation completes

@@ -50,7 +50,7 @@ export async function sellResources() {
 
     // Handle treasury full error separately - show as notification, not error
     if (error.message.includes('Treasury is full')) {
-      tg.showAlert('🏦 Казна переполнена! Обменяйте золото на Jabcoins или потратьте его, чтобы продолжить продажу.');
+      tg.showAlert('🏦 Казна переполнена! Обменяйте Jamcoin на Jabcoins или потратьте его, чтобы продолжить продажу.');
       return;
     }
 

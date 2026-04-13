@@ -50,6 +50,36 @@ async function createInitialBuildings(userRecord) {
 }
 
 /**
+ * Create initial treasury for a user (level 1)
+ */
+async function createInitialTreasury(userRecord) {
+  try {
+    if (!userRecord || !userRecord.id) {
+      console.error('Error: Invalid user record for initial treasury');
+      return;
+    }
+
+    const { data: createdTreasury, error: createError } = await supabase
+      .from('user_treasury')
+      .insert({
+        user_id: userRecord.id,
+        level: 1,
+        created_at: new Date().toISOString(),
+      })
+      .select();
+
+    if (createError) {
+      console.error('Error creating initial treasury:', createError);
+      return;
+    }
+
+    console.log(`✅ Created initial treasury for user ${userRecord.id}`);
+  } catch (error) {
+    console.error('Error creating initial treasury:', error);
+  }
+}
+
+/**
  * Get a user by telegram_id, create if doesn't exist
  */
 async function getOrCreateUser(telegramId, userInfo = null) {
@@ -98,6 +128,9 @@ async function getOrCreateUser(telegramId, userInfo = null) {
 
     // Create initial buildings for the user
     await createInitialBuildings(newUser);
+
+    // Create initial treasury for the user
+    await createInitialTreasury(newUser);
 
     return newUser;
   }

@@ -120,3 +120,226 @@
 .cost-value.insufficient {
   color: #ff6b6b;
 }
+
+/* ========================================
+   TREASURY MODAL SPECIFIC STYLES
+   ======================================== */
+
+.treasury-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.treasury-level-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(124, 58, 237, 0.05) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 10px;
+}
+
+.level-display {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.level-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.level-value {
+  font-size: 28px;
+  color: #7c3aed;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+}
+
+.max-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.treasury-capacity-section {
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.capacity-display {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.capacity-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.capacity-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.current-amount {
+  color: #d4af37;
+  font-size: 24px;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+.capacity-separator {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 16px;
+}
+
+.capacity-limit {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+}
+
+.capacity-bar {
+  width: 100%;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.capacity-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #51cf66 0%, #40c057 100%);
+  width: 0%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 10px;
+}
+
+.treasury-upgrade-section {
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.treasury-upgrade-section h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.upgrade-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.next-level-display {
+  padding: 10px;
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 8px;
+}
+
+.next-level {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.next-level span {
+  color: #7c3aed;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.next-capacity {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 5px;
+}
+
+.next-capacity span {
+  color: #d4af37;
+  font-weight: 600;
+}
+
+.upgrade-cost-display {
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.upgrade-cost-display h4 {
+  margin: 0 0 10px 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.cost-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cost-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.cost-name {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.cost-value {
+  color: #d4af37;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.have-value {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.max-treasury-message {
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.05) 100%);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+}
+
+.max-treasury-message p {
+  margin: 0;
+  color: #51cf66;
+  font-weight: 600;
+  text-align: center;
+}

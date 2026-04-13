@@ -122,6 +122,26 @@ const migrations = [
     sql: `ALTER TABLE completed_quests ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`,
   },
 
+  // === USER_TREASURY TABLE ===
+  {
+    name: 'Create user_treasury table',
+    sql: `CREATE TABLE IF NOT EXISTS user_treasury (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+      level INT DEFAULT 1,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );`,
+  },
+  {
+    name: 'Create index on user_treasury.user_id',
+    sql: `CREATE INDEX IF NOT EXISTS idx_treasury_user_id ON user_treasury(user_id);`,
+  },
+  {
+    name: 'Add level column to user_treasury if missing',
+    sql: `ALTER TABLE user_treasury ADD COLUMN IF NOT EXISTS level INT DEFAULT 1;`,
+  },
+
   // === DISABLE ROW LEVEL SECURITY ===
   {
     name: 'Disable RLS on users table',
@@ -134,6 +154,10 @@ const migrations = [
   {
     name: 'Disable RLS on completed_quests table',
     sql: `ALTER TABLE completed_quests DISABLE ROW LEVEL SECURITY;`,
+  },
+  {
+    name: 'Disable RLS on user_treasury table',
+    sql: `ALTER TABLE user_treasury DISABLE ROW LEVEL SECURITY;`,
   },
 ];
 

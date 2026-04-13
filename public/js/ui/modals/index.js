@@ -27,6 +27,12 @@ import {
   renderQuestsList,
 } from './quests.js';
 
+import {
+  openTreasuryModal,
+  closeTreasuryModal,
+  upgradeTreasury,
+} from './treasury.js';
+
 // Re-export all functions
 export {
   openStorageModal,
@@ -45,6 +51,9 @@ export {
   openQuestsModal,
   closeQuestsModal,
   renderQuestsList,
+  openTreasuryModal,
+  closeTreasuryModal,
+  upgradeTreasury,
 };
 
 // Setup modal background click handlers
@@ -70,6 +79,12 @@ export function setupModalHandlers() {
   document.getElementById('upgrade-modal').addEventListener('click', (e) => {
     if (e.target.id === 'upgrade-modal') {
       closeUpgradeModal();
+    }
+  });
+
+  document.getElementById('treasury-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'treasury-modal') {
+      closeTreasuryModal();
     }
   });
 }

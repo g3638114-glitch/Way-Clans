@@ -76,6 +76,11 @@
         </div>
 
         <div class="action-buttons">
+          <button class="btn btn-treasury" id="treasury-btn">💎 Казна</button>
+          <button class="btn btn-market" id="market-btn">🏪 Рынок</button>
+        </div>
+
+        <div class="action-buttons">
           <button class="btn btn-quests" id="quests-btn">📋 Задания</button>
         </div>
 
@@ -287,6 +292,88 @@
 
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeQuestsModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Treasury Modal -->
+  <div class="modal" id="treasury-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>💎 Казна</h2>
+        <button class="close-btn" onclick="closeTreasuryModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="treasury-info">
+          <div class="treasury-level-section">
+            <div class="level-display">
+              <div class="level-label">Текущий уровень</div>
+              <div class="level-value" id="treasury-current-level">1</div>
+            </div>
+            <div class="max-label">Макс: <span id="treasury-max-level">6</span></div>
+          </div>
+
+          <div class="treasury-capacity-section">
+            <div class="capacity-display">
+              <div class="capacity-label">Вместимость Jamcoin</div>
+              <div class="capacity-info">
+                <span class="current-amount" id="treasury-current-amount">0</span>
+                <span class="capacity-separator">/</span>
+                <span class="capacity-limit" id="treasury-limit">31 250</span>
+              </div>
+              <div class="capacity-bar">
+                <div class="capacity-fill" id="treasury-progress-bar"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="treasury-upgrade-section">
+            <h3>Следующий уровень</h3>
+            <div class="upgrade-info" id="treasury-upgrade-info">
+              <div class="next-level-display">
+                <div class="next-level">Уровень <span id="treasury-next-level">2</span></div>
+                <div class="next-capacity">Вместимость: <span id="treasury-next-limit">62 500</span></div>
+              </div>
+
+              <div class="upgrade-cost-display">
+                <h4>Стоимость улучшения</h4>
+                <div class="cost-items">
+                  <div class="cost-item">
+                    <span class="cost-name">💎 Jamcoin</span>
+                    <span class="cost-value">
+                      <span id="treasury-cost-jamcoin">0</span>
+                      <span class="have-value" id="treasury-have-jamcoin">(всего: 0)</span>
+                    </span>
+                  </div>
+                  <div class="cost-item">
+                    <span class="cost-name">🪨 Камень</span>
+                    <span class="cost-value">
+                      <span id="treasury-cost-stone">0</span>
+                      <span class="have-value" id="treasury-have-stone">(всего: 0)</span>
+                    </span>
+                  </div>
+                  <div class="cost-item">
+                    <span class="cost-name">🌲 Дерево</span>
+                    <span class="cost-value">
+                      <span id="treasury-cost-wood">0</span>
+                      <span class="have-value" id="treasury-have-wood">(всего: 0)</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="max-treasury-message" id="treasury-max-message" style="display: none;">
+              <p>✅ Казна достигла максимального уровня!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="treasury-upgrade-btn" onclick="upgradeTreasury()">Улучшить</button>
+        <button class="btn btn-secondary" onclick="closeTreasuryModal()">Закрыть</button>
       </div>
     </div>
   </div>

@@ -125,43 +125,4 @@ export const apiClient = {
     }
     return response.json();
   },
-
-  // Get user treasury
-  async getTreasury(userId) {
-    const response = await fetch(`/api/user/${userId}/treasury`);
-    if (!response.ok) {
-      throw new Error('Failed to load treasury');
-    }
-    return response.json();
-  },
-
-  // Upgrade treasury to next level
-  async upgradeTreasury(userId) {
-    const response = await fetch(`/api/user/${userId}/treasury/upgrade`, {
-      method: 'POST',
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to upgrade treasury');
-    }
-    return response.json();
-  },
-
-  // Check if treasury is full
-  async isTreasuryFull(userId) {
-    const response = await fetch(`/api/user/${userId}/treasury/is-full`);
-    if (!response.ok) {
-      throw new Error('Failed to check treasury');
-    }
-    return response.json();
-  },
-
-  // Get treasury remaining capacity
-  async getTreasuryRemainingCapacity(userId) {
-    const response = await fetch(`/api/user/${userId}/treasury/remaining-capacity`);
-    if (!response.ok) {
-      throw new Error('Failed to get treasury capacity');
-    }
-    return response.json();
-  },
 };

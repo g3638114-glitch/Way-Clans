@@ -538,23 +538,3 @@
   font-weight: bold;
   text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
 }
-
-/* Treasury & Market Buttons */
-.btn-treasury,
-.btn-market {
-  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-}
-
-.btn-treasury:hover,
-.btn-market:hover {
-  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.5);
-  transform: translateY(-2px);
-}
-
-.btn-treasury:active,
-.btn-market:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
-}

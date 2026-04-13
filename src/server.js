@@ -9,7 +9,6 @@ import userRouter from './routes/user.js';
 import buildingsRouter from './routes/buildings.js';
 import resourcesRouter from './routes/resources.js';
 import questsRouter from './routes/quests.js';
-import treasuryRouter from './routes/treasury.js';
 
 dotenv.config();
 
@@ -29,7 +28,6 @@ app.use('/webhook', webhookRouter);
 app.use('/api/user', userRouter);  // Includes /api/user/auth/verify (specific) and /api/user/:userId (dynamic)
 app.use('/api/user', buildingsRouter);
 app.use('/api/user', resourcesRouter);
-app.use('/api/user', treasuryRouter);
 app.use('/api/user', questsRouter);
 
 // Serve MiniApp HTML

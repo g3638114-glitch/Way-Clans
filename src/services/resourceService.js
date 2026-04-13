@@ -1,5 +1,4 @@
 import { supabase } from '../bot.js';
-import { getTreasuryLimit } from '../config/treasury.js';
 
 const RESOURCE_PRICES = {
   wood: 10,
@@ -159,25 +158,6 @@ export async function exchangeGold(userId, goldAmount) {
   }
 
   const jabcoinsGained = Math.floor(goldAmount / EXCHANGE_CONFIG.EXCHANGE_RATE);
-
-  // Get user's treasury level
-  const { data: treasury, error: treasuryError } = await supabase
-    .from('user_treasury')
-    .select('level')
-    .eq('user_id', user.id)
-    .single();
-
-  if (treasuryError && treasuryError.code !== 'PGRST116') {
-    throw new Error('Failed to check treasury');
-  }
-
-  const treasuryLevel = treasury?.level || 1;
-  const treasuryLimit = getTreasuryLimit(treasuryLevel);
-
-  // Check if adding jabcoins would exceed treasury limit
-  if (user.jabcoins + jabcoinsGained > treasuryLimit) {
-    throw new Error(`Treasury limit reached! Current: ${user.jabcoins}/${treasuryLimit}. Cannot add ${jabcoinsGained} jamcoins.`);
-  }
 
   const { data: updatedUser, error: updateError } = await supabase
     .from('users')

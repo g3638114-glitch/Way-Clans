@@ -106,7 +106,7 @@ export function updateUI(currentUser) {
 }
 
 // Import config for storage/treasury capacities
-import { getStorageCapacity, getTreasuryCapacity } from '../game/config.js';
+import { getStorageCapacity, getTreasuryCapacity, getStorageMaxLevel, getTreasuryMaxLevel } from '../game/config.js';
 
 // Update Treasury info modal
 export function updateTreasuryModal(user) {
@@ -153,7 +153,8 @@ export function updateStorageUpgradeModal(user) {
   if (!user) return;
 
   const currentLevel = user.storage_level || 1;
-  if (currentLevel >= 5) return;
+  const maxLevel = getStorageMaxLevel();
+  if (currentLevel >= maxLevel) return;
 
   const nextLevel = currentLevel + 1;
   const currentCapacity = getStorageCapacity(currentLevel);
@@ -179,7 +180,8 @@ export function updateTreasuryUpgradeModal(user) {
   if (!user) return;
 
   const currentLevel = user.treasury_level || 1;
-  if (currentLevel >= 5) return;
+  const maxLevel = getTreasuryMaxLevel();
+  if (currentLevel >= maxLevel) return;
 
   const nextLevel = currentLevel + 1;
   const currentCapacity = getTreasuryCapacity(currentLevel);

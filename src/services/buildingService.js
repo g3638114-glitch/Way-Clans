@@ -1,5 +1,5 @@
 import { supabase } from '../bot.js';
-import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getTreasuryCost, getStorageCapacity, getStorageCost } from '../config/buildings.js';
+import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getTreasuryCost, getTreasuryMaxLevel, getStorageCapacity, getStorageCost, getStorageMaxLevel } from '../config/buildings.js';
 
 // Resource storage limits per level
 const RESOURCE_STORAGE_LIMITS = {
@@ -166,7 +166,7 @@ export async function activateBuilding(userId, buildingId) {
 
 /**
  * Collect resources from a building
- * Can only collect if building is at full capacity
+ * IMPORTANT: Validates storage capacity BEFORE updating building state
  */
 export async function collectResourcesFromBuilding(userId, buildingId) {
   const user = await getOrCreateUser(userId);
@@ -199,12 +199,23 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
   // Calculate total accumulated (with decimals for smooth progress)
   const totalAccumulated = (building.collected_amount || 0) + (hoursPassed * productionRate);
   const accumulated = Math.floor(Math.min(totalAccumulated, capacity));
-
-  // Can collect at any time if building is activated, but collect only what accumulated
-  // Determine how much to collect
   const collectedAmount = Math.floor(accumulated);
 
-  // Collect accumulated resources
+  // ✅ CRITICAL FIX: Validate storage BEFORE updating building state
+  const resourceType = getResourceType(building.building_type);
+  const storageLevel = user.storage_level || 1;
+  const storageCapacity = getStorageCapacity(storageLevel);
+
+  const currentResourceAmount = user[resourceType] || 0;
+  const newResourceAmount = currentResourceAmount + collectedAmount;
+
+  if (newResourceAmount > storageCapacity) {
+    // Storage is full - throw error BEFORE any database updates
+    const canCollect = storageCapacity - currentResourceAmount;
+    throw new Error(`Storage is full! Can only collect ${canCollect} more ${resourceType}`);
+  }
+
+  // ✅ Only now update building (after validation passed)
   const { data: updatedBuilding, error: updateError } = await supabase
     .from('user_buildings')
     .update({
@@ -219,21 +230,7 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
     throw new Error('Failed to collect resources');
   }
 
-  // Add accumulated resources to user - check storage limit
-  const resourceType = getResourceType(building.building_type);
-  const storageLevel = user.storage_level || 1;
-  const storageCapacity = getStorageCapacity(storageLevel);
-
-  // Check if adding resources would exceed storage capacity
-  const currentResourceAmount = user[resourceType] || 0;
-  const newResourceAmount = currentResourceAmount + collectedAmount;
-
-  if (newResourceAmount > storageCapacity) {
-    // Storage is full, can't collect more
-    const canCollect = storageCapacity - currentResourceAmount;
-    throw new Error(`Storage is full! Can only collect ${canCollect} more ${resourceType}`);
-  }
-
+  // ✅ Finally add resources to user (we already validated this won't exceed capacity)
   const updateData = {};
   updateData[resourceType] = newResourceAmount;
 
@@ -426,10 +423,11 @@ export async function upgradeTreasury(userId) {
   const user = await getOrCreateUser(userId);
 
   const currentLevel = user.treasury_level || 1;
+  const maxLevel = getTreasuryMaxLevel();
 
-  // Can't upgrade beyond level 5
-  if (currentLevel >= 5) {
-    throw new Error('Treasury is already at maximum level (5)');
+  // Can't upgrade beyond maximum level
+  if (currentLevel >= maxLevel) {
+    throw new Error(`Treasury is already at maximum level (${maxLevel})`);
   }
 
   const nextLevel = currentLevel + 1;
@@ -493,10 +491,11 @@ export async function upgradeStorage(userId) {
   const user = await getOrCreateUser(userId);
 
   const currentLevel = user.storage_level || 1;
+  const maxLevel = getStorageMaxLevel();
 
-  // Can't upgrade beyond level 5
-  if (currentLevel >= 5) {
-    throw new Error('Storage is already at maximum level (5)');
+  // Can't upgrade beyond maximum level
+  if (currentLevel >= maxLevel) {
+    throw new Error(`Storage is already at maximum level (${maxLevel})`);
   }
 
   const nextLevel = currentLevel + 1;

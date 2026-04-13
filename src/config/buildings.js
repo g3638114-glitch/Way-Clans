@@ -95,73 +95,53 @@ export function getResourceType(buildingType) {
 }
 
 // ============================================================================
-// TREASURY (КАЗНА) - Gold/💰 Storage
-// ============================================================================
-// 💡 ЛЕГКО ДОБАВЛЯТЬ НОВЫЕ УРОВНИ:
-//    1. Добавь новый элемент в capacityPerLevel
-//    2. Добавь стоимость в costs (ключ = следующий уровень)
-//    Пример: maxLevel 5 → 6:
-//      capacityPerLevel: [...старые..., 160000],  // новый уровень
-//      costs: { ...старые..., 6: { gold: 20000, stone: 12000, wood: 12000 } }
+// TREASURY (КАЗНА) - JAMCOIN STORAGE (Gold/💰)
 // ============================================================================
 export const TREASURY_CONFIG = {
-  name: 'Казна',
-  icon: '🏰',
-  resource: 'gold',
-  // Вместимость для каждого уровня (уровень 1 = index 0)
-  capacityPerLevel: [5000, 10000, 20000, 40000, 80000],
-  // Стоимость обновления (уровень 2 = key 2, уровень 3 = key 3, и т.д.)
-  costs: {
-    2: { gold: 500, stone: 300, wood: 300 },
-    3: { gold: 1200, stone: 700, wood: 700 },
-    4: { gold: 2500, stone: 1500, wood: 1500 },
-    5: { gold: 5000, stone: 3000, wood: 3000 },
+  maxLevel: 5,
+  baseCosts: {
+    1: { gold: 500, stone: 300, wood: 300 },
+    2: { gold: 625, stone: 625, wood: 625 },
+    3: { gold: 1250, stone: 1250, wood: 1250 },
+    4: { gold: 2500, stone: 2500, wood: 2500 },
+    5: { gold: 5000, stone: 5000, wood: 5000 },
+    6: { gold: 10000, stone: 10000, wood: 10000 },
   },
+  capacityPerLevel: [31250, 62500, 125000, 250000, 500000, 1000000],
 };
 
 export function getTreasuryCapacity(level) {
-  const level_index = Math.max(0, Math.min(level - 1, TREASURY_CONFIG.capacityPerLevel.length - 1));
-  return TREASURY_CONFIG.capacityPerLevel[level_index];
-}
-
-export function getTreasuryMaxLevel() {
-  return TREASURY_CONFIG.capacityPerLevel.length;
+  const capacities = TREASURY_CONFIG.capacityPerLevel;
+  return capacities[Math.max(0, level - 1)];
 }
 
 export function getTreasuryCost(nextLevel) {
-  if (nextLevel < 2 || nextLevel > getTreasuryMaxLevel()) return null;
-  return TREASURY_CONFIG.costs[nextLevel] || null;
+  if (nextLevel < 2 || nextLevel > 6) return null;
+  return TREASURY_CONFIG.baseCosts[nextLevel];
 }
 
 // ============================================================================
-// STORAGE (СКЛАД) - Resource Storage
-// ============================================================================
-// 💡 ЛЕГКО ДОБАВЛЯТЬ НОВЫЕ УРОВНИ: см. примечание у TREASURY_CONFIG выше
+// STORAGE (СКЛАД) - RESOURCE STORAGE
 // ============================================================================
 export const STORAGE_CONFIG = {
-  name: 'Склад',
-  icon: '📦',
-  // Вместимость для каждого уровня (уровень 1 = index 0)
-  capacityPerLevel: [5000, 10000, 20000, 40000, 80000],
-  // Стоимость обновления (уровень 2 = key 2, уровень 3 = key 3, и т.д.)
-  costs: {
-    2: { gold: 300, stone: 200, wood: 200 },
-    3: { gold: 800, stone: 500, wood: 500 },
-    4: { gold: 1800, stone: 1000, wood: 1000 },
-    5: { gold: 3500, stone: 2000, wood: 2000 },
+  maxLevel: 5,
+  baseCosts: {
+    1: { gold: 500, stone: 300, wood: 300 },
+    2: { gold: 625, stone: 625, wood: 625 },
+    3: { gold: 1250, stone: 1250, wood: 1250 },
+    4: { gold: 2500, stone: 2500, wood: 2500 },
+    5: { gold: 5000, stone: 5000, wood: 5000 },
+    6: { gold: 10000, stone: 10000, wood: 10000 },
   },
+  capacityPerLevel: [5000, 30000, 60000, 120000, 240000, 5000000],
 };
 
 export function getStorageCapacity(level) {
-  const level_index = Math.max(0, Math.min(level - 1, STORAGE_CONFIG.capacityPerLevel.length - 1));
-  return STORAGE_CONFIG.capacityPerLevel[level_index];
-}
-
-export function getStorageMaxLevel() {
-  return STORAGE_CONFIG.capacityPerLevel.length;
+  const capacities = STORAGE_CONFIG.capacityPerLevel;
+  return capacities[Math.max(0, level - 1)];
 }
 
 export function getStorageCost(nextLevel) {
-  if (nextLevel < 2 || nextLevel > getStorageMaxLevel()) return null;
-  return STORAGE_CONFIG.costs[nextLevel] || null;
+  if (nextLevel < 2 || nextLevel > 6) return null;
+  return STORAGE_CONFIG.baseCosts[nextLevel];
 }

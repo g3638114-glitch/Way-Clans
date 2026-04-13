@@ -1,5 +1,5 @@
 import { supabase } from '../bot.js';
-import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity } from '../config/buildings.js';
+import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
 
 /**
  * Create initial buildings for a user (mine, quarry, lumber_mill, farm)
@@ -200,14 +200,34 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
   // Add accumulated resources to user
   const resourceType = getResourceType(building.building_type);
 
-  // Check treasury capacity BEFORE updating building - if collecting gold and treasury is full, throw error without modifying building
+  // Check storage capacity BEFORE updating building
   if (resourceType === 'gold') {
+    // Check treasury capacity for gold
     const treasuryLevel = user.treasury_level || 1;
-    const capacity = getTreasuryCapacity(treasuryLevel);
+    const treasuryCapacity = getTreasuryCapacity(treasuryLevel);
     const newGoldAmount = (user.gold || 0) + collectedAmount;
 
-    if (newGoldAmount > capacity) {
-      throw new Error(`Treasury is full! Cannot collect ${collectedAmount} gold. Capacity: ${capacity}, Current: ${user.gold || 0}`);
+    if (newGoldAmount > treasuryCapacity) {
+      throw new Error(`Treasury is full! Cannot collect ${collectedAmount} gold. Capacity: ${treasuryCapacity}, Current: ${user.gold || 0}`);
+    }
+  } else {
+    // Check warehouse capacity for wood, stone, meat
+    const warehouseLevel = user.warehouse_level || 1;
+    const warehouseCapacity = getWarehouseCapacity(warehouseLevel);
+    const newResourceAmount = (user[resourceType] || 0) + collectedAmount;
+
+    if (newResourceAmount > warehouseCapacity) {
+      const resourceNames = {
+        wood: 'дерева',
+        stone: 'камня',
+        meat: 'мяса',
+      };
+      const resourceEmojis = {
+        wood: '🌲',
+        stone: '🪨',
+        meat: '🍖',
+      };
+      throw new Error(`Warehouse is full! Cannot collect ${collectedAmount} ${resourceNames[resourceType]}. Capacity: ${warehouseCapacity}, Current: ${user[resourceType] || 0} ${resourceEmojis[resourceType]}`);
     }
   }
 

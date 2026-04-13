@@ -26,6 +26,28 @@ export const TREASURY_UPGRADE_COSTS = {
 };
 
 // ============================================================================
+// WAREHOUSE (СКЛАД) CONFIGURATION
+// Warehouse stores wood, stone, and meat with upgrade levels
+// ============================================================================
+export const WAREHOUSE_CAPACITY_PER_LEVEL = [
+  5000,     // Level 1
+  30000,    // Level 2
+  60000,    // Level 3
+  120000,   // Level 4
+  240000,   // Level 5
+  500000,   // Level 6
+];
+
+// Upgrade costs: [jamcoins (gold), stone, wood] for each level (starting from level 2)
+export const WAREHOUSE_UPGRADE_COSTS = {
+  2: [625, 625, 625],
+  3: [1250, 1250, 1250],
+  4: [2500, 2500, 2500],
+  5: [5000, 5000, 5000],
+  6: [10000, 10000, 10000],
+};
+
+// ============================================================================
 // PRODUCTION RATES PER LEVEL (resources per hour)
 // ============================================================================
 export const PRODUCTION_PER_LEVEL = {
@@ -131,6 +153,29 @@ export function getMaxTreasuryLevel() {
 
 export function getTreasuryUpgradeCost(nextLevel) {
   const cost = TREASURY_UPGRADE_COSTS[nextLevel];
+  if (!cost) return null;
+  return {
+    jamcoins: cost[0],
+    stone: cost[1],
+    wood: cost[2],
+  };
+}
+
+// ============================================================================
+// WAREHOUSE HELPER FUNCTIONS
+// ============================================================================
+
+export function getWarehouseCapacity(level) {
+  const validLevel = Math.max(1, Math.min(level, WAREHOUSE_CAPACITY_PER_LEVEL.length));
+  return WAREHOUSE_CAPACITY_PER_LEVEL[validLevel - 1];
+}
+
+export function getMaxWarehouseLevel() {
+  return WAREHOUSE_CAPACITY_PER_LEVEL.length;
+}
+
+export function getWarehouseUpgradeCost(nextLevel) {
+  const cost = WAREHOUSE_UPGRADE_COSTS[nextLevel];
   if (!cost) return null;
   return {
     jamcoins: cost[0],

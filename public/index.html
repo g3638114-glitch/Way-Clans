@@ -327,6 +327,116 @@
     </div>
   </div>
 
+  <!-- Warehouse Modal -->
+  <div class="modal" id="warehouse-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏭 Склад</h2>
+        <button class="close-btn" onclick="closeWarehouseModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="warehouse-info-main">
+          <div class="warehouse-level-display">
+            <h3>Уровень: <span id="warehouse-current-level">1</span> / <span id="warehouse-max-level">6</span></h3>
+            <p class="capacity-info">Вместимость: <span id="warehouse-capacity-current">0</span> / <span id="warehouse-capacity-total">0</span></p>
+          </div>
+
+          <div class="warehouse-resources-section">
+            <div class="warehouse-resource-item">
+              <div class="resource-header">
+                <span class="resource-name">🌲 Дерево</span>
+                <span class="resource-amount"><span id="warehouse-wood-current">0</span> / <span id="warehouse-wood-total">0</span></span>
+              </div>
+              <div class="warehouse-progress-bar">
+                <div class="progress-fill" id="warehouse-wood-fill" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="warehouse-resource-item">
+              <div class="resource-header">
+                <span class="resource-name">🪨 Камень</span>
+                <span class="resource-amount"><span id="warehouse-stone-current">0</span> / <span id="warehouse-stone-total">0</span></span>
+              </div>
+              <div class="warehouse-progress-bar">
+                <div class="progress-fill" id="warehouse-stone-fill" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="warehouse-resource-item">
+              <div class="resource-header">
+                <span class="resource-name">🍖 Мясо</span>
+                <span class="resource-amount"><span id="warehouse-meat-current">0</span> / <span id="warehouse-meat-total">0</span></span>
+              </div>
+              <div class="warehouse-progress-bar">
+                <div class="progress-fill" id="warehouse-meat-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="warehouse-upgrade-section" class="warehouse-upgrade-section">
+          <!-- Upgrade info will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="warehouse-upgrade-btn" onclick="upgradeWarehouseToLevel()" style="display:none;">Улучшить</button>
+        <button class="btn btn-secondary" id="warehouse-sell-btn" onclick="openWarehouseSellModal()">Продать</button>
+        <button class="btn btn-secondary" onclick="closeWarehouseModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warehouse Sell Modal (for selling resources from warehouse) -->
+  <div class="modal" id="warehouse-sell-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>💱 Продать ресурсы</h2>
+        <button class="close-btn" onclick="closeWarehouseSellModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🌲 Дерево: <span id="warehouse-sell-wood">0</span></span>
+            <div class="input-controls">
+              <input type="number" id="warehouse-wood-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxWarehouseWood()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🪨 Камень: <span id="warehouse-sell-stone">0</span></span>
+            <div class="input-controls">
+              <input type="number" id="warehouse-stone-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxWarehouseStone()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🍖 Мясо: <span id="warehouse-sell-meat">0</span></span>
+            <div class="input-controls">
+              <input type="number" id="warehouse-meat-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxWarehouseMeat()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="storage-hint">(Введите количество ресурсов для продажи)</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="sellWarehouseResources()">Продать</button>
+        <button class="btn btn-secondary" onclick="closeWarehouseSellModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>

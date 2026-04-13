@@ -51,6 +51,10 @@ const migrations = [
     name: 'Add treasury_level column to users if missing',
     sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS treasury_level INT DEFAULT 1;`,
   },
+  {
+    name: 'Add warehouse_level column to users if missing',
+    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS warehouse_level INT DEFAULT 1;`,
+  },
 
   // === USER_BUILDINGS TABLE ===
   {

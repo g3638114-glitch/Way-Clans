@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Way Clans - MiniApp</title>
   <!-- Global & Base Styles -->
   <link rel="stylesheet" href="css/base.css">
@@ -70,9 +70,14 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="action-buttons">
+        <div class="action-buttons action-buttons-grid">
           <button class="btn btn-storage" id="storage-btn">📦 Склад</button>
           <button class="btn btn-exchange" id="exchange-btn">💱 Обмен</button>
+        </div>
+
+        <div class="action-buttons action-buttons-grid">
+          <button class="btn btn-treasury" id="treasury-btn">🏰 Казна</button>
+          <button class="btn btn-market" id="market-btn">🛍 Рынок</button>
         </div>
 
         <div class="action-buttons">
@@ -126,8 +131,8 @@
     <!-- Bottom Navigation - FIXED AT BOTTOM -->
     <nav class="bottom-nav" id="bottom-nav">
       <button class="nav-item active" id="nav-main">🏠 Главная</button>
-      <button class="nav-item" id="nav-mining">⛏ Добыча</button>
-      <button class="nav-item" id="nav-coin-mining">⛏ Майнинг</button>
+      <button class="nav-item" id="nav-mining">⛏ Майнинг</button>
+      <button class="nav-item" id="nav-coin-mining">⛏ Добыча</button>
       <button class="nav-item" id="nav-barracks">🛡 Казарма</button>
     </nav>
   </div>
@@ -195,7 +200,7 @@
         </div>
 
         <div class="exchange-input">
-          <input type="number" id="gold-input" min="1000000" step="100000" placeholder="Введите количество золота">
+          <input type="number" id="gold-input" min="1000000" step="100000" placeholder="Введите количество Jamcoin">
         </div>
 
         <div class="exchange-result">
@@ -235,7 +240,7 @@
             </div>
             <div class="upgrade-stat-item arrow-separator">→</div>
             <div class="upgrade-stat-item">
-              <span class="stat-label">Новый уровень</span>
+              <span class="stat-label">Следующий уровень</span>
               <span class="stat-value new-level" id="upgrade-new-level">2</span>
             </div>
           </div>
@@ -287,6 +292,37 @@
 
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeQuestsModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Treasury Modal -->
+  <div class="modal" id="treasury-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏰 Казна</h2>
+        <button class="close-btn" onclick="closeTreasuryModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="treasury-info-main">
+          <div class="treasury-level-display">
+            <h3>Уровень: <span id="treasury-current-level">1</span> / <span id="treasury-max-level">6</span></h3>
+            <p class="capacity-info">Вместимость: <span id="treasury-capacity-current">0</span> / <span id="treasury-capacity-total">0</span> 💰</p>
+          </div>
+          <div class="treasury-progress-bar">
+            <div class="progress-fill" id="treasury-progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div id="treasury-upgrade-section" class="treasury-upgrade-section">
+          <!-- Upgrade info will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="treasury-upgrade-btn" onclick="upgradeTreasuryToLevel()" style="display:none;">Улучшить</button>
+        <button class="btn btn-secondary" onclick="closeTreasuryModal()">Закрыть</button>
       </div>
     </div>
   </div>

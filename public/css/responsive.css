@@ -27,4 +27,8 @@
   .building-info {
     grid-template-columns: 1fr 1fr;
   }
+
+  .cost-items-row {
+    grid-template-columns: 1fr;
+  }
 }

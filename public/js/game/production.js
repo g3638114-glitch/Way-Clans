@@ -104,6 +104,7 @@ function updateBuildingCardValues(building) {
         newCollectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceEmoji}`;
         newCollectBtn.addEventListener('click', () => {
           window.collectResources(building.id);
+          newCollectBtn.blur();
         });
         actionsContainer.insertBefore(newCollectBtn, actionsContainer.firstChild);
       } else {

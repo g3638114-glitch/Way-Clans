@@ -9,6 +9,8 @@ import userRouter from './routes/user.js';
 import buildingsRouter from './routes/buildings.js';
 import resourcesRouter from './routes/resources.js';
 import questsRouter from './routes/quests.js';
+import treasuryRouter from './routes/treasury.js';
+import warehouseRouter from './routes/warehouse.js';
 
 dotenv.config();
 
@@ -29,6 +31,8 @@ app.use('/api/user', userRouter);  // Includes /api/user/auth/verify (specific) 
 app.use('/api/user', buildingsRouter);
 app.use('/api/user', resourcesRouter);
 app.use('/api/user', questsRouter);
+app.use('/api/user', treasuryRouter);
+app.use('/api/user', warehouseRouter);
 
 // Serve MiniApp HTML
 app.get('/', (req, res) => {

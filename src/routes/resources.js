@@ -24,7 +24,7 @@ router.post('/:userId/exchange', async (req, res) => {
     const result = await exchangeGold(userId, goldAmount);
     res.json(result);
   } catch (error) {
-    console.error('Error exchanging gold:', error);
+    console.error('Error exchanging Jamcoin:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });
@@ -36,7 +36,7 @@ router.post('/:userId/coin-click', async (req, res) => {
     const result = await addGold(userId, 100);
     res.json(result);
   } catch (error) {
-    console.error('Error adding gold:', error);
+    console.error('Error adding Jamcoin:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

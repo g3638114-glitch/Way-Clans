@@ -25,6 +25,10 @@ export async function activateBuilding(buildingId) {
     window.tg.showAlert(`✅ ${config.name} активирована и начинает производство!`);
   } catch (error) {
     console.error('Error activating building:', error);
+
+    // Remove focus from button to reset its appearance
+    document.activeElement.blur();
+
     window.tg.showAlert(error.message || 'Ошибка при активировании здания');
   }
 }
@@ -54,6 +58,9 @@ export async function collectResources(buildingId) {
     );
   } catch (error) {
     console.error('Error collecting resources:', error);
+
+    // Remove focus from button to reset its appearance
+    document.activeElement.blur();
 
     // Handle treasury full error separately - show as notification, not error
     if (error.message.includes('Treasury is full')) {
@@ -99,6 +106,10 @@ export async function confirmUpgradeBuilding(buildingId) {
     );
   } catch (error) {
     console.error('Error upgrading building:', error);
+
+    // Remove focus from button to reset its appearance
+    document.activeElement.blur();
+
     window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
   }
 }

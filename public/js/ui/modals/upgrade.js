@@ -129,6 +129,10 @@ export async function confirmUpgrade() {
     );
   } catch (error) {
     console.error('Error upgrading building:', error);
+
+    // Remove focus from button to reset its appearance
+    document.activeElement.blur();
+
     window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
   }
 }

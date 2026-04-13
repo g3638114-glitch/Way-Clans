@@ -48,53 +48,70 @@ async function renderTreasuryContent() {
 }
 
 function renderLevelsList(currentLevel, maxLevel, currentJamcoins) {
-  let html = '';
-  
+  let html = '<div class="treasury-levels-grid">';
+
   for (let level = 1; level <= maxLevel; level++) {
     const capacity = getTreasuryCapacity(level);
     const isCurrentLevel = level === currentLevel;
     const isMaxLevel = level === maxLevel;
-    
+    const cardClass = isCurrentLevel ? 'current' : (isMaxLevel && !isCurrentLevel ? 'locked' : '');
+
+    let contentHtml = `
+      <div class="level-badge">${level}</div>
+      <div class="level-content">
+        ${isCurrentLevel ? '<span class="current-badge">Текущий</span>' : ''}
+        <div class="capacity-compact">${capacity} 💰</div>
+    `;
+
     if (level === 1) {
-      // Level 1 is free
-      html += `
-        <div class="level-card ${isCurrentLevel ? 'current' : ''}">
-          <div class="level-header">
-            <span class="level-number">Уровень ${level}</span>
-            ${isCurrentLevel ? '<span class="current-badge">Текущий</span>' : ''}
-          </div>
-          <div class="capacity-info">Вместимость: ${capacity} 💰</div>
-          <div class="cost-info">Стоимость: Бесплатно</div>
-        </div>
-      `;
-    } else if (isMaxLevel) {
-      // Max level
-      html += `
-        <div class="level-card ${isCurrentLevel ? 'current' : 'locked'}">
-          <div class="level-header">
-            <span class="level-number">Уровень ${level}</span>
-            ${isCurrentLevel ? '<span class="current-badge">Текущий</span>' : ''}
-          </div>
-          <div class="capacity-info">Вместимость: ${capacity} 💰</div>
-          ${!isCurrentLevel ? renderUpgradeCost(level) : '<div class="max-level-badge">🌟 Максимальный уровень</div>'}
-        </div>
-      `;
-    } else {
-      // Regular levels
-      html += `
-        <div class="level-card ${isCurrentLevel ? 'current' : ''}">
-          <div class="level-header">
-            <span class="level-number">Уровень ${level}</span>
-            ${isCurrentLevel ? '<span class="current-badge">Текущий</span>' : ''}
-          </div>
-          <div class="capacity-info">Вместимость: ${capacity} 💰</div>
-          ${!isCurrentLevel ? renderUpgradeCost(level) : ''}
-        </div>
-      `;
+      contentHtml += '<div class="cost-compact">Бесплатно</div>';
+    } else if (isMaxLevel && !isCurrentLevel) {
+      contentHtml += '<span class="max-badge">🌟 MAX</span>';
+    } else if (!isCurrentLevel) {
+      contentHtml += renderUpgradeCostCompact(level);
     }
+
+    contentHtml += '</div>';
+
+    html += `<div class="level-card ${cardClass}">${contentHtml}</div>`;
   }
-  
+
+  html += '</div>';
   return html;
+}
+
+function renderUpgradeCostCompact(level) {
+  const costData = getTreasuryUpgradeCost(level);
+  if (!costData) return '';
+
+  const user = appState.currentUser;
+  const hasJamcoins = (user.gold || 0) >= costData.jamcoins;
+  const hasStone = (user.stone || 0) >= costData.stone;
+  const hasWood = (user.wood || 0) >= costData.wood;
+
+  const canUpgrade = hasJamcoins && hasStone && hasWood;
+
+  return `
+    <div class="cost-resources">
+      <div class="cost-item ${hasJamcoins ? 'have' : 'need'}">
+        <span class="cost-icon">💰</span>
+        <span class="cost-amount">${costData.jamcoins}</span>
+      </div>
+      <div class="cost-item ${hasStone ? 'have' : 'need'}">
+        <span class="cost-icon">🪨</span>
+        <span class="cost-amount">${costData.stone}</span>
+      </div>
+      <div class="cost-item ${hasWood ? 'have' : 'need'}">
+        <span class="cost-icon">🌲</span>
+        <span class="cost-amount">${costData.wood}</span>
+      </div>
+    </div>
+    <button class="btn-upgrade-compact ${canUpgrade ? '' : 'disabled'}"
+            onclick="upgradeTreasuryToLevel(${level})"
+            ${canUpgrade ? '' : 'disabled'}>
+      Улучш.
+    </button>
+  `;
 }
 
 function renderUpgradeCost(level) {

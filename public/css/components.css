@@ -322,57 +322,167 @@
   gap: 12px;
 }
 
+.treasury-levels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
 .level-card {
-  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
   background: rgba(76, 111, 166, 0.1);
-  border: 1px solid rgba(76, 111, 166, 0.3);
-  border-radius: 10px;
+  border: 2px solid rgba(76, 111, 166, 0.3);
+  border-radius: 12px;
   transition: all 0.3s ease;
+  text-align: center;
+  cursor: default;
+}
+
+.level-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(76, 111, 166, 0.2);
 }
 
 .level-card.current {
-  background: rgba(76, 175, 80, 0.15);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.1) 100%);
   border-color: #4caf50;
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
 }
 
 .level-card.locked {
-  opacity: 0.7;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.level-header {
+.level-badge {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-}
-
-.level-number {
-  font-size: 16px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #9c27b0 0%, #6a1b9a 100%);
+  border-radius: 50%;
+  font-size: 18px;
   font-weight: bold;
   color: #fff;
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.4);
+}
+
+.level-card.current .level-badge {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  box-shadow: 0 0 16px rgba(76, 175, 80, 0.5);
+}
+
+.level-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  font-size: 12px;
 }
 
 .current-badge {
   background: #4caf50;
   color: #fff;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: bold;
+  display: inline-block;
 }
 
-.max-level-badge {
-  display: inline-block;
+.max-badge {
   background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
   color: #000;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: bold;
-  text-align: center;
+  display: inline-block;
+}
+
+.capacity-compact {
+  font-weight: bold;
+  color: #d4af37;
+  font-size: 13px;
+}
+
+.cost-compact {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+}
+
+.cost-resources {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   width: 100%;
-  margin-top: 8px;
+  margin: 4px 0;
+}
+
+.cost-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 3px 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 10px;
+}
+
+.cost-item.have {
+  border-color: rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+}
+
+.cost-item.need {
+  border-color: rgba(255, 107, 107, 0.3);
+  color: #ff6b6b;
+}
+
+.cost-icon {
+  font-size: 12px;
+}
+
+.cost-amount {
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.btn-upgrade-compact {
+  padding: 4px 8px;
+  background: linear-gradient(135deg, #9c27b0 0%, #6a1b9a 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.btn-upgrade-compact:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+}
+
+.btn-upgrade-compact:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+.btn-upgrade-compact.disabled {
+  background: linear-gradient(135deg, #666 0%, #444 100%);
+  color: #999;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .cost-info {

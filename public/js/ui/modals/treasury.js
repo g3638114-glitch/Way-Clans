@@ -27,7 +27,7 @@ async function renderTreasuryContent() {
       <div class="treasury-info">
         <div class="treasury-level-display">
           <h3>Уровень: ${currentLevel} / ${maxLevel}</h3>
-          <p class="capacity-info">Вместимость: ${currentJamcoins} / ${currentCapacity} 💎</p>
+          <p class="capacity-info">Вместимость: ${currentJamcoins} / ${currentCapacity} 💰</p>
         </div>
         <div class="treasury-progress-bar">
           <div class="progress-fill" style="width: ${treasury.progress}%"></div>
@@ -63,7 +63,7 @@ function renderLevelsList(currentLevel, maxLevel, currentJamcoins) {
             <span class="level-number">Уровень ${level}</span>
             ${isCurrentLevel ? '<span class="current-badge">Текущий</span>' : ''}
           </div>
-          <div class="capacity-info">Вместимость: ${capacity} 💎</div>
+          <div class="capacity-info">Вместимость: ${capacity} 💰</div>
           <div class="cost-info">Стоимость: Бесплатно</div>
         </div>
       `;
@@ -75,7 +75,7 @@ function renderLevelsList(currentLevel, maxLevel, currentJamcoins) {
             <span class="level-number">Уровень ${level}</span>
             ${isCurrentLevel ? '<span class="current-badge">Текущий</span>' : ''}
           </div>
-          <div class="capacity-info">Вместимость: ${capacity} 💎</div>
+          <div class="capacity-info">Вместимость: ${capacity} 💰</div>
           ${!isCurrentLevel ? renderUpgradeCost(level) : '<div class="max-level-badge">🌟 Максимальный уровень</div>'}
         </div>
       `;
@@ -87,7 +87,7 @@ function renderLevelsList(currentLevel, maxLevel, currentJamcoins) {
             <span class="level-number">Уровень ${level}</span>
             ${isCurrentLevel ? '<span class="current-badge">Текущий</span>' : ''}
           </div>
-          <div class="capacity-info">Вместимость: ${capacity} 💎</div>
+          <div class="capacity-info">Вместимость: ${capacity} 💰</div>
           ${!isCurrentLevel ? renderUpgradeCost(level) : ''}
         </div>
       `;
@@ -112,7 +112,7 @@ function renderUpgradeCost(level) {
     <div class="cost-info">
       <div class="cost-row ${hasJamcoins ? 'sufficient' : 'insufficient'}">
         <span>${costData.jamcoins}</span>
-        <span>💎</span>
+        <span>💰</span>
       </div>
       <div class="cost-row ${hasStone ? 'sufficient' : 'insufficient'}">
         <span>${costData.stone}</span>

@@ -41,7 +41,7 @@ export const TREASURY_CONFIG = {
   name: 'Казна',
   icon: '🏰',
   resource: 'jamcoins',
-  resourceEmoji: '💎',
+  resourceEmoji: '💰',
 };
 
 export const TREASURY_CAPACITY_PER_LEVEL = [

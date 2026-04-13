@@ -201,18 +201,32 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
   const accumulated = Math.floor(Math.min(totalAccumulated, capacity));
   const collectedAmount = Math.floor(accumulated);
 
-  // ✅ CRITICAL FIX: Validate storage BEFORE updating building state
+  // ✅ CRITICAL FIX: Validate capacity BEFORE updating building state
+  // Different resources have different capacity limits!
   const resourceType = getResourceType(building.building_type);
-  const storageLevel = user.storage_level || 1;
-  const storageCapacity = getStorageCapacity(storageLevel);
-
   const currentResourceAmount = user[resourceType] || 0;
   const newResourceAmount = currentResourceAmount + collectedAmount;
 
-  if (newResourceAmount > storageCapacity) {
-    // Storage is full - throw error BEFORE any database updates
-    const canCollect = storageCapacity - currentResourceAmount;
-    throw new Error(`Storage is full! Can only collect ${canCollect} more ${resourceType}`);
+  // Treasury capacity for gold (mine), Storage capacity for other resources
+  let maxCapacity;
+  let containerName;
+
+  if (resourceType === 'gold') {
+    // Gold goes to treasury
+    const treasuryLevel = user.treasury_level || 1;
+    maxCapacity = getTreasuryCapacity(treasuryLevel);
+    containerName = 'Treasury';
+  } else {
+    // Wood, stone, meat go to storage
+    const storageLevel = user.storage_level || 1;
+    maxCapacity = getStorageCapacity(storageLevel);
+    containerName = 'Storage';
+  }
+
+  if (newResourceAmount > maxCapacity) {
+    // Capacity exceeded - throw error BEFORE any database updates
+    const canCollect = maxCapacity - currentResourceAmount;
+    throw new Error(`${containerName} is full! Can only collect ${canCollect} more ${resourceType}`);
   }
 
   // ✅ Only now update building (after validation passed)

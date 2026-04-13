@@ -1,6 +1,13 @@
 import { supabase } from '../bot.js';
 import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getTreasuryCost, getStorageCapacity, getStorageCost } from '../config/buildings.js';
 
+// Resource storage limits per level
+const RESOURCE_STORAGE_LIMITS = {
+  wood: (level) => getStorageCapacity(level),
+  stone: (level) => getStorageCapacity(level),
+  meat: (level) => getStorageCapacity(level),
+};
+
 /**
  * Create initial buildings for a user (mine, quarry, lumber_mill, farm)
  * Each player starts with 1 of each building type at level 1
@@ -212,10 +219,23 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
     throw new Error('Failed to collect resources');
   }
 
-  // Add accumulated resources to user
+  // Add accumulated resources to user - check storage limit
   const resourceType = getResourceType(building.building_type);
+  const storageLevel = user.storage_level || 1;
+  const storageCapacity = getStorageCapacity(storageLevel);
+
+  // Check if adding resources would exceed storage capacity
+  const currentResourceAmount = user[resourceType] || 0;
+  const newResourceAmount = currentResourceAmount + collectedAmount;
+
+  if (newResourceAmount > storageCapacity) {
+    // Storage is full, can't collect more
+    const canCollect = storageCapacity - currentResourceAmount;
+    throw new Error(`Storage is full! Can only collect ${canCollect} more ${resourceType}`);
+  }
+
   const updateData = {};
-  updateData[resourceType] = (user[resourceType] || 0) + collectedAmount;
+  updateData[resourceType] = newResourceAmount;
 
   const { data: updatedUser, error: userUpdateError } = await supabase
     .from('users')

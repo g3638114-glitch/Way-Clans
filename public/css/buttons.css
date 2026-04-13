@@ -91,6 +91,40 @@
   box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
 }
 
+/* Treasury Button */
+.btn-treasury {
+  background: linear-gradient(135deg, #9c27b0 0%, #6a1b9a 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+}
+
+.btn-treasury:hover {
+  box-shadow: 0 6px 16px rgba(156, 39, 176, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-treasury:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+}
+
+/* Market Button */
+.btn-market {
+  background: linear-gradient(135deg, #00796b 0%, #004d40 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 121, 107, 0.3);
+}
+
+.btn-market:hover {
+  box-shadow: 0 6px 16px rgba(0, 121, 107, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-market:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 121, 107, 0.3);
+}
+
 /* Attack Button */
 .btn-attack {
   background: linear-gradient(135deg, #d32f2f 0%, #8b0000 100%);

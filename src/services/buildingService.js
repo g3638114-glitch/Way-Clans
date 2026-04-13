@@ -1,5 +1,5 @@
 import { supabase } from '../bot.js';
-import { getProductionRate, getCapacity, getUpgradeCost, getResourceType } from '../config/buildings.js';
+import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity } from '../config/buildings.js';
 
 /**
  * Create initial buildings for a user (mine, quarry, lumber_mill, farm)

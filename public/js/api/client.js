@@ -125,4 +125,25 @@ export const apiClient = {
     }
     return response.json();
   },
+
+  // Get treasury info
+  async getTreasury(userId) {
+    const response = await fetch(`/api/user/${userId}/treasury`);
+    if (!response.ok) {
+      throw new Error('Failed to load treasury data');
+    }
+    return response.json();
+  },
+
+  // Upgrade treasury
+  async upgradeTreasury(userId) {
+    const response = await fetch(`/api/user/${userId}/treasury/upgrade`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upgrade treasury');
+    }
+    return response.json();
+  },
 };

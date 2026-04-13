@@ -4,6 +4,28 @@
  */
 
 // ============================================================================
+// TREASURY (КАЗНА) CONFIGURATION
+// Treasury stores only Jamcoin and has upgrade levels
+// ============================================================================
+export const TREASURY_CAPACITY_PER_LEVEL = [
+  31250,    // Level 1
+  62500,    // Level 2
+  125000,   // Level 3
+  250000,   // Level 4
+  500000,   // Level 5
+  1000000,  // Level 6
+];
+
+// Upgrade costs: [jamcoins, stone, wood] for each level (starting from level 2)
+export const TREASURY_UPGRADE_COSTS = {
+  2: [625, 625, 625],
+  3: [1250, 1250, 1250],
+  4: [2500, 2500, 2500],
+  5: [5000, 5000, 5000],
+  6: [10000, 10000, 10000],
+};
+
+// ============================================================================
 // PRODUCTION RATES PER LEVEL (resources per hour)
 // ============================================================================
 export const PRODUCTION_PER_LEVEL = {
@@ -92,4 +114,27 @@ export function getResourceType(buildingType) {
     farm: 'meat',
   };
   return types[buildingType] || 'gold';
+}
+
+// ============================================================================
+// TREASURY HELPER FUNCTIONS
+// ============================================================================
+
+export function getTreasuryCapacity(level) {
+  const validLevel = Math.max(1, Math.min(level, TREASURY_CAPACITY_PER_LEVEL.length));
+  return TREASURY_CAPACITY_PER_LEVEL[validLevel - 1];
+}
+
+export function getMaxTreasuryLevel() {
+  return TREASURY_CAPACITY_PER_LEVEL.length;
+}
+
+export function getTreasuryUpgradeCost(nextLevel) {
+  const cost = TREASURY_UPGRADE_COSTS[nextLevel];
+  if (!cost) return null;
+  return {
+    jamcoins: cost[0],
+    stone: cost[1],
+    wood: cost[2],
+  };
 }

@@ -17,6 +17,9 @@ import {
   confirmUpgrade,
   openQuestsModal,
   closeQuestsModal,
+  openTreasuryModal,
+  closeTreasuryModal,
+  upgradeTreasuryToLevel,
   setupModalHandlers,
 } from './ui/modals/index.js';
 import { renderBuildings } from './ui/builders.js';
@@ -29,6 +32,14 @@ export function setupEventListeners() {
   // Exchange modal buttons
   document.getElementById('exchange-btn').addEventListener('click', openExchangeModal);
   document.getElementById('gold-input').addEventListener('input', updateExchangeResult);
+
+  // Treasury modal buttons
+  document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
+
+  // Market button (not implemented yet)
+  document.getElementById('market-btn').addEventListener('click', () => {
+    tg.showAlert('🔧 Функция "Рынок" скоро будет доступна!');
+  });
 
   // Quests modal buttons
   document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
@@ -103,4 +114,8 @@ export function setupEventListeners() {
   window.confirmUpgrade = confirmUpgrade;
 
   window.closeQuestsModal = closeQuestsModal;
+
+  window.openTreasuryModal = openTreasuryModal;
+  window.closeTreasuryModal = closeTreasuryModal;
+  window.upgradeTreasuryToLevel = upgradeTreasuryToLevel;
 }

@@ -70,9 +70,14 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="action-buttons">
+        <div class="action-buttons action-buttons-grid">
           <button class="btn btn-storage" id="storage-btn">📦 Склад</button>
           <button class="btn btn-exchange" id="exchange-btn">💱 Обмен</button>
+        </div>
+
+        <div class="action-buttons action-buttons-grid">
+          <button class="btn btn-treasury" id="treasury-btn">🏰 Казна</button>
+          <button class="btn btn-market" id="market-btn">🛍 Рынок</button>
         </div>
 
         <div class="action-buttons">
@@ -287,6 +292,30 @@
 
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeQuestsModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Treasury Modal -->
+  <div class="modal" id="treasury-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏰 Казна</h2>
+        <button class="close-btn" onclick="closeTreasuryModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="treasury-info">
+          <!-- Treasury info will be dynamically inserted here -->
+        </div>
+
+        <div id="treasury-levels" class="treasury-levels-container">
+          <!-- Levels will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeTreasuryModal()">Закрыть</button>
       </div>
     </div>
   </div>

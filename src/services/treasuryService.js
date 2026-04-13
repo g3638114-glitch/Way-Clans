@@ -8,7 +8,7 @@ export async function getUserTreasury(userId) {
   const { data: user, error } = await supabase
     .from('users')
     .select('*')
-    .eq('id', userId)
+    .eq('telegram_id', userId)
     .single();
 
   if (error) {
@@ -38,7 +38,7 @@ export async function upgradeTreasury(userId) {
   const { data: user, error: userError } = await supabase
     .from('users')
     .select('*')
-    .eq('id', userId)
+    .eq('telegram_id', userId)
     .single();
 
   if (userError) {
@@ -120,7 +120,7 @@ export async function isTreasuryFull(userId) {
   const { data: user, error } = await supabase
     .from('users')
     .select('*')
-    .eq('id', userId)
+    .eq('telegram_id', userId)
     .single();
 
   if (error) {

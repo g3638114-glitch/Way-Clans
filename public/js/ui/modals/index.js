@@ -109,15 +109,21 @@ export function setupModalHandlers() {
     }
   });
 
-  document.getElementById('warehouse-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'warehouse-modal') {
-      closeWarehouseModal();
-    }
-  });
+  const warehouseModal = document.getElementById('warehouse-modal');
+  if (warehouseModal) {
+    warehouseModal.addEventListener('click', (e) => {
+      if (e.target.id === 'warehouse-modal') {
+        closeWarehouseModal();
+      }
+    });
+  }
 
-  document.getElementById('warehouse-sell-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'warehouse-sell-modal') {
-      closeWarehouseSellModal();
-    }
-  });
+  const warehouseSellModal = document.getElementById('warehouse-sell-modal');
+  if (warehouseSellModal) {
+    warehouseSellModal.addEventListener('click', (e) => {
+      if (e.target.id === 'warehouse-sell-modal') {
+        closeWarehouseSellModal();
+      }
+    });
+  }
 }

@@ -20,23 +20,14 @@ import {
   openTreasuryModal,
   closeTreasuryModal,
   upgradeTreasuryToLevel,
-  openWarehouseModal,
-  closeWarehouseModal,
-  openWarehouseSellModal,
-  closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
-  upgradeWarehouseToLevel,
   setupModalHandlers,
 } from './ui/modals/index.js';
 import { renderBuildings } from './ui/builders.js';
 
 // Register all event listeners
 export function setupEventListeners() {
-  // Warehouse modal buttons
-  document.getElementById('storage-btn').addEventListener('click', openWarehouseModal);
+  // Storage modal button
+  document.getElementById('storage-btn').addEventListener('click', openStorageModal);
 
   // Exchange modal buttons
   document.getElementById('exchange-btn').addEventListener('click', openExchangeModal);
@@ -134,13 +125,4 @@ export function setupEventListeners() {
   window.closeTreasuryModal = closeTreasuryModal;
   window.upgradeTreasuryToLevel = upgradeTreasuryToLevel;
 
-  window.openWarehouseModal = openWarehouseModal;
-  window.closeWarehouseModal = closeWarehouseModal;
-  window.openWarehouseSellModal = openWarehouseSellModal;
-  window.closeWarehouseSellModal = closeWarehouseSellModal;
-  window.setMaxWarehouseWood = setMaxWarehouseWood;
-  window.setMaxWarehouseStone = setMaxWarehouseStone;
-  window.setMaxWarehouseMeat = setMaxWarehouseMeat;
-  window.sellWarehouseResources = sellWarehouseResources;
-  window.upgradeWarehouseToLevel = upgradeWarehouseToLevel;
 }

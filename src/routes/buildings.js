@@ -4,6 +4,8 @@ import {
   upgradeBuilding,
   activateBuilding,
   getUserBuildings,
+  upgradeTreasury,
+  upgradeStorage,
 } from '../services/buildingService.js';
 
 const router = express.Router();
@@ -52,6 +54,30 @@ router.post('/:userId/building/:buildingId/upgrade', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error upgrading building:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+// POST /api/user/:userId/treasury/upgrade
+router.post('/:userId/treasury/upgrade', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await upgradeTreasury(userId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error upgrading treasury:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+// POST /api/user/:userId/storage/upgrade
+router.post('/:userId/storage/upgrade', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await upgradeStorage(userId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error upgrading storage:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

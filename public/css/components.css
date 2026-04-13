@@ -260,3 +260,200 @@
   font-size: 13px;
   color: rgba(255, 255, 255, 0.7);
 }
+
+/* ========================================
+   STORAGE INFO COMPONENT
+   ======================================== */
+
+.storage-info-section {
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
+  border: 1px solid rgba(76, 111, 166, 0.3);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.storage-info-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #fff;
+}
+
+.storage-capacity-info {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.storage-resources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.storage-resource-item {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(76, 111, 166, 0.2);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resource-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.resource-info {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ========================================
+   STORAGE UPGRADE COMPONENT
+   ======================================== */
+
+.upgrade-storage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.upgrade-capacity-info {
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
+  border: 1px solid rgba(76, 111, 166, 0.3);
+  border-radius: 10px;
+}
+
+.capacity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.capacity-row > span:first-child {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.capacity-values {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: bold;
+}
+
+.capacity-values .current {
+  padding: 6px 12px;
+  background: rgba(97, 97, 97, 0.3);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.capacity-values .arrow {
+  color: #d4af37;
+  font-size: 16px;
+}
+
+.capacity-values .new {
+  padding: 6px 12px;
+  background: rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 50px;
+  text-align: center;
+  font-weight: bold;
+  border: 1px solid rgba(76, 175, 80, 0.5);
+}
+
+.cost-resources {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.cost-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+}
+
+.cost-item .cost-value {
+  font-size: 18px;
+  color: #d4af37;
+  min-width: 40px;
+}
+
+.cost-item .cost-icon {
+  font-size: 20px;
+}
+
+/* ========================================
+   TREASURY COMPONENT
+   ======================================== */
+
+.treasury-info-section {
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(106, 27, 154, 0.15) 100%);
+  border: 1px solid rgba(156, 39, 176, 0.3);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.treasury-info-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #fff;
+}
+
+.treasury-capacity-info {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.treasury-status {
+  margin: 20px 0;
+}
+
+.status-bar-container {
+  width: 100%;
+  height: 30px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(156, 39, 176, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.status-bar {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(156, 39, 176, 0.5) 0%, rgba(156, 39, 176, 0.8) 100%);
+  transition: width 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #fff;
+  font-size: 12px;
+  min-width: 30px;
+}
+
+.upgrade-treasury-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}

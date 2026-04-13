@@ -104,3 +104,100 @@ export function updateUI(currentUser) {
   document.getElementById('stone-input').max = currentUser.stone;
   document.getElementById('meat-input').max = currentUser.meat;
 }
+
+// Import config for storage/treasury capacities
+import { getStorageCapacity, getTreasuryCapacity } from '../game/config.js';
+
+// Update Treasury info modal
+export function updateTreasuryModal(user) {
+  if (!user) return;
+
+  const treasuryLevel = user.treasury_level || 1;
+  const treasuryCapacity = getTreasuryCapacity(treasuryLevel);
+  const treasuryAmount = user.jabcoins || 0;
+  const progressPercent = (treasuryAmount / treasuryCapacity) * 100;
+
+  document.getElementById('treasury-level-display').textContent = treasuryLevel;
+  document.getElementById('treasury-current-amount').textContent = formatNumber(treasuryAmount);
+  document.getElementById('treasury-capacity-display').textContent = formatNumber(treasuryCapacity);
+
+  const statusBar = document.getElementById('treasury-status-bar');
+  if (statusBar) {
+    statusBar.style.width = Math.min(progressPercent, 100) + '%';
+    statusBar.textContent = progressPercent.toFixed(0) + '%';
+  }
+}
+
+// Update Storage info modal
+export function updateStorageModal(user) {
+  if (!user) return;
+
+  const storageLevel = user.storage_level || 1;
+  const storageCapacity = getStorageCapacity(storageLevel);
+
+  document.getElementById('storage-level-display').textContent = storageLevel;
+  document.getElementById('storage-capacity-display').textContent = formatNumber(storageCapacity);
+
+  document.getElementById('storage-wood-amount').textContent = formatNumber(user.wood || 0);
+  document.getElementById('storage-wood-limit').textContent = formatNumber(storageCapacity);
+
+  document.getElementById('storage-stone-amount').textContent = formatNumber(user.stone || 0);
+  document.getElementById('storage-stone-limit').textContent = formatNumber(storageCapacity);
+
+  document.getElementById('storage-meat-amount').textContent = formatNumber(user.meat || 0);
+  document.getElementById('storage-meat-limit').textContent = formatNumber(storageCapacity);
+
+  document.getElementById('storage-gold-amount').textContent = formatNumber(user.gold || 0);
+}
+
+// Update Storage/Treasury upgrade modals with cost and capacity info
+export function updateStorageUpgradeModal(user) {
+  if (!user) return;
+
+  const currentLevel = user.storage_level || 1;
+  if (currentLevel >= 5) return;
+
+  const nextLevel = currentLevel + 1;
+  const currentCapacity = getStorageCapacity(currentLevel);
+  const newCapacity = getStorageCapacity(nextLevel);
+
+  // Import config to get costs
+  import('../game/config.js').then(({ getStorageCost }) => {
+    const cost = getStorageCost(nextLevel);
+    if (!cost) return;
+
+    document.getElementById('storage-upgrade-current-level').textContent = currentLevel;
+    document.getElementById('storage-upgrade-new-level').textContent = nextLevel;
+    document.getElementById('storage-upgrade-current-capacity').textContent = formatNumber(currentCapacity);
+    document.getElementById('storage-upgrade-new-capacity').textContent = formatNumber(newCapacity);
+
+    document.getElementById('storage-upgrade-cost-gold').textContent = formatNumber(cost.gold);
+    document.getElementById('storage-upgrade-cost-stone').textContent = formatNumber(cost.stone);
+    document.getElementById('storage-upgrade-cost-wood').textContent = formatNumber(cost.wood);
+  });
+}
+
+export function updateTreasuryUpgradeModal(user) {
+  if (!user) return;
+
+  const currentLevel = user.treasury_level || 1;
+  if (currentLevel >= 5) return;
+
+  const nextLevel = currentLevel + 1;
+  const currentCapacity = getTreasuryCapacity(currentLevel);
+  const newCapacity = getTreasuryCapacity(nextLevel);
+
+  import('../game/config.js').then(({ getTreasuryCost }) => {
+    const cost = getTreasuryCost(nextLevel);
+    if (!cost) return;
+
+    document.getElementById('treasury-upgrade-current-level').textContent = currentLevel;
+    document.getElementById('treasury-upgrade-new-level').textContent = nextLevel;
+    document.getElementById('treasury-upgrade-current-capacity').textContent = formatNumber(currentCapacity);
+    document.getElementById('treasury-upgrade-new-capacity').textContent = formatNumber(newCapacity);
+
+    document.getElementById('treasury-upgrade-cost-gold').textContent = formatNumber(cost.gold);
+    document.getElementById('treasury-upgrade-cost-stone').textContent = formatNumber(cost.stone);
+    document.getElementById('treasury-upgrade-cost-wood').textContent = formatNumber(cost.wood);
+  });
+}

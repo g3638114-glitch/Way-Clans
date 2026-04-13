@@ -73,6 +73,42 @@
   box-shadow: 0 2px 8px rgba(76, 111, 166, 0.3);
 }
 
+/* Treasury Button */
+.btn-treasury {
+  background: linear-gradient(135deg, #9c27b0 0%, #6a1b9a 100%);
+  color: #fff;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+}
+
+.btn-treasury:hover {
+  box-shadow: 0 6px 16px rgba(156, 39, 176, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-treasury:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+}
+
+/* Market Button */
+.btn-market {
+  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  color: #fff;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
+}
+
+.btn-market:hover {
+  box-shadow: 0 6px 16px rgba(0, 188, 212, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-market:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
+}
+
 /* Quests Button */
 .btn-quests {
   background: linear-gradient(135deg, #ff9800 0%, #e65100 100%);
@@ -408,11 +444,11 @@
 }
 
 .btn-coin {
-  width: 300px;
-  height: 300px;
+  width: 285px;
+  height: 285px;
   padding: 0;
   border-radius: 50% !important;
-  font-size: 150px;
+  font-size: 142px;
   flex: none !important;
   background: radial-gradient(circle at 30% 30%, #ffd966 0%, #d4af37 40%, #a8860e 100%);
   color: #000;

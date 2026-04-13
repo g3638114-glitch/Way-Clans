@@ -9,6 +9,20 @@ import {
   setMaxStone,
   setMaxMeat,
   sellResources,
+  openStorageInfoModal,
+  closeStorageInfoModal,
+  openStorageUpgradeModal,
+  closeStorageUpgradeModal,
+  openStorageSellModal,
+  closeStorageSellModal,
+  confirmStorageUpgrade,
+  openTreasuryModal,
+  closeTreasuryModal,
+  openTreasuryUpgradeModal,
+  closeTreasuryUpgradeModal,
+  confirmTreasuryUpgrade,
+  openMarketModal,
+  closeMarketModal,
   openExchangeModal,
   closeExchangeModal,
   updateExchangeResult,
@@ -23,8 +37,14 @@ import { renderBuildings } from './ui/builders.js';
 
 // Register all event listeners
 export function setupEventListeners() {
-  // Storage modal buttons
-  document.getElementById('storage-btn').addEventListener('click', openStorageModal);
+  // Storage modal buttons - open new storage info modal
+  document.getElementById('storage-btn').addEventListener('click', openStorageInfoModal);
+
+  // Treasury modal buttons
+  document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
+
+  // Market modal buttons
+  document.getElementById('market-btn').addEventListener('click', openMarketModal);
 
   // Exchange modal buttons
   document.getElementById('exchange-btn').addEventListener('click', openExchangeModal);
@@ -88,6 +108,7 @@ export function setupEventListeners() {
   setupModalHandlers();
 
   // Make functions available globally for onclick handlers
+  // Storage (old modal - keep for backward compatibility)
   window.openStorageModal = openStorageModal;
   window.closeStorageModal = closeStorageModal;
   window.setMaxWood = setMaxWood;
@@ -95,12 +116,35 @@ export function setupEventListeners() {
   window.setMaxMeat = setMaxMeat;
   window.sellResources = sellResources;
 
+  // Storage info modal (new)
+  window.openStorageInfoModal = openStorageInfoModal;
+  window.closeStorageInfoModal = closeStorageInfoModal;
+  window.openStorageUpgradeModal = openStorageUpgradeModal;
+  window.closeStorageUpgradeModal = closeStorageUpgradeModal;
+  window.openStorageSellModal = openStorageSellModal;
+  window.closeStorageSellModal = closeStorageSellModal;
+  window.confirmStorageUpgrade = confirmStorageUpgrade;
+
+  // Treasury modal
+  window.openTreasuryModal = openTreasuryModal;
+  window.closeTreasuryModal = closeTreasuryModal;
+  window.openTreasuryUpgradeModal = openTreasuryUpgradeModal;
+  window.closeTreasuryUpgradeModal = closeTreasuryUpgradeModal;
+  window.confirmTreasuryUpgrade = confirmTreasuryUpgrade;
+
+  // Market modal
+  window.openMarketModal = openMarketModal;
+  window.closeMarketModal = closeMarketModal;
+
+  // Exchange modal
   window.openExchangeModal = openExchangeModal;
   window.closeExchangeModal = closeExchangeModal;
   window.exchangeGold = exchangeGold;
 
+  // Upgrade modal
   window.closeUpgradeModal = closeUpgradeModal;
   window.confirmUpgrade = confirmUpgrade;
 
+  // Quests modal
   window.closeQuestsModal = closeQuestsModal;
 }

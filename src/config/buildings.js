@@ -93,3 +93,53 @@ export function getResourceType(buildingType) {
   };
   return types[buildingType] || 'gold';
 }
+
+// ============================================================================
+// TREASURY (КАЗНА) - JAMCOIN STORAGE
+// ============================================================================
+export const TREASURY_CONFIG = {
+  maxLevel: 5,
+  baseCosts: {
+    1: { gold: 500, stone: 300, wood: 300 },
+    2: { gold: 1200, stone: 700, wood: 700 },
+    3: { gold: 2500, stone: 1500, wood: 1500 },
+    4: { gold: 5000, stone: 3000, wood: 3000 },
+    5: { gold: 10000, stone: 6000, wood: 6000 },
+  },
+  capacityPerLevel: [5000, 10000, 20000, 40000, 80000],
+};
+
+export function getTreasuryCapacity(level) {
+  const capacities = TREASURY_CONFIG.capacityPerLevel;
+  return capacities[Math.max(0, level - 1)];
+}
+
+export function getTreasuryCost(nextLevel) {
+  if (nextLevel < 2 || nextLevel > 5) return null;
+  return TREASURY_CONFIG.baseCosts[nextLevel];
+}
+
+// ============================================================================
+// STORAGE (СКЛАД) - RESOURCE STORAGE
+// ============================================================================
+export const STORAGE_CONFIG = {
+  maxLevel: 5,
+  baseCosts: {
+    1: { gold: 300, stone: 200, wood: 200 },
+    2: { gold: 800, stone: 500, wood: 500 },
+    3: { gold: 1800, stone: 1000, wood: 1000 },
+    4: { gold: 3500, stone: 2000, wood: 2000 },
+    5: { gold: 7000, stone: 4000, wood: 4000 },
+  },
+  capacityPerLevel: [5000, 10000, 20000, 40000, 80000],
+};
+
+export function getStorageCapacity(level) {
+  const capacities = STORAGE_CONFIG.capacityPerLevel;
+  return capacities[Math.max(0, level - 1)];
+}
+
+export function getStorageCost(nextLevel) {
+  if (nextLevel < 2 || nextLevel > 5) return null;
+  return STORAGE_CONFIG.baseCosts[nextLevel];
+}

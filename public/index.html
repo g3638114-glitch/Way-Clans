@@ -76,6 +76,11 @@
         </div>
 
         <div class="action-buttons">
+          <button class="btn btn-treasury" id="treasury-btn">🏰 Казна</button>
+          <button class="btn btn-market" id="market-btn">🛒 Рынок</button>
+        </div>
+
+        <div class="action-buttons">
           <button class="btn btn-quests" id="quests-btn">📋 Задания</button>
         </div>
 
@@ -287,6 +292,314 @@
 
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeQuestsModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Storage Info Modal (Updated) -->
+  <div class="modal" id="storage-info-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📦 Склад</h2>
+        <button class="close-btn" onclick="closeStorageInfoModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="storage-info-section">
+          <h3>Уровень: <span id="storage-level-display">1</span>/5</h3>
+          <p class="storage-capacity-info">Вместимость: <strong id="storage-capacity-display">5 000</strong></p>
+        </div>
+
+        <div class="storage-resources-list">
+          <div class="storage-resource-item">
+            <span class="resource-name">🌲 Дерево</span>
+            <span class="resource-info"><span id="storage-wood-amount">0</span> / <span id="storage-wood-limit">5 000</span></span>
+          </div>
+          <div class="storage-resource-item">
+            <span class="resource-name">🪨 Камень</span>
+            <span class="resource-info"><span id="storage-stone-amount">0</span> / <span id="storage-stone-limit">5 000</span></span>
+          </div>
+          <div class="storage-resource-item">
+            <span class="resource-name">🍖 Мясо</span>
+            <span class="resource-info"><span id="storage-meat-amount">0</span> / <span id="storage-meat-limit">5 000</span></span>
+          </div>
+          <div class="storage-resource-item">
+            <span class="resource-name">💰 Золото</span>
+            <span class="resource-info"><span id="storage-gold-amount">0</span> / ∞</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="openStorageUpgradeModal()">⬆️ Улучшить</button>
+        <button class="btn btn-storage" onclick="openStorageSellModal()">Продать</button>
+        <button class="btn btn-secondary" onclick="closeStorageInfoModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Storage Sell Modal (existing, renamed) -->
+  <div class="modal" id="storage-sell-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>💰 Продажа ресурсов</h2>
+        <button class="close-btn" onclick="closeStorageSellModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🌲 Дерево: <span id="storage-wood">2 500</span></span>
+            <div class="input-controls">
+              <input type="number" id="wood-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxWood()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🪨 Камень: <span id="storage-stone">2 500</span></span>
+            <div class="input-controls">
+              <input type="number" id="stone-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxStone()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🍖 Мясо: <span id="storage-meat">500</span></span>
+            <div class="input-controls">
+              <input type="number" id="meat-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxMeat()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="storage-hint">(Введите количество ресурсов для продажи)</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="sellResources()">Продать</button>
+        <button class="btn btn-secondary" onclick="closeStorageSellModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Storage Upgrade Modal -->
+  <div class="modal" id="storage-upgrade-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⬆️ Улучшение Склада</h2>
+        <button class="close-btn" onclick="closeStorageUpgradeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="upgrade-storage-info">
+          <div class="upgrade-stats-row">
+            <div class="upgrade-stat-item">
+              <span class="stat-label">Текущий уровень</span>
+              <span class="stat-value current-level" id="storage-upgrade-current-level">1</span>
+            </div>
+            <div class="upgrade-stat-item arrow-separator">→</div>
+            <div class="upgrade-stat-item">
+              <span class="stat-label">Новый уровень</span>
+              <span class="stat-value new-level" id="storage-upgrade-new-level">2</span>
+            </div>
+          </div>
+
+          <div class="upgrade-capacity-info">
+            <div class="capacity-row">
+              <span>Новая вместимость</span>
+              <div class="capacity-values">
+                <span class="current" id="storage-upgrade-current-capacity">5 000</span>
+                <span class="arrow">→</span>
+                <span class="new" id="storage-upgrade-new-capacity">10 000</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="upgrade-cost-section">
+            <h3>Стоимость улучшения</h3>
+            <div class="cost-resources">
+              <div class="cost-item">
+                <span class="cost-value" id="storage-upgrade-cost-gold">300</span>
+                <span class="cost-icon">💰</span>
+              </div>
+              <div class="cost-item">
+                <span class="cost-value" id="storage-upgrade-cost-stone">200</span>
+                <span class="cost-icon">🪨</span>
+              </div>
+              <div class="cost-item">
+                <span class="cost-value" id="storage-upgrade-cost-wood">200</span>
+                <span class="cost-icon">🌲</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="storage-upgrade-confirm-btn" onclick="confirmStorageUpgrade()">Улучшить</button>
+        <button class="btn btn-secondary" onclick="closeStorageUpgradeModal()">Отменить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Treasury Modal -->
+  <div class="modal" id="treasury-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏰 Казна</h2>
+        <button class="close-btn" onclick="closeTreasuryModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="treasury-info-section">
+          <h3>Уровень: <span id="treasury-level-display">1</span>/5</h3>
+          <p class="treasury-capacity-info">Вместимость: <span id="treasury-current-amount">0</span> / <span id="treasury-capacity-display">5 000</span> 💎</p>
+        </div>
+
+        <div class="treasury-status">
+          <div class="status-bar-container">
+            <div class="status-bar" id="treasury-status-bar" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="treasury-upgrade-btn" onclick="openTreasuryUpgradeModal()">⬆️ Улучшить</button>
+        <button class="btn btn-secondary" onclick="closeTreasuryModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Treasury Upgrade Modal -->
+  <div class="modal" id="treasury-upgrade-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⬆️ Улучшение Казны</h2>
+        <button class="close-btn" onclick="closeTreasuryUpgradeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="upgrade-treasury-info">
+          <div class="upgrade-stats-row">
+            <div class="upgrade-stat-item">
+              <span class="stat-label">Текущий уровень</span>
+              <span class="stat-value current-level" id="treasury-upgrade-current-level">1</span>
+            </div>
+            <div class="upgrade-stat-item arrow-separator">→</div>
+            <div class="upgrade-stat-item">
+              <span class="stat-label">Новый уровень</span>
+              <span class="stat-value new-level" id="treasury-upgrade-new-level">2</span>
+            </div>
+          </div>
+
+          <div class="upgrade-capacity-info">
+            <div class="capacity-row">
+              <span>Новая вместимость</span>
+              <div class="capacity-values">
+                <span class="current" id="treasury-upgrade-current-capacity">5 000</span>
+                <span class="arrow">→</span>
+                <span class="new" id="treasury-upgrade-new-capacity">10 000</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="upgrade-cost-section">
+            <h3>Стоимость улучшения</h3>
+            <div class="cost-resources">
+              <div class="cost-item">
+                <span class="cost-value" id="treasury-upgrade-cost-gold">500</span>
+                <span class="cost-icon">💰</span>
+              </div>
+              <div class="cost-item">
+                <span class="cost-value" id="treasury-upgrade-cost-stone">300</span>
+                <span class="cost-icon">🪨</span>
+              </div>
+              <div class="cost-item">
+                <span class="cost-value" id="treasury-upgrade-cost-wood">300</span>
+                <span class="cost-icon">🌲</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="treasury-upgrade-confirm-btn" onclick="confirmTreasuryUpgrade()">Улучшить</button>
+        <button class="btn btn-secondary" onclick="closeTreasuryUpgradeModal()">Отменить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market Modal (Stub) -->
+  <div class="modal" id="market-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🛒 Рынок</h2>
+        <button class="close-btn" onclick="closeMarketModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="text-align: center; padding: 40px 20px; color: #999;">
+          🚧 Рынок находится в разработке
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeMarketModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Old Storage Modal (keep for backward compatibility, but update it) -->
+  <div class="modal" id="storage-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📦 Склад</h2>
+        <button class="close-btn" onclick="closeStorageModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🌲 Дерево: <span id="storage-wood">2 500</span></span>
+            <div class="input-controls">
+              <input type="number" id="wood-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxWood()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🪨 Камень: <span id="storage-stone">2 500</span></span>
+            <div class="input-controls">
+              <input type="number" id="stone-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxStone()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🍖 Мясо: <span id="storage-meat">500</span></span>
+            <div class="input-controls">
+              <input type="number" id="meat-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxMeat()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="storage-hint">(Введите количество ресурсов для продажи)</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="sellResources()">Продать</button>
+        <button class="btn btn-secondary" onclick="closeStorageModal()">Закрыть</button>
       </div>
     </div>
   </div>

@@ -1,5 +1,5 @@
 import { supabase } from '../bot.js';
-import { getProductionRate, getCapacity, getUpgradeCost, getResourceType } from '../config/buildings.js';
+import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getTreasuryCost, getStorageCapacity, getStorageCost } from '../config/buildings.js';
 
 /**
  * Create initial buildings for a user (mine, quarry, lumber_mill, farm)
@@ -397,4 +397,138 @@ export async function getUserBuildings(userId) {
   });
 
   return buildingsWithProgress;
+}
+
+/**
+ * Upgrade Treasury (Казна) - increases Jamcoin storage capacity
+ */
+export async function upgradeTreasury(userId) {
+  const user = await getOrCreateUser(userId);
+
+  const currentLevel = user.treasury_level || 1;
+
+  // Can't upgrade beyond level 5
+  if (currentLevel >= 5) {
+    throw new Error('Treasury is already at maximum level (5)');
+  }
+
+  const nextLevel = currentLevel + 1;
+
+  // Get upgrade cost
+  const costData = getTreasuryCost(nextLevel);
+  if (!costData) {
+    throw new Error('Invalid level for upgrade');
+  }
+
+  // Check resources
+  if ((user.gold || 0) < costData.gold) {
+    throw new Error(`Not enough gold. Need ${costData.gold}, have ${user.gold || 0}`);
+  }
+  if ((user.stone || 0) < costData.stone) {
+    throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
+  }
+  if ((user.wood || 0) < costData.wood) {
+    throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
+  }
+
+  // Deduct resources
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({
+      gold: user.gold - costData.gold,
+      stone: user.stone - costData.stone,
+      wood: user.wood - costData.wood,
+      treasury_level: nextLevel,
+    })
+    .eq('id', user.id);
+
+  if (updateError) {
+    throw new Error('Failed to upgrade treasury');
+  }
+
+  // Get updated user data
+  const { data: updatedUser, error: getUserError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (getUserError) {
+    throw new Error('Failed to get updated user data');
+  }
+
+  return {
+    success: true,
+    cost: costData,
+    newLevel: nextLevel,
+    newCapacity: getTreasuryCapacity(nextLevel),
+    user: updatedUser,
+  };
+}
+
+/**
+ * Upgrade Storage (Склад) - increases resource storage capacity
+ */
+export async function upgradeStorage(userId) {
+  const user = await getOrCreateUser(userId);
+
+  const currentLevel = user.storage_level || 1;
+
+  // Can't upgrade beyond level 5
+  if (currentLevel >= 5) {
+    throw new Error('Storage is already at maximum level (5)');
+  }
+
+  const nextLevel = currentLevel + 1;
+
+  // Get upgrade cost
+  const costData = getStorageCost(nextLevel);
+  if (!costData) {
+    throw new Error('Invalid level for upgrade');
+  }
+
+  // Check resources
+  if ((user.gold || 0) < costData.gold) {
+    throw new Error(`Not enough gold. Need ${costData.gold}, have ${user.gold || 0}`);
+  }
+  if ((user.stone || 0) < costData.stone) {
+    throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
+  }
+  if ((user.wood || 0) < costData.wood) {
+    throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
+  }
+
+  // Deduct resources
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({
+      gold: user.gold - costData.gold,
+      stone: user.stone - costData.stone,
+      wood: user.wood - costData.wood,
+      storage_level: nextLevel,
+    })
+    .eq('id', user.id);
+
+  if (updateError) {
+    throw new Error('Failed to upgrade storage');
+  }
+
+  // Get updated user data
+  const { data: updatedUser, error: getUserError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (getUserError) {
+    throw new Error('Failed to get updated user data');
+  }
+
+  return {
+    success: true,
+    cost: costData,
+    newLevel: nextLevel,
+    newCapacity: getStorageCapacity(nextLevel),
+    user: updatedUser,
+  };
 }

@@ -143,6 +143,16 @@ const migrations = [
     name: 'Disable RLS on completed_quests table',
     sql: `ALTER TABLE IF EXISTS completed_quests DISABLE ROW LEVEL SECURITY;`,
   },
+
+  // === FIX NULL VALUES FOR TREASURY AND STORAGE LEVELS ===
+  {
+    name: 'Fix NULL treasury_level to default 1',
+    sql: `UPDATE users SET treasury_level = 1 WHERE treasury_level IS NULL;`,
+  },
+  {
+    name: 'Fix NULL storage_level to default 1',
+    sql: `UPDATE users SET storage_level = 1 WHERE storage_level IS NULL;`,
+  },
 ];
 
 /**

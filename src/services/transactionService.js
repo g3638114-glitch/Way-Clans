@@ -527,10 +527,11 @@ export async function transactionUpgradeTreasury(userId) {
            stone = $2,
            wood = $3,
            treasury_level = $4,
+           storage_level = $5,
            updated_at = NOW()
-       WHERE id = $5
+       WHERE id = $6
        RETURNING *`,
-      [user.gold - costData.gold, user.stone - costData.stone, user.wood - costData.wood, nextLevel, userId]
+      [user.gold - costData.gold, user.stone - costData.stone, user.wood - costData.wood, nextLevel, user.storage_level || 1, userId]
     );
 
     if (userUpdateResult.rows.length === 0) {
@@ -616,10 +617,11 @@ export async function transactionUpgradeStorage(userId) {
            stone = $2,
            wood = $3,
            storage_level = $4,
+           treasury_level = $5,
            updated_at = NOW()
-       WHERE id = $5
+       WHERE id = $6
        RETURNING *`,
-      [user.gold - costData.gold, user.stone - costData.stone, user.wood - costData.wood, nextLevel, userId]
+      [user.gold - costData.gold, user.stone - costData.stone, user.wood - costData.wood, nextLevel, user.treasury_level || 1, userId]
     );
 
     if (userUpdateResult.rows.length === 0) {
@@ -695,10 +697,10 @@ export async function transactionGetOrCreateUser(userIdentifier, userInfo = null
 
     try {
       const insertResult = await client.query(
-        `INSERT INTO users (telegram_id, username, first_name, photo_url, gold, wood, stone, meat, jabcoins, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        `INSERT INTO users (telegram_id, username, first_name, photo_url, gold, wood, stone, meat, jabcoins, treasury_level, storage_level, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
          RETURNING *`,
-        [telegramId, username, firstName, null, 5000, 2500, 2500, 500, 0]
+        [telegramId, username, firstName, null, 5000, 2500, 2500, 500, 0, 1, 1]
       );
 
       const newUser = insertResult.rows[0];

@@ -98,7 +98,7 @@ export function getResourceType(buildingType) {
 // TREASURY (КАЗНА) - JAMCOIN STORAGE (Gold/💰)
 // ============================================================================
 export const TREASURY_CONFIG = {
-  maxLevel: 5,
+  maxLevel: 6,
   baseCosts: {
     1: { gold: 500, stone: 300, wood: 300 },
     2: { gold: 625, stone: 625, wood: 625 },
@@ -124,7 +124,7 @@ export function getTreasuryCost(nextLevel) {
 // STORAGE (СКЛАД) - RESOURCE STORAGE
 // ============================================================================
 export const STORAGE_CONFIG = {
-  maxLevel: 5,
+  maxLevel: 6,
   baseCosts: {
     1: { gold: 500, stone: 300, wood: 300 },
     2: { gold: 625, stone: 625, wood: 625 },

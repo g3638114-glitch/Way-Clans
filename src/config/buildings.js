@@ -95,53 +95,77 @@ export function getResourceType(buildingType) {
 }
 
 // ============================================================================
-// TREASURY (КАЗНА) - JAMCOIN STORAGE (Gold/💰)
+// TREASURY (КАЗНА) - Gold/💰 Storage
+// ============================================================================
+// 💡 HOW TO ADD NEW LEVELS:
+//    1. Add new capacity value to capacityPerLevel array
+//    2. Add cost entry (key = nextLevel, value = cost object)
+//    3. Update maxLevel calculation automatically based on array length
+// ⚠️  MUST SYNC WITH: public/js/game/config.js!
 // ============================================================================
 export const TREASURY_CONFIG = {
-  maxLevel: 6,
-  baseCosts: {
-    1: { gold: 500, stone: 300, wood: 300 },
+  name: 'Казна',
+  // Capacity for each level (level 1 = index 0, level 2 = index 1, etc)
+  capacityPerLevel: [31250, 62500, 125000, 250000, 500000, 1000000],
+  // Upgrade costs (key = nextLevel to upgrade to, value = resources needed)
+  costs: {
     2: { gold: 625, stone: 625, wood: 625 },
     3: { gold: 1250, stone: 1250, wood: 1250 },
     4: { gold: 2500, stone: 2500, wood: 2500 },
     5: { gold: 5000, stone: 5000, wood: 5000 },
     6: { gold: 10000, stone: 10000, wood: 10000 },
   },
-  capacityPerLevel: [31250, 62500, 125000, 250000, 500000, 1000000],
 };
 
 export function getTreasuryCapacity(level) {
   const capacities = TREASURY_CONFIG.capacityPerLevel;
-  return capacities[Math.max(0, level - 1)];
+  return capacities[Math.max(0, Math.min(level - 1, capacities.length - 1))];
+}
+
+export function getTreasuryMaxLevel() {
+  return TREASURY_CONFIG.capacityPerLevel.length;
 }
 
 export function getTreasuryCost(nextLevel) {
-  if (nextLevel < 2 || nextLevel > 6) return null;
-  return TREASURY_CONFIG.baseCosts[nextLevel];
+  const maxLevel = getTreasuryMaxLevel();
+  if (nextLevel < 2 || nextLevel > maxLevel) return null;
+  return TREASURY_CONFIG.costs[nextLevel] || null;
 }
 
 // ============================================================================
-// STORAGE (СКЛАД) - RESOURCE STORAGE
+// STORAGE (СКЛАД) - Resource Storage
+// ============================================================================
+// 💡 HOW TO ADD NEW LEVELS:
+//    1. Add new capacity value to capacityPerLevel array
+//    2. Add cost entry (key = nextLevel, value = cost object)
+//    3. Update maxLevel calculation automatically based on array length
+// ⚠️  MUST SYNC WITH: public/js/game/config.js!
 // ============================================================================
 export const STORAGE_CONFIG = {
-  maxLevel: 6,
-  baseCosts: {
-    1: { gold: 500, stone: 300, wood: 300 },
+  name: 'Склад',
+  // Capacity for each level (level 1 = index 0, level 2 = index 1, etc)
+  capacityPerLevel: [5000, 30000, 60000, 120000, 240000, 5000000],
+  // Upgrade costs (key = nextLevel to upgrade to, value = resources needed)
+  costs: {
     2: { gold: 625, stone: 625, wood: 625 },
     3: { gold: 1250, stone: 1250, wood: 1250 },
     4: { gold: 2500, stone: 2500, wood: 2500 },
     5: { gold: 5000, stone: 5000, wood: 5000 },
     6: { gold: 10000, stone: 10000, wood: 10000 },
   },
-  capacityPerLevel: [5000, 30000, 60000, 120000, 240000, 5000000],
 };
 
 export function getStorageCapacity(level) {
   const capacities = STORAGE_CONFIG.capacityPerLevel;
-  return capacities[Math.max(0, level - 1)];
+  return capacities[Math.max(0, Math.min(level - 1, capacities.length - 1))];
+}
+
+export function getStorageMaxLevel() {
+  return STORAGE_CONFIG.capacityPerLevel.length;
 }
 
 export function getStorageCost(nextLevel) {
-  if (nextLevel < 2 || nextLevel > 6) return null;
-  return STORAGE_CONFIG.baseCosts[nextLevel];
+  const maxLevel = getStorageMaxLevel();
+  if (nextLevel < 2 || nextLevel > maxLevel) return null;
+  return STORAGE_CONFIG.costs[nextLevel] || null;
 }

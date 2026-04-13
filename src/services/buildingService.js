@@ -1,5 +1,5 @@
 import { supabase } from '../bot.js';
-import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity } from '../config/buildings.js';
+import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
 
 /**
  * Create initial buildings for a user (mine, quarry, lumber_mill, farm)
@@ -208,6 +208,17 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
 
     if (newGoldAmount > capacity) {
       throw new Error(`Treasury is full! Cannot collect ${collectedAmount} gold. Capacity: ${capacity}, Current: ${user.gold || 0}`);
+    }
+  }
+
+  // Check warehouse capacity for wood, stone, and meat
+  if (resourceType === 'wood' || resourceType === 'stone' || resourceType === 'meat') {
+    const warehouseLevel = user.warehouse_level || 1;
+    const capacity = getWarehouseCapacity(warehouseLevel);
+    const newAmount = (user[resourceType] || 0) + collectedAmount;
+
+    if (newAmount > capacity) {
+      throw new Error(`Warehouse is full! Cannot collect ${collectedAmount} ${resourceType}. Capacity: ${capacity}, Current: ${user[resourceType] || 0}`);
     }
   }
 

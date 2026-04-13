@@ -327,6 +327,68 @@
     </div>
   </div>
 
+  <!-- Warehouse Modal -->
+  <div class="modal" id="warehouse-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📦 Склад</h2>
+        <button class="close-btn" onclick="closeWarehouseModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="warehouse-info-main">
+          <div class="warehouse-level-display">
+            <h3>Уровень: <span id="warehouse-current-level">1</span> / <span id="warehouse-max-level">6</span></h3>
+            <p class="capacity-info">Вместимость каждого ресурса: <span id="warehouse-capacity-current">0</span> / <span id="warehouse-capacity-total">0</span></p>
+          </div>
+        </div>
+
+        <!-- Resources in warehouse -->
+        <div class="warehouse-resources">
+          <div class="warehouse-resource-item">
+            <div class="resource-header">
+              <span class="resource-name">🌲 Дерево</span>
+              <span class="resource-amount" id="warehouse-wood-amount">0</span>
+            </div>
+            <div class="resource-progress-bar">
+              <div class="progress-fill" id="warehouse-wood-progress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="warehouse-resource-item">
+            <div class="resource-header">
+              <span class="resource-name">🪨 Камень</span>
+              <span class="resource-amount" id="warehouse-stone-amount">0</span>
+            </div>
+            <div class="resource-progress-bar">
+              <div class="progress-fill" id="warehouse-stone-progress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="warehouse-resource-item">
+            <div class="resource-header">
+              <span class="resource-name">🍖 Мясо</span>
+              <span class="resource-amount" id="warehouse-meat-amount">0</span>
+            </div>
+            <div class="resource-progress-bar">
+              <div class="progress-fill" id="warehouse-meat-progress" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="warehouse-upgrade-section" class="warehouse-upgrade-section">
+          <!-- Upgrade info will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="warehouse-upgrade-btn" onclick="upgradeWarehouseToLevel()" style="display:none;">Улучшить</button>
+        <button class="btn btn-secondary" id="warehouse-sell-btn" onclick="openWarehouseSellModal()">Продать</button>
+        <button class="btn btn-secondary" onclick="closeWarehouseModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>

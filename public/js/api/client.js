@@ -146,4 +146,25 @@ export const apiClient = {
     }
     return response.json();
   },
+
+  // Get warehouse info
+  async getWarehouse(userId) {
+    const response = await fetch(`/api/user/${userId}/warehouse`);
+    if (!response.ok) {
+      throw new Error('Failed to load warehouse data');
+    }
+    return response.json();
+  },
+
+  // Upgrade warehouse
+  async upgradeWarehouse(userId) {
+    const response = await fetch(`/api/user/${userId}/warehouse/upgrade`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upgrade warehouse');
+    }
+    return response.json();
+  },
 };

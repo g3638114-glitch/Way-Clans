@@ -33,6 +33,13 @@ import {
   upgradeTreasuryToLevel,
 } from './treasury.js';
 
+import {
+  openWarehouseModal,
+  closeWarehouseModal,
+  upgradeWarehouseToLevel,
+  openWarehouseSellModal,
+} from './warehouse.js';
+
 // Re-export all functions
 export {
   openStorageModal,
@@ -54,6 +61,10 @@ export {
   openTreasuryModal,
   closeTreasuryModal,
   upgradeTreasuryToLevel,
+  openWarehouseModal,
+  closeWarehouseModal,
+  upgradeWarehouseToLevel,
+  openWarehouseSellModal,
 };
 
 // Setup modal background click handlers
@@ -85,6 +96,12 @@ export function setupModalHandlers() {
   document.getElementById('treasury-modal').addEventListener('click', (e) => {
     if (e.target.id === 'treasury-modal') {
       closeTreasuryModal();
+    }
+  });
+
+  document.getElementById('warehouse-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'warehouse-modal') {
+      closeWarehouseModal();
     }
   });
 }

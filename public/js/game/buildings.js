@@ -68,6 +68,12 @@ export async function collectResources(buildingId) {
       return;
     }
 
+    // Handle warehouse full error separately - show as notification, not error
+    if (error.message.includes('Warehouse is full')) {
+      window.tg.showAlert('📦 Склад переполнен! Продайте ресурсы или улучшите склад, чтобы продолжить сбор.');
+      return;
+    }
+
     window.tg.showAlert(error.message || 'Ошибка при сборе ресурсов');
   }
 }

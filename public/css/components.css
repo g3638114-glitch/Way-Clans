@@ -111,7 +111,7 @@
 .upgrade-building-info {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .upgrade-building-name {
@@ -220,15 +220,15 @@
 }
 
 .upgrade-cost-section {
-  padding: 15px;
+  padding: 12px;
   background: rgba(212, 175, 55, 0.1);
   border: 2px solid rgba(212, 175, 55, 0.4);
   border-radius: 10px;
 }
 
 .upgrade-cost-section h3 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
+  margin: 0 0 8px 0;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.8);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -345,16 +345,16 @@
 .cost-items-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .cost-item-upgrade {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 12px;
+  gap: 6px;
+  padding: 10px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   border: 1px solid rgba(212, 175, 55, 0.3);
@@ -371,7 +371,7 @@
 }
 
 .cost-item-upgrade .cost-value {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   color: #d4af37;
 }
@@ -381,7 +381,7 @@
 }
 
 .cost-item-upgrade .cost-icon {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .cost-info {

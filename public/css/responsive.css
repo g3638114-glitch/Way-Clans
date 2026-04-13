@@ -31,14 +31,4 @@
   .cost-items-row {
     grid-template-columns: 1fr;
   }
-
-  .upgrade-stats-row {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .arrow-separator {
-    transform: rotate(90deg);
-    flex: 0.2;
-  }
 }

@@ -197,7 +197,21 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
   // Determine how much to collect
   const collectedAmount = Math.floor(accumulated);
 
-  // Collect accumulated resources
+  // Add accumulated resources to user
+  const resourceType = getResourceType(building.building_type);
+
+  // Check treasury capacity BEFORE updating building - if collecting gold and treasury is full, throw error without modifying building
+  if (resourceType === 'gold') {
+    const treasuryLevel = user.treasury_level || 1;
+    const capacity = getTreasuryCapacity(treasuryLevel);
+    const newGoldAmount = (user.gold || 0) + collectedAmount;
+
+    if (newGoldAmount > capacity) {
+      throw new Error(`Treasury is full! Cannot collect ${collectedAmount} gold. Capacity: ${capacity}, Current: ${user.gold || 0}`);
+    }
+  }
+
+  // Now update building only if all checks passed
   const { data: updatedBuilding, error: updateError } = await supabase
     .from('user_buildings')
     .update({
@@ -210,20 +224,6 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
 
   if (updateError) {
     throw new Error('Failed to collect resources');
-  }
-
-  // Add accumulated resources to user
-  const resourceType = getResourceType(building.building_type);
-
-  // Check treasury capacity if collecting gold
-  if (resourceType === 'gold') {
-    const treasuryLevel = user.treasury_level || 1;
-    const capacity = getTreasuryCapacity(treasuryLevel);
-    const newGoldAmount = (user.gold || 0) + collectedAmount;
-
-    if (newGoldAmount > capacity) {
-      throw new Error(`Treasury is full! Cannot collect ${collectedAmount} gold. Capacity: ${capacity}, Current: ${user.gold || 0}`);
-    }
   }
 
   const updateData = {};

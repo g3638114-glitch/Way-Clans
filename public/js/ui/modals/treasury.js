@@ -102,7 +102,7 @@ function renderUpgradeCost(level) {
   if (!costData) return '';
   
   const user = appState.currentUser;
-  const hasJamcoins = (user.jabcoins || 0) >= costData.jamcoins;
+  const hasJamcoins = (user.gold || 0) >= costData.jamcoins;
   const hasStone = (user.stone || 0) >= costData.stone;
   const hasWood = (user.wood || 0) >= costData.wood;
   

@@ -35,12 +35,12 @@ export const BUILDING_TYPES = {
 
 // ============================================================================
 // TREASURY (КАЗНА) CONFIGURATION
-// Treasury stores only Jamcoin and has upgrade levels
+// Treasury stores Jamcoin 💰 (gold) and has upgrade levels
 // ============================================================================
 export const TREASURY_CONFIG = {
   name: 'Казна',
   icon: '🏰',
-  resource: 'jamcoins',
+  resource: 'gold',
   resourceEmoji: '💰',
 };
 
@@ -53,7 +53,7 @@ export const TREASURY_CAPACITY_PER_LEVEL = [
   1000000,  // Level 6
 ];
 
-// Upgrade costs: [jamcoins, stone, wood] for each level (starting from level 2)
+// Upgrade costs: [jamcoins (gold), stone, wood] for each level (starting from level 2)
 export const TREASURY_UPGRADE_COSTS = {
   2: [625, 625, 625],
   3: [1250, 1250, 1250],
@@ -219,7 +219,7 @@ export function getResourceEmoji(type) {
 /**
  * Get treasury capacity for a specific level
  * @param {number} level - Treasury level (1-6)
- * @returns {number} Maximum capacity for jamcoins
+ * @returns {number} Maximum capacity for Jamcoin 💰 (gold)
  */
 export function getTreasuryCapacity(level) {
   const validLevel = Math.max(1, Math.min(level, TREASURY_CAPACITY_PER_LEVEL.length));
@@ -237,7 +237,7 @@ export function getMaxTreasuryLevel() {
 /**
  * Get treasury upgrade cost
  * @param {number} nextLevel - Level to upgrade to (2-6)
- * @returns {object|null} Cost object {jamcoins, stone, wood} or null if invalid
+ * @returns {object|null} Cost object {jamcoins (gold), stone, wood} or null if invalid
  */
 export function getTreasuryUpgradeCost(nextLevel) {
   const cost = TREASURY_UPGRADE_COSTS[nextLevel];

@@ -5,7 +5,7 @@
 
 // ============================================================================
 // TREASURY (КАЗНА) CONFIGURATION
-// Treasury stores only Jamcoin and has upgrade levels
+// Treasury stores Jamcoin 💰 (gold) and has upgrade levels
 // ============================================================================
 export const TREASURY_CAPACITY_PER_LEVEL = [
   31250,    // Level 1
@@ -16,7 +16,7 @@ export const TREASURY_CAPACITY_PER_LEVEL = [
   1000000,  // Level 6
 ];
 
-// Upgrade costs: [jamcoins, stone, wood] for each level (starting from level 2)
+// Upgrade costs: [jamcoins (gold), stone, wood] for each level (starting from level 2)
 export const TREASURY_UPGRADE_COSTS = {
   2: [625, 625, 625],
   3: [1250, 1250, 1250],

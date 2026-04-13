@@ -3,6 +3,7 @@ import { getTreasuryCapacity, getTreasuryUpgradeCost, getMaxTreasuryLevel } from
 
 /**
  * Get treasury info for a user
+ * Treasury stores Jamcoin 💰 (gold)
  */
 export async function getUserTreasury(userId) {
   const { data: user, error } = await supabase
@@ -23,16 +24,16 @@ export async function getUserTreasury(userId) {
     userId: user.id,
     currentLevel: treasuryLevel,
     maxLevel: maxLevel,
-    currentJamcoins: user.jabcoins || 0,
+    currentJamcoins: user.gold || 0,
     capacity: capacity,
-    isFull: (user.jabcoins || 0) >= capacity,
-    progress: capacity > 0 ? ((user.jabcoins || 0) / capacity) * 100 : 0,
+    isFull: (user.gold || 0) >= capacity,
+    progress: capacity > 0 ? ((user.gold || 0) / capacity) * 100 : 0,
   };
 }
 
 /**
  * Upgrade treasury to the next level
- * Requires jamcoins, stone, and wood
+ * Requires jamcoins (gold), stone, and wood
  */
 export async function upgradeTreasury(userId) {
   const { data: user, error: userError } = await supabase
@@ -62,9 +63,9 @@ export async function upgradeTreasury(userId) {
   }
 
   // Check resources
-  if ((user.jabcoins || 0) < costData.jamcoins) {
+  if ((user.gold || 0) < costData.jamcoins) {
     throw new Error(
-      `Not enough Jamcoins. Need ${costData.jamcoins}, have ${user.jabcoins || 0}`
+      `Not enough Jamcoin. Need ${costData.jamcoins}, have ${user.gold || 0}`
     );
   }
 
@@ -80,7 +81,7 @@ export async function upgradeTreasury(userId) {
   const { error: updateError } = await supabase
     .from('users')
     .update({
-      jabcoins: user.jabcoins - costData.jamcoins,
+      gold: user.gold - costData.jamcoins,
       stone: user.stone - costData.stone,
       wood: user.wood - costData.wood,
       treasury_level: nextLevel,
@@ -115,6 +116,7 @@ export async function upgradeTreasury(userId) {
 
 /**
  * Check if treasury is full (used when collecting resources)
+ * Treasury stores Jamcoin 💰 (gold)
  */
 export async function isTreasuryFull(userId) {
   const { data: user, error } = await supabase
@@ -130,5 +132,5 @@ export async function isTreasuryFull(userId) {
   const treasuryLevel = user.treasury_level || 1;
   const capacity = getTreasuryCapacity(treasuryLevel);
 
-  return (user.jabcoins || 0) >= capacity;
+  return (user.gold || 0) >= capacity;
 }

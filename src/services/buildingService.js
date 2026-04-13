@@ -208,7 +208,8 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
     const newGoldAmount = (user.gold || 0) + collectedAmount;
 
     if (newGoldAmount > treasuryCapacity) {
-      throw new Error(`Treasury is full! Cannot collect ${collectedAmount} gold. Capacity: ${treasuryCapacity}, Current: ${user.gold || 0}`);
+      throw new Error(`Казна переполнена! Получить средства невозможно. ${collectedAmount} Jamcoin.
+        Вместимость: ${treasuryCapacity}, Ваш баланс: ${user.gold || 0}`);
     }
   } else {
     // Check warehouse capacity for wood, stone, meat
@@ -227,7 +228,7 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
         stone: '🪨',
         meat: '🍖',
       };
-      throw new Error(`Warehouse is full! Cannot collect ${collectedAmount} ${resourceNames[resourceType]}. Capacity: ${warehouseCapacity}, Current: ${user[resourceType] || 0} ${resourceEmojis[resourceType]}`);
+      throw new Error(`Склад переполнен! Забрать невозможно. ${collectedAmount} ${resourceNames[resourceType]}. Вместимость: ${warehouseCapacity}, Текущий: ${user[resourceType] || 0} ${resourceEmojis[resourceType]}`);
     }
   }
 

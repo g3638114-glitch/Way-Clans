@@ -16,148 +16,126 @@ async function renderTreasuryContent() {
   try {
     const result = await apiClient.getTreasury(appState.userId);
     const treasury = result.treasury;
-    
+
     const maxLevel = getMaxTreasuryLevel();
     const currentLevel = treasury.currentLevel;
     const currentCapacity = treasury.capacity;
     const currentJamcoins = treasury.currentJamcoins;
-    
-    // Render treasury info
-    const infoHtml = `
-      <div class="treasury-info">
-        <div class="treasury-level-display">
-          <h3>Уровень: ${currentLevel} / ${maxLevel}</h3>
-          <p class="capacity-info">Вместимость: ${currentJamcoins} / ${currentCapacity} 💰</p>
+    const isMaxed = currentLevel === maxLevel;
+
+    // Update header info
+    document.getElementById('treasury-current-level').textContent = currentLevel;
+    document.getElementById('treasury-max-level').textContent = maxLevel;
+    document.getElementById('treasury-capacity-current').textContent = currentJamcoins;
+    document.getElementById('treasury-capacity-total').textContent = currentCapacity;
+    document.getElementById('treasury-progress-fill').style.width = `${treasury.progress}%`;
+
+    // Render upgrade section
+    if (!isMaxed) {
+      const upgradeHtml = renderUpgradeInfo(currentLevel, currentJamcoins);
+      document.getElementById('treasury-upgrade-section').innerHTML = upgradeHtml;
+
+      // Show upgrade button and manage its state
+      const upgradeBtn = document.getElementById('treasury-upgrade-btn');
+      const nextLevel = currentLevel + 1;
+      const costData = getTreasuryUpgradeCost(nextLevel);
+
+      const hasJamcoins = (appState.currentUser.gold || 0) >= costData.jamcoins;
+      const hasStone = (appState.currentUser.stone || 0) >= costData.stone;
+      const hasWood = (appState.currentUser.wood || 0) >= costData.wood;
+      const canUpgrade = hasJamcoins && hasStone && hasWood;
+
+      upgradeBtn.style.display = 'block';
+      upgradeBtn.disabled = !canUpgrade;
+      upgradeBtn.className = canUpgrade ? 'btn btn-primary' : 'btn btn-primary disabled';
+    } else {
+      document.getElementById('treasury-upgrade-section').innerHTML = `
+        <div class="max-level-reached">
+          <div class="max-badge">🌟 Максимальный уровень</div>
+          <p>Ваша Казна достигла максимального уровня ${maxLevel}</p>
         </div>
-        <div class="treasury-progress-bar">
-          <div class="progress-fill" style="width: ${treasury.progress}%"></div>
-        </div>
-      </div>
-    `;
-    
-    document.getElementById('treasury-info').innerHTML = infoHtml;
-    
-    // Render upgrade levels
-    const levelsHtml = renderLevelsList(currentLevel, maxLevel, currentJamcoins);
-    document.getElementById('treasury-levels').innerHTML = levelsHtml;
-    
+      `;
+
+      // Hide upgrade button
+      const upgradeBtn = document.getElementById('treasury-upgrade-btn');
+      upgradeBtn.style.display = 'none';
+    }
+
   } catch (error) {
     console.error('Error loading treasury data:', error);
     tg.showAlert(error.message || 'Error loading treasury data');
   }
 }
 
-function renderLevelsList(currentLevel, maxLevel, currentJamcoins) {
-  let html = '<div class="treasury-levels-grid">';
-
-  for (let level = 1; level <= maxLevel; level++) {
-    const capacity = getTreasuryCapacity(level);
-    const isCurrentLevel = level === currentLevel;
-    const isMaxLevel = level === maxLevel;
-    const cardClass = isCurrentLevel ? 'current' : (isMaxLevel && !isCurrentLevel ? 'locked' : '');
-
-    let contentHtml = `
-      <div class="level-badge">${level}</div>
-      <div class="level-content">
-        ${isCurrentLevel ? '<span class="current-badge">Текущий</span>' : ''}
-        <div class="capacity-compact">${capacity} 💰</div>
-    `;
-
-    if (level === 1) {
-      contentHtml += '<div class="cost-compact">Бесплатно</div>';
-    } else if (isMaxLevel && !isCurrentLevel) {
-      contentHtml += '<span class="max-badge">🌟 MAX</span>';
-    } else if (!isCurrentLevel) {
-      contentHtml += renderUpgradeCostCompact(level);
-    }
-
-    contentHtml += '</div>';
-
-    html += `<div class="level-card ${cardClass}">${contentHtml}</div>`;
-  }
-
-  html += '</div>';
-  return html;
-}
-
-function renderUpgradeCostCompact(level) {
-  const costData = getTreasuryUpgradeCost(level);
-  if (!costData) return '';
+function renderUpgradeInfo(currentLevel, currentJamcoins) {
+  const nextLevel = currentLevel + 1;
+  const currentCapacity = getTreasuryCapacity(currentLevel);
+  const nextCapacity = getTreasuryCapacity(nextLevel);
+  const costData = getTreasuryUpgradeCost(nextLevel);
 
   const user = appState.currentUser;
   const hasJamcoins = (user.gold || 0) >= costData.jamcoins;
   const hasStone = (user.stone || 0) >= costData.stone;
   const hasWood = (user.wood || 0) >= costData.wood;
-
   const canUpgrade = hasJamcoins && hasStone && hasWood;
 
   return `
-    <div class="cost-resources">
-      <div class="cost-item ${hasJamcoins ? 'have' : 'need'}">
-        <span class="cost-icon">💰</span>
-        <span class="cost-amount">${costData.jamcoins}</span>
+    <div class="upgrade-building-info">
+      <div class="upgrade-stats-row">
+        <div class="upgrade-stat-item">
+          <span class="stat-label">Текущий уровень</span>
+          <span class="stat-value">${currentLevel}</span>
+        </div>
+        <div class="upgrade-stat-item arrow-separator">→</div>
+        <div class="upgrade-stat-item">
+          <span class="stat-label">Новый уровень</span>
+          <span class="stat-value">${nextLevel}</span>
+        </div>
       </div>
-      <div class="cost-item ${hasStone ? 'have' : 'need'}">
-        <span class="cost-icon">🪨</span>
-        <span class="cost-amount">${costData.stone}</span>
+
+      <div class="upgrade-production-info">
+        <div class="production-row">
+          <span>Вместимость</span>
+          <div class="production-values">
+            <span class="current">${currentCapacity} 💰</span>
+            <span class="arrow">→</span>
+            <span class="new">${nextCapacity} 💰</span>
+          </div>
+        </div>
       </div>
-      <div class="cost-item ${hasWood ? 'have' : 'need'}">
-        <span class="cost-icon">🌲</span>
-        <span class="cost-amount">${costData.wood}</span>
+
+      <div class="upgrade-cost-section">
+        <h3>Стоимость улучшения</h3>
+        <div class="cost-items-row">
+          <div class="cost-item-upgrade ${hasJamcoins ? 'sufficient' : 'insufficient'}">
+            <span class="cost-value">${costData.jamcoins}</span>
+            <span class="cost-icon">💰</span>
+          </div>
+          <div class="cost-item-upgrade ${hasStone ? 'sufficient' : 'insufficient'}">
+            <span class="cost-value">${costData.stone}</span>
+            <span class="cost-icon">🪨</span>
+          </div>
+          <div class="cost-item-upgrade ${hasWood ? 'sufficient' : 'insufficient'}">
+            <span class="cost-value">${costData.wood}</span>
+            <span class="cost-icon">🌲</span>
+          </div>
+        </div>
       </div>
     </div>
-    <button class="btn-upgrade-compact ${canUpgrade ? '' : 'disabled'}"
-            onclick="upgradeTreasuryToLevel(${level})"
-            ${canUpgrade ? '' : 'disabled'}>
-      Улучш.
-    </button>
   `;
 }
 
-function renderUpgradeCost(level) {
-  const costData = getTreasuryUpgradeCost(level);
-  if (!costData) return '';
-  
-  const user = appState.currentUser;
-  const hasJamcoins = (user.gold || 0) >= costData.jamcoins;
-  const hasStone = (user.stone || 0) >= costData.stone;
-  const hasWood = (user.wood || 0) >= costData.wood;
-  
-  const canUpgrade = hasJamcoins && hasStone && hasWood;
-  
-  return `
-    <div class="cost-info">
-      <div class="cost-row ${hasJamcoins ? 'sufficient' : 'insufficient'}">
-        <span>${costData.jamcoins}</span>
-        <span>💰</span>
-      </div>
-      <div class="cost-row ${hasStone ? 'sufficient' : 'insufficient'}">
-        <span>${costData.stone}</span>
-        <span>🪨</span>
-      </div>
-      <div class="cost-row ${hasWood ? 'sufficient' : 'insufficient'}">
-        <span>${costData.wood}</span>
-        <span>🌲</span>
-      </div>
-    </div>
-    <button class="btn btn-upgrade-level ${canUpgrade ? '' : 'disabled'}" 
-            onclick="upgradeTreasuryToLevel(${level})" 
-            ${canUpgrade ? '' : 'disabled'}>
-      Улучшить до ${level}
-    </button>
-  `;
-}
 
-export async function upgradeTreasuryToLevel(targetLevel) {
+export async function upgradeTreasuryToLevel() {
   try {
     const result = await apiClient.upgradeTreasury(appState.userId);
-    
+
     appState.currentUser = result.user;
     updateUI(appState.currentUser);
-    
+
     // Re-render treasury content
     renderTreasuryContent();
-    
+
     tg.showAlert(`✅ Казна улучшена до уровня ${result.newLevel}! Новая вместимость: ${result.newCapacity}`);
   } catch (error) {
     console.error('Error upgrading treasury:', error);

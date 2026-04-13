@@ -305,16 +305,23 @@
       </div>
 
       <div class="modal-body">
-        <div id="treasury-info">
-          <!-- Treasury info will be dynamically inserted here -->
+        <div class="treasury-info-main">
+          <div class="treasury-level-display">
+            <h3>Уровень: <span id="treasury-current-level">1</span> / <span id="treasury-max-level">6</span></h3>
+            <p class="capacity-info">Вместимость: <span id="treasury-capacity-current">0</span> / <span id="treasury-capacity-total">0</span> 💰</p>
+          </div>
+          <div class="treasury-progress-bar">
+            <div class="progress-fill" id="treasury-progress-fill" style="width: 0%"></div>
+          </div>
         </div>
 
-        <div id="treasury-levels" class="treasury-levels-container">
-          <!-- Levels will be dynamically inserted here -->
+        <div id="treasury-upgrade-section" class="treasury-upgrade-section">
+          <!-- Upgrade info will be dynamically inserted here -->
         </div>
       </div>
 
       <div class="modal-footer">
+        <button class="btn btn-primary" id="treasury-upgrade-btn" onclick="upgradeTreasuryToLevel()" style="display:none;">Улучшить</button>
         <button class="btn btn-secondary" onclick="closeTreasuryModal()">Закрыть</button>
       </div>
     </div>

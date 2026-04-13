@@ -8,7 +8,7 @@ const RESOURCE_PRICES = {
 
 const EXCHANGE_CONFIG = {
   MIN_EXCHANGE: 1000000,
-  EXCHANGE_RATE: 1000000, // 1000000 gold = 1 jabcoin
+  EXCHANGE_RATE: 1000000, // 1000000 gold = 1 jamcoin
 };
 
 /**
@@ -90,7 +90,7 @@ async function getOrCreateUser(telegramId, userInfo = null) {
         wood: 2500,
         stone: 2500,
         meat: 500,
-        jabcoins: 0,
+        jamcoins: 0,
         created_at: new Date().toISOString(),
       })
       .select()
@@ -157,13 +157,13 @@ export async function exchangeGold(userId, goldAmount) {
     throw new Error('Not enough gold');
   }
 
-  const jabcoinsGained = Math.floor(goldAmount / EXCHANGE_CONFIG.EXCHANGE_RATE);
+  const jamcoinsGained = Math.floor(goldAmount / EXCHANGE_CONFIG.EXCHANGE_RATE);
 
   const { data: updatedUser, error: updateError } = await supabase
     .from('users')
     .update({
       gold: user.gold - goldAmount,
-      jabcoins: user.jabcoins + jabcoinsGained,
+      jamcoins: user.jamcoins + jamcoinsGained,
     })
     .eq('telegram_id', userId)
     .select()
@@ -173,7 +173,7 @@ export async function exchangeGold(userId, goldAmount) {
     throw new Error('Failed to exchange gold');
   }
 
-  return { success: true, user: updatedUser, jabcoinsGained };
+  return { success: true, user: updatedUser, jamcoinsGained };
 }
 
 export async function addGold(userId, goldAmount) {

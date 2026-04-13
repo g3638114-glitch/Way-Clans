@@ -23,10 +23,10 @@ export async function getUserTreasury(userId) {
     userId: user.id,
     currentLevel: treasuryLevel,
     maxLevel: maxLevel,
-    currentJamcoins: user.jabcoins || 0,
+    currentJamcoins: user.jamcoins || 0,
     capacity: capacity,
-    isFull: (user.jabcoins || 0) >= capacity,
-    progress: capacity > 0 ? ((user.jabcoins || 0) / capacity) * 100 : 0,
+    isFull: (user.jamcoins || 0) >= capacity,
+    progress: capacity > 0 ? ((user.jamcoins || 0) / capacity) * 100 : 0,
   };
 }
 
@@ -62,9 +62,9 @@ export async function upgradeTreasury(userId) {
   }
 
   // Check resources
-  if ((user.jabcoins || 0) < costData.jamcoins) {
+  if ((user.jamcoins || 0) < costData.jamcoins) {
     throw new Error(
-      `Not enough Jamcoins. Need ${costData.jamcoins}, have ${user.jabcoins || 0}`
+      `Not enough Jamcoins. Need ${costData.jamcoins}, have ${user.jamcoins || 0}`
     );
   }
 
@@ -80,7 +80,7 @@ export async function upgradeTreasury(userId) {
   const { error: updateError } = await supabase
     .from('users')
     .update({
-      jabcoins: user.jabcoins - costData.jamcoins,
+      jamcoins: user.jamcoins - costData.jamcoins,
       stone: user.stone - costData.stone,
       wood: user.wood - costData.wood,
       treasury_level: nextLevel,
@@ -130,5 +130,5 @@ export async function isTreasuryFull(userId) {
   const treasuryLevel = user.treasury_level || 1;
   const capacity = getTreasuryCapacity(treasuryLevel);
 
-  return (user.jabcoins || 0) >= capacity;
+  return (user.jamcoins || 0) >= capacity;
 }

@@ -77,7 +77,7 @@ export const apiClient = {
     return response.json();
   },
 
-  // Exchange gold to jabcoins
+  // Exchange gold to jamcoins
   async exchangeGold(userId, goldAmount) {
     const response = await fetch(`/api/user/${userId}/exchange`, {
       method: 'POST',

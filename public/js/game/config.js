@@ -184,12 +184,12 @@ export function getResourceEmoji(type) {
 }
 
 // ============================================================================
-// TREASURY (КАЗНА) - JAMCOIN STORAGE
+// TREASURY (КАЗНА) - JAMCOIN STORAGE (Gold/💰)
 // ============================================================================
 export const TREASURY_CONFIG = {
   name: 'Казна',
   icon: '🏰',
-  resource: 'jabcoins',
+  resource: 'gold',
   maxLevel: 5,
   baseCosts: {
     1: { gold: 500, stone: 300, wood: 300 },

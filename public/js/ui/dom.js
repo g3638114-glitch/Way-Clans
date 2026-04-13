@@ -114,7 +114,7 @@ export function updateTreasuryModal(user) {
 
   const treasuryLevel = user.treasury_level || 1;
   const treasuryCapacity = getTreasuryCapacity(treasuryLevel);
-  const treasuryAmount = user.jabcoins || 0;
+  const treasuryAmount = user.gold || 0;
   const progressPercent = (treasuryAmount / treasuryCapacity) * 100;
 
   document.getElementById('treasury-level-display').textContent = treasuryLevel;

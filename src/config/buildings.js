@@ -95,7 +95,7 @@ export function getResourceType(buildingType) {
 }
 
 // ============================================================================
-// TREASURY (КАЗНА) - JAMCOIN STORAGE
+// TREASURY (КАЗНА) - JAMCOIN STORAGE (Gold/💰)
 // ============================================================================
 export const TREASURY_CONFIG = {
   maxLevel: 5,

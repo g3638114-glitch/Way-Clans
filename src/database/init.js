@@ -23,7 +23,7 @@ export const INITIAL_USER_RESOURCES = {
   wood: 2500,
   stone: 2500,
   meat: 500,
-  jamcoins: 0,
+  jabcoins: 0,
 };
 
 /**

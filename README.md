@@ -277,7 +277,7 @@ way-clans/
   "wood": 50000,
   "stone": 30000,
   "meat": 10000,
-  "jamcoins": 3,
+  "jabcoins": 3,
   "level": 1,
   "experience": 0
 }
@@ -301,7 +301,7 @@ way-clans/
 - 🍖 Мясо: 25 золота за единицу
 
 ### POST `/api/user/:userId/exchange`
-Обменять золото на Jamcoins
+Обменять золото на Jabcoins
 
 **Body:**
 ```json
@@ -310,7 +310,7 @@ way-clans/
 }
 ```
 
-**Курс:** 1,000,000 золота = 1 Jamcoin (минимум для обмена)
+**Курс:** 1,000,000 золота = 1 Jabcoin (минимум для обмена)
 
 ## 🐛 Решение проблем
 

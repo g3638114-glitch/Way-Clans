@@ -80,7 +80,7 @@ async function getOrCreateUser(telegramId, userInfo = null) {
         wood: 2500,
         stone: 2500,
         meat: 500,
-        jamcoins: 0,
+        jabcoins: 0,
         created_at: new Date().toISOString(),
       })
       .select()

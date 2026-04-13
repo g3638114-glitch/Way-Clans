@@ -25,7 +25,7 @@ const migrations = [
       wood BIGINT DEFAULT 2500,
       stone BIGINT DEFAULT 2500,
       meat BIGINT DEFAULT 500,
-      jamcoins BIGINT DEFAULT 0,
+      jabcoins BIGINT DEFAULT 0,
       referral_count INT DEFAULT 0,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -50,14 +50,6 @@ const migrations = [
   {
     name: 'Add treasury_level column to users if missing',
     sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS treasury_level INT DEFAULT 1;`,
-  },
-  {
-    name: 'Rename jabcoins column to jamcoins',
-    sql: `ALTER TABLE users RENAME COLUMN IF EXISTS jabcoins TO jamcoins;`,
-  },
-  {
-    name: 'Rename jabcoins_change column to jamcoins_change in audit logs if exists',
-    sql: `ALTER TABLE IF EXISTS audit_logs RENAME COLUMN IF EXISTS jabcoins_change TO jamcoins_change;`,
   },
 
   // === USER_BUILDINGS TABLE ===

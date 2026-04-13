@@ -36,20 +36,20 @@ export function updateUI(currentUser) {
   const woodText = formatNumberShort(currentUser.wood);
   const stoneText = formatNumberShort(currentUser.stone);
   const meatText = formatNumberShort(currentUser.meat);
-  const jamcoinsText = currentUser.jamcoins;
+  const jabcoinsText = currentUser.jabcoins;
 
   // Update header resources
   const goldEl = document.getElementById('gold-value');
   const woodEl = document.getElementById('wood-value');
   const stoneEl = document.getElementById('stone-value');
   const meatEl = document.getElementById('meat-value');
-  const jamcoinsEl = document.getElementById('jamcoins-value');
+  const jabcoinsEl = document.getElementById('jabcoins-value');
 
   if (goldEl) goldEl.textContent = goldText;
   if (woodEl) woodEl.textContent = woodText;
   if (stoneEl) stoneEl.textContent = stoneText;
   if (meatEl) meatEl.textContent = meatText;
-  if (jamcoinsEl) jamcoinsEl.textContent = jamcoinsText;
+  if (jabcoinsEl) jabcoinsEl.textContent = jabcoinsText;
 
   // Update Jamcoin earned display on mining page with full number (no abbreviations)
   const jamcoinEarnedEl = document.getElementById('jamcoin-earned-display');

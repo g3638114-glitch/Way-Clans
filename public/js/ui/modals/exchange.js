@@ -15,8 +15,8 @@ export function closeExchangeModal() {
 
 export function updateExchangeResult() {
   const goldAmount = parseInt(document.getElementById('gold-input').value) || 0;
-  const jamcoinsResult = Math.floor(goldAmount / 1000000);
-  document.getElementById('exchange-result').textContent = `💰 ${jamcoinsResult}`;
+  const jabcoinsResult = Math.floor(goldAmount / 1000000);
+  document.getElementById('exchange-result').textContent = `💎 ${jabcoinsResult}`;
 }
 
 export async function exchangeGold() {
@@ -32,7 +32,7 @@ export async function exchangeGold() {
     appState.currentUser = result.user;
     updateUI(appState.currentUser);
     closeExchangeModal();
-    tg.showAlert(`✅ Exchange successful! Received ${result.jamcoinsGained} 💰`);
+    tg.showAlert(`✅ Exchange successful! Received ${result.jabcoinsGained} 💎`);
   } catch (error) {
     console.error('Error exchanging gold:', error);
     tg.showAlert(error.message || 'Error during exchange');

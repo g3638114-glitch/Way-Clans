@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   wood BIGINT DEFAULT 50000,
   stone BIGINT DEFAULT 30000,
   meat BIGINT DEFAULT 10000,
-  jamcoins BIGINT DEFAULT 3,
+  jabcoins BIGINT DEFAULT 3,
   
   -- User stats
   level INT DEFAULT 1,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   wood_change BIGINT DEFAULT 0,
   stone_change BIGINT DEFAULT 0,
   meat_change BIGINT DEFAULT 0,
-  jamcoins_change BIGINT DEFAULT 0,
+  jabcoins_change BIGINT DEFAULT 0,
   
   description TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -98,6 +98,6 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Add some test data (optional)
-INSERT INTO users (telegram_id, username, first_name, gold, wood, stone, meat, jamcoins)
+INSERT INTO users (telegram_id, username, first_name, gold, wood, stone, meat, jabcoins)
 VALUES (123456789, 'testuser', 'Test', 120000, 50000, 30000, 10000, 3)
 ON CONFLICT (telegram_id) DO NOTHING;

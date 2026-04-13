@@ -98,15 +98,16 @@ export function getResourceType(buildingType) {
 // TREASURY (КАЗНА) - JAMCOIN STORAGE (Gold/💰)
 // ============================================================================
 export const TREASURY_CONFIG = {
-  maxLevel: 5,
+  maxLevel: 6,
   baseCosts: {
     1: { gold: 500, stone: 300, wood: 300 },
-    2: { gold: 1200, stone: 700, wood: 700 },
-    3: { gold: 2500, stone: 1500, wood: 1500 },
-    4: { gold: 5000, stone: 3000, wood: 3000 },
-    5: { gold: 10000, stone: 6000, wood: 6000 },
+    2: { gold: 625, stone: 625, wood: 625 },
+    3: { gold: 1250, stone: 1250, wood: 1250 },
+    4: { gold: 2500, stone: 2500, wood: 2500 },
+    5: { gold: 5000, stone: 5000, wood: 5000 },
+    5: { gold: 10000, stone: 10000, wood: 10000 },
   },
-  capacityPerLevel: [5000, 10000, 20000, 40000, 80000],
+  capacityPerLevel: [31250, 62500, 125000, 250000, 500000, 1000000],
 };
 
 export function getTreasuryCapacity(level) {
@@ -115,7 +116,7 @@ export function getTreasuryCapacity(level) {
 }
 
 export function getTreasuryCost(nextLevel) {
-  if (nextLevel < 2 || nextLevel > 5) return null;
+  if (nextLevel < 2 || nextLevel > 6) return null;
   return TREASURY_CONFIG.baseCosts[nextLevel];
 }
 
@@ -123,15 +124,16 @@ export function getTreasuryCost(nextLevel) {
 // STORAGE (СКЛАД) - RESOURCE STORAGE
 // ============================================================================
 export const STORAGE_CONFIG = {
-  maxLevel: 5,
+  maxLevel: 6,
   baseCosts: {
-    1: { gold: 300, stone: 200, wood: 200 },
-    2: { gold: 800, stone: 500, wood: 500 },
-    3: { gold: 1800, stone: 1000, wood: 1000 },
-    4: { gold: 3500, stone: 2000, wood: 2000 },
-    5: { gold: 7000, stone: 4000, wood: 4000 },
+    1: { gold: 500, stone: 300, wood: 300 },
+    2: { gold: 625, stone: 625, wood: 625 },
+    3: { gold: 1250, stone: 1250, wood: 1250 },
+    4: { gold: 2500, stone: 2500, wood: 2500 },
+    5: { gold: 5000, stone: 5000, wood: 5000 },
+    5: { gold: 10000, stone: 10000, wood: 10000 },
   },
-  capacityPerLevel: [5000, 10000, 20000, 40000, 80000],
+  capacityPerLevel: [5000, 30000, 60000, 120000, 5000000],
 };
 
 export function getStorageCapacity(level) {
@@ -140,6 +142,6 @@ export function getStorageCapacity(level) {
 }
 
 export function getStorageCost(nextLevel) {
-  if (nextLevel < 2 || nextLevel > 5) return null;
+  if (nextLevel < 2 || nextLevel > 6) return null;
   return STORAGE_CONFIG.baseCosts[nextLevel];
 }

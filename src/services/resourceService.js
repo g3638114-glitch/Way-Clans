@@ -133,7 +133,7 @@ export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
   const newGoldAmount = (user.gold || 0) + goldEarned;
 
   if (newGoldAmount > capacity) {
-    throw new Error(`Казна переполнена! Добавить невозможно. ${goldEarned} Jamcoin. Вместимость: ${capacity}, Ваш баланс: ${user.gold || 0}`);
+    throw new Error(`Казна переполнена! Продать невозможно. За продажу вы получаете: ${goldEarned} Jamcoin💰. Вместимость: ${capacity}, Ваш баланс: ${user.gold || 0}💰`);
   }
 
   // Update user resources

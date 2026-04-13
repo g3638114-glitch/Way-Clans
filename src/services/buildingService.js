@@ -208,8 +208,7 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
     const newGoldAmount = (user.gold || 0) + collectedAmount;
 
     if (newGoldAmount > treasuryCapacity) {
-      throw new Error(`Казна переполнена! Получить средства невозможно. ${collectedAmount} Jamcoin.
-        Вместимость: ${treasuryCapacity}, Ваш баланс: ${user.gold || 0}`);
+      throw new Error(`Казна переполнена! Получить средства невозможно. ${collectedAmount} Jamcoin. Вместимость: ${treasuryCapacity}, Ваш баланс: ${user.gold || 0}`);
     }
   } else {
     // Check warehouse capacity for wood, stone, meat

@@ -1,5 +1,4 @@
 import { supabase } from '../bot.js';
-import { getTreasuryCapacity } from '../config/buildings.js';
 
 const RESOURCE_PRICES = {
   wood: 10,
@@ -9,7 +8,7 @@ const RESOURCE_PRICES = {
 
 const EXCHANGE_CONFIG = {
   MIN_EXCHANGE: 1000000,
-  EXCHANGE_RATE: 1000000, // 1000000 Jamcoin (gold) = 1 jabcoin
+  EXCHANGE_RATE: 1000000, // 1000000 gold = 1 jabcoin
 };
 
 /**
@@ -127,15 +126,6 @@ export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
     throw new Error('Not enough resources');
   }
 
-  // Check treasury capacity
-  const treasuryLevel = user.treasury_level || 1;
-  const capacity = getTreasuryCapacity(treasuryLevel);
-  const newGoldAmount = (user.gold || 0) + goldEarned;
-
-  if (newGoldAmount > capacity) {
-    throw new Error(`Treasury is full! Cannot add ${goldEarned} gold. Capacity: ${capacity}, Current: ${user.gold || 0}`);
-  }
-
   // Update user resources
   const { data: updatedUser, error: updateError } = await supabase
     .from('users')
@@ -143,7 +133,7 @@ export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
       wood: user.wood - (wood || 0),
       stone: user.stone - (stone || 0),
       meat: user.meat - (meat || 0),
-      gold: newGoldAmount,
+      gold: user.gold + goldEarned,
     })
     .eq('telegram_id', userId)
     .select()
@@ -158,13 +148,13 @@ export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
 
 export async function exchangeGold(userId, goldAmount) {
   if (goldAmount < EXCHANGE_CONFIG.MIN_EXCHANGE) {
-    throw new Error(`Minimum exchange is ${EXCHANGE_CONFIG.MIN_EXCHANGE} Jamcoin`);
+    throw new Error(`Minimum exchange is ${EXCHANGE_CONFIG.MIN_EXCHANGE} gold`);
   }
 
   const user = await getOrCreateUser(userId);
 
   if (user.gold < goldAmount) {
-    throw new Error('Not enough Jamcoin');
+    throw new Error('Not enough gold');
   }
 
   const jabcoinsGained = Math.floor(goldAmount / EXCHANGE_CONFIG.EXCHANGE_RATE);
@@ -180,7 +170,7 @@ export async function exchangeGold(userId, goldAmount) {
     .single();
 
   if (updateError) {
-    throw new Error('Failed to exchange Jamcoin');
+    throw new Error('Failed to exchange gold');
   }
 
   return { success: true, user: updatedUser, jabcoinsGained };
@@ -189,19 +179,10 @@ export async function exchangeGold(userId, goldAmount) {
 export async function addGold(userId, goldAmount) {
   const user = await getOrCreateUser(userId);
 
-  // Check treasury capacity
-  const treasuryLevel = user.treasury_level || 1;
-  const capacity = getTreasuryCapacity(treasuryLevel);
-  const newGoldAmount = (user.gold || 0) + goldAmount;
-
-  if (newGoldAmount > capacity) {
-    throw new Error(`Treasury is full! Capacity: ${capacity}, Current: ${user.gold || 0}`);
-  }
-
   const { data: updatedUser, error: updateError } = await supabase
     .from('users')
     .update({
-      gold: newGoldAmount,
+      gold: user.gold + goldAmount,
       jamcoins_from_clicks: (user.jamcoins_from_clicks || 0) + goldAmount,
     })
     .eq('telegram_id', userId)
@@ -209,7 +190,7 @@ export async function addGold(userId, goldAmount) {
     .single();
 
   if (updateError) {
-    throw new Error('Failed to add Jamcoin');
+    throw new Error('Failed to add gold');
   }
 
   return { success: true, user: updatedUser };

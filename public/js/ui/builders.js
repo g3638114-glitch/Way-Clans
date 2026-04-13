@@ -124,10 +124,7 @@ export function createBuildingCard(building) {
     const collectBtn = document.createElement('button');
     collectBtn.className = 'btn btn-collect';
     collectBtn.innerHTML = `<span>Собрать</span> ${currentAccumulated}${resourceEmoji}`;
-    collectBtn.addEventListener('click', () => {
-      collectResources(building.id);
-      collectBtn.blur();
-    });
+    collectBtn.addEventListener('click', () => collectResources(building.id));
     actions.appendChild(collectBtn);
   }
 

@@ -27,24 +27,6 @@ import {
   renderQuestsList,
 } from './quests.js';
 
-import {
-  openTreasuryModal,
-  closeTreasuryModal,
-  upgradeTreasuryToLevel,
-} from './treasury.js';
-
-import {
-  openWarehouseModal,
-  closeWarehouseModal,
-  openWarehouseSellModal,
-  closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
-  upgradeWarehouseToLevel,
-} from './warehouse.js';
-
 // Re-export all functions
 export {
   openStorageModal,
@@ -63,18 +45,6 @@ export {
   openQuestsModal,
   closeQuestsModal,
   renderQuestsList,
-  openTreasuryModal,
-  closeTreasuryModal,
-  upgradeTreasuryToLevel,
-  openWarehouseModal,
-  closeWarehouseModal,
-  openWarehouseSellModal,
-  closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
-  upgradeWarehouseToLevel,
 };
 
 // Setup modal background click handlers
@@ -102,28 +72,4 @@ export function setupModalHandlers() {
       closeUpgradeModal();
     }
   });
-
-  document.getElementById('treasury-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'treasury-modal') {
-      closeTreasuryModal();
-    }
-  });
-
-  const warehouseModal = document.getElementById('warehouse-modal');
-  if (warehouseModal) {
-    warehouseModal.addEventListener('click', (e) => {
-      if (e.target.id === 'warehouse-modal') {
-        closeWarehouseModal();
-      }
-    });
-  }
-
-  const warehouseSellModal = document.getElementById('warehouse-sell-modal');
-  if (warehouseSellModal) {
-    warehouseSellModal.addEventListener('click', (e) => {
-      if (e.target.id === 'warehouse-sell-modal') {
-        closeWarehouseSellModal();
-      }
-    });
-  }
 }

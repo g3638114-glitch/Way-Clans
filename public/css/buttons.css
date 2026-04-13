@@ -91,40 +91,6 @@
   box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
 }
 
-/* Treasury Button */
-.btn-treasury {
-  background: linear-gradient(135deg, #9c27b0 0%, #6a1b9a 100%);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
-}
-
-.btn-treasury:hover {
-  box-shadow: 0 6px 16px rgba(156, 39, 176, 0.5);
-  transform: translateY(-2px);
-}
-
-.btn-treasury:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
-}
-
-/* Market Button */
-.btn-market {
-  background: linear-gradient(135deg, #00796b 0%, #004d40 100%);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 121, 107, 0.3);
-}
-
-.btn-market:hover {
-  box-shadow: 0 6px 16px rgba(0, 121, 107, 0.5);
-  transform: translateY(-2px);
-}
-
-.btn-market:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 8px rgba(0, 121, 107, 0.3);
-}
-
 /* Attack Button */
 .btn-attack {
   background: linear-gradient(135deg, #d32f2f 0%, #8b0000 100%);
@@ -420,7 +386,7 @@
   justify-content: center;
   align-items: center;
   flex: 1;
-  padding: 20px 0;
+  padding: 20px 20px 20px;
   min-height: auto;
   order: 0;
 }
@@ -513,7 +479,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 25px 0 15px;
+  padding: 25px 20px 15px;
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%);
   border-bottom: 2px solid rgba(212, 175, 55, 0.2);
   border-radius: 0;
@@ -547,7 +513,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 15px 0 20px;
+  padding: 15px 20px 20px;
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.03) 100%);
   order: 1;
 }

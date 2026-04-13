@@ -3,13 +3,16 @@
    ======================================== */
 
 .app-container {
-  width: 100%;
-  height: 100%;
+  max-width: 500px;
+  margin: 0 auto;
   background: #1a1a2e;
   color: #fff;
+  border-radius: 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 /* Pages Container - Scrollable Content Area */

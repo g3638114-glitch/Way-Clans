@@ -17,29 +17,18 @@ import {
   confirmUpgrade,
   openQuestsModal,
   closeQuestsModal,
-  openTreasuryModal,
-  closeTreasuryModal,
-  upgradeTreasuryToLevel,
   setupModalHandlers,
 } from './ui/modals/index.js';
 import { renderBuildings } from './ui/builders.js';
 
 // Register all event listeners
 export function setupEventListeners() {
-  // Storage modal button
+  // Storage modal buttons
   document.getElementById('storage-btn').addEventListener('click', openStorageModal);
 
   // Exchange modal buttons
   document.getElementById('exchange-btn').addEventListener('click', openExchangeModal);
   document.getElementById('gold-input').addEventListener('input', updateExchangeResult);
-
-  // Treasury modal buttons
-  document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
-
-  // Market button (not implemented yet)
-  document.getElementById('market-btn').addEventListener('click', () => {
-    tg.showAlert('🔧 Функция "Рынок" скоро будет доступна!');
-  });
 
   // Quests modal buttons
   document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
@@ -67,13 +56,7 @@ export function setupEventListeners() {
       }
     } catch (error) {
       console.error('Error clicking coin:', error);
-
-      // Handle treasury full error separately - show as notification, not error
-      if (error.message.includes('Treasury is full')) {
-        tg.showAlert('🏦 Казна переполнена! Обменяйте Jamcoin на Jabcoins или потратьте его, чтобы продолжить сбор.');
-      } else {
-        tg.showAlert('❌ Ошибка при добавлении Jamcoin');
-      }
+      tg.showAlert('❌ Ошибка при добавлении золота');
     } finally {
       // Remove animation class after animation completes
       setTimeout(() => {
@@ -120,9 +103,4 @@ export function setupEventListeners() {
   window.confirmUpgrade = confirmUpgrade;
 
   window.closeQuestsModal = closeQuestsModal;
-
-  window.openTreasuryModal = openTreasuryModal;
-  window.closeTreasuryModal = closeTreasuryModal;
-  window.upgradeTreasuryToLevel = upgradeTreasuryToLevel;
-
 }

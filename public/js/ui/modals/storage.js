@@ -36,7 +36,7 @@ export async function sellResources() {
     const meat = parseInt(document.getElementById('meat-input').value) || 0;
 
     if (wood === 0 && stone === 0 && meat === 0) {
-      tg.showAlert('Выберите ресурсы для продажи');
+      tg.showAlert('Select resources to sell');
       return;
     }
 
@@ -44,16 +44,9 @@ export async function sellResources() {
     appState.currentUser = result.user;
     updateUI(appState.currentUser);
     closeStorageModal();
-    tg.showAlert('✅ Ресурсы успешно проданы!');
+    tg.showAlert('✅ Resources sold successfully!');
   } catch (error) {
     console.error('Error selling resources:', error);
-
-    // Handle treasury full error separately - show as notification, not error
-    if (error.message.includes('Treasury is full')) {
-      tg.showAlert('🏦 Казна переполнена! Обменяйте Jamcoin на Jabcoins или потратьте его, чтобы продолжить продажу.');
-      return;
-    }
-
-    tg.showAlert(error.message || 'Ошибка при продаже ресурсов');
+    tg.showAlert(error.message || 'Error selling resources');
   }
 }

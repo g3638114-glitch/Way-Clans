@@ -86,7 +86,7 @@ export function openUpgradeModal(buildingId, currentLevel) {
       costIconEl.style.display = 'inline';
       costIconEl.textContent = '💰';
     }
-    playerGoldInfoEl.innerHTML = `Ваши Jamcoins: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
+    playerGoldInfoEl.innerHTML = `Ваше золото: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
   }
 
   // Enable/disable upgrade button

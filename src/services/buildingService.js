@@ -1,5 +1,5 @@
 import { supabase } from '../bot.js';
-import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
+import { getProductionRate, getCapacity, getUpgradeCost, getResourceType } from '../config/buildings.js';
 
 /**
  * Create initial buildings for a user (mine, quarry, lumber_mill, farm)
@@ -197,41 +197,7 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
   // Determine how much to collect
   const collectedAmount = Math.floor(accumulated);
 
-  // Add accumulated resources to user
-  const resourceType = getResourceType(building.building_type);
-
-  // Check storage capacity BEFORE updating building
-  if (resourceType === 'gold') {
-    // Check treasury capacity for gold
-    const treasuryLevel = user.treasury_level || 1;
-    const treasuryCapacity = getTreasuryCapacity(treasuryLevel);
-    const newGoldAmount = (user.gold || 0) + collectedAmount;
-
-    if (newGoldAmount > treasuryCapacity) {
-      throw new Error(`Казна переполнена! Получить средства невозможно. ${collectedAmount} Jamcoin. Вместимость: ${treasuryCapacity}, Ваш баланс: ${user.gold || 0}`);
-    }
-  } else {
-    // Check warehouse capacity for wood, stone, meat
-    const warehouseLevel = user.warehouse_level || 1;
-    const warehouseCapacity = getWarehouseCapacity(warehouseLevel);
-    const newResourceAmount = (user[resourceType] || 0) + collectedAmount;
-
-    if (newResourceAmount > warehouseCapacity) {
-      const resourceNames = {
-        wood: 'дерева',
-        stone: 'камня',
-        meat: 'мяса',
-      };
-      const resourceEmojis = {
-        wood: '🌲',
-        stone: '🪨',
-        meat: '🍖',
-      };
-      throw new Error(`Склад переполнен! Забрать невозможно. ${collectedAmount} ${resourceNames[resourceType]}. Вместимость: ${warehouseCapacity}, Текущий: ${user[resourceType] || 0} ${resourceEmojis[resourceType]}`);
-    }
-  }
-
-  // Now update building only if all checks passed
+  // Collect accumulated resources
   const { data: updatedBuilding, error: updateError } = await supabase
     .from('user_buildings')
     .update({
@@ -246,6 +212,8 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
     throw new Error('Failed to collect resources');
   }
 
+  // Add accumulated resources to user
+  const resourceType = getResourceType(building.building_type);
   const updateData = {};
   updateData[resourceType] = (user[resourceType] || 0) + collectedAmount;
 

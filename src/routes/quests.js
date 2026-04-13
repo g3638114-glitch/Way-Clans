@@ -1,12 +1,13 @@
 import express from 'express';
 import { getQuests, claimQuestReward } from '../services/questService.js';
+import { validateUserId, requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // GET /api/user/:userId/quests
-router.get('/:userId/quests', async (req, res) => {
+router.get('/:userId/quests', validateUserId, requireAuth, async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.authenticatedUserId;
     const quests = await getQuests(userId);
     res.json(quests);
   } catch (error) {
@@ -16,9 +17,10 @@ router.get('/:userId/quests', async (req, res) => {
 });
 
 // POST /api/user/:userId/quest/:questId/claim
-router.post('/:userId/quest/:questId/claim', async (req, res) => {
+router.post('/:userId/quest/:questId/claim', validateUserId, requireAuth, async (req, res) => {
   try {
-    const { userId, questId } = req.params;
+    const userId = req.authenticatedUserId;
+    const { questId } = req.params;
     const result = await claimQuestReward(userId, questId);
     res.json(result);
   } catch (error) {

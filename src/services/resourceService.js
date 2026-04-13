@@ -1,5 +1,6 @@
 import { supabase } from '../bot.js';
 import { getTreasuryCapacity } from '../config/buildings.js';
+import { transactionSellResources, transactionExchangeGold, transactionAddGold, transactionGetOrCreateUser } from './transactionService.js';
 
 const RESOURCE_PRICES = {
   wood: 10,
@@ -115,104 +116,34 @@ async function getOrCreateUser(telegramId, userInfo = null) {
 }
 
 export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
-  // Calculate gold from sold resources
-  const goldEarned = (wood || 0) * RESOURCE_PRICES.wood
-    + (stone || 0) * RESOURCE_PRICES.stone
-    + (meat || 0) * RESOURCE_PRICES.meat;
-
-  const user = await getOrCreateUser(userId);
-
-  // Check if user has enough resources
-  if ((wood || 0) > user.wood || (stone || 0) > user.stone || (meat || 0) > user.meat) {
-    throw new Error('Not enough resources');
+  try {
+    // Use transactional version to ensure atomicity
+    const result = await transactionSellResources(userId, wood, stone, meat);
+    return result;
+  } catch (error) {
+    console.error('Error selling resources:', error.message);
+    throw error;
   }
-
-  // Check treasury capacity before adding gold
-  const treasuryLevel = user.treasury_level || 1;
-  const treasuryCapacity = getTreasuryCapacity(treasuryLevel);
-  const newGoldAmount = user.gold + goldEarned;
-
-  if (newGoldAmount > treasuryCapacity) {
-    const canAdd = treasuryCapacity - user.gold;
-    throw new Error(`Treasury is full! Can only add ${canAdd} more gold`);
-  }
-
-  // Update user resources
-  const { data: updatedUser, error: updateError } = await supabase
-    .from('users')
-    .update({
-      wood: user.wood - (wood || 0),
-      stone: user.stone - (stone || 0),
-      meat: user.meat - (meat || 0),
-      gold: newGoldAmount,
-    })
-    .eq('telegram_id', userId)
-    .select()
-    .single();
-
-  if (updateError) {
-    throw new Error('Failed to update resources');
-  }
-
-  return { success: true, user: updatedUser };
 }
 
 export async function exchangeGold(userId, goldAmount) {
-  if (goldAmount < EXCHANGE_CONFIG.MIN_EXCHANGE) {
-    throw new Error(`Minimum exchange is ${EXCHANGE_CONFIG.MIN_EXCHANGE} gold`);
+  try {
+    // Use transactional version to ensure atomicity
+    const result = await transactionExchangeGold(userId, goldAmount);
+    return result;
+  } catch (error) {
+    console.error('Error exchanging gold:', error.message);
+    throw error;
   }
-
-  const user = await getOrCreateUser(userId);
-
-  if (user.gold < goldAmount) {
-    throw new Error('Not enough gold');
-  }
-
-  const jabcoinsGained = Math.floor(goldAmount / EXCHANGE_CONFIG.EXCHANGE_RATE);
-
-  const { data: updatedUser, error: updateError } = await supabase
-    .from('users')
-    .update({
-      gold: user.gold - goldAmount,
-      jabcoins: user.jabcoins + jabcoinsGained,
-    })
-    .eq('telegram_id', userId)
-    .select()
-    .single();
-
-  if (updateError) {
-    throw new Error('Failed to exchange gold');
-  }
-
-  return { success: true, user: updatedUser, jabcoinsGained };
 }
 
 export async function addGold(userId, goldAmount) {
-  const user = await getOrCreateUser(userId);
-
-  // Check treasury capacity before adding gold
-  const treasuryLevel = user.treasury_level || 1;
-  const treasuryCapacity = getTreasuryCapacity(treasuryLevel);
-  const newGoldAmount = user.gold + goldAmount;
-
-  if (newGoldAmount > treasuryCapacity) {
-    const canAdd = treasuryCapacity - user.gold;
-    throw new Error(`Treasury is full! Can only add ${canAdd} more gold`);
+  try {
+    // Use transactional version to ensure atomicity
+    const result = await transactionAddGold(userId, goldAmount);
+    return result;
+  } catch (error) {
+    console.error('Error adding gold:', error.message);
+    throw error;
   }
-
-  const { data: updatedUser, error: updateError } = await supabase
-    .from('users')
-    .update({
-      gold: newGoldAmount,
-      jamcoins_from_clicks: (user.jamcoins_from_clicks || 0) + goldAmount,
-    })
-    .eq('telegram_id', userId)
-    .select()
-    .single();
-
-  if (updateError) {
-    throw new Error('Failed to add gold');
-  }
-
-  return { success: true, user: updatedUser };
 }

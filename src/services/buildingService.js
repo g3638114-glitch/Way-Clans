@@ -1,5 +1,6 @@
 import { supabase } from '../bot.js';
 import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getTreasuryCost, getTreasuryMaxLevel, getStorageCapacity, getStorageCost, getStorageMaxLevel } from '../config/buildings.js';
+import { transactionCollectResources, transactionUpgradeBuilding, transactionGetOrCreateUser } from './transactionService.js';
 
 // Resource storage limits per level
 const RESOURCE_STORAGE_LIMITS = {
@@ -56,59 +57,23 @@ async function createInitialBuildings(userRecord) {
 
 /**
  * Get a user by telegram_id, create if doesn't exist
+ * Uses database transactions to prevent race conditions
  */
 async function getOrCreateUser(telegramId, userInfo = null) {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', telegramId)
-    .single();
+  try {
+    // Use transactional version that handles concurrent creation
+    const user = await transactionGetOrCreateUser(telegramId, userInfo);
 
-  // User exists - return it
-  if (!error) {
-    return user;
-  }
-
-  // User doesn't exist - create new
-  if (error.code === 'PGRST116') {
-    console.log(`📝 Creating new user ${telegramId}`);
-
-    // Use provided Telegram user info or defaults
-    const username = userInfo?.username || `user_${telegramId}`;
-    const firstName = userInfo?.first_name || 'Player';
-
-    const { data: newUser, error: insertError } = await supabase
-      .from('users')
-      .insert({
-        telegram_id: telegramId,
-        username: username,
-        first_name: firstName,
-        photo_url: null,
-        gold: 5000,
-        wood: 2500,
-        stone: 2500,
-        meat: 500,
-        jabcoins: 0,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('❌ Error creating user:', insertError);
-      throw new Error('Failed to create user');
+    if (!user) {
+      throw new Error('Failed to get or create user');
     }
 
-    console.log(`✅ User ${telegramId} created successfully (${firstName}/${username})`);
-
-    // Create initial buildings for the user
-    await createInitialBuildings(newUser);
-
-    return newUser;
+    console.log(`✅ User ${telegramId} ready (${user.first_name}/${user.username})`);
+    return user;
+  } catch (error) {
+    console.error('❌ Error in getOrCreateUser:', error.message);
+    throw new Error('Failed to get or create user');
   }
-
-  // Some other error occurred
-  throw new Error('User not found');
 }
 
 /**
@@ -166,218 +131,35 @@ export async function activateBuilding(userId, buildingId) {
 
 /**
  * Collect resources from a building
- * IMPORTANT: Validates storage capacity BEFORE updating building state
+ * Uses database transactions to prevent race conditions
+ * ATOMICALLY: checks building state, calculates resources, updates both building and user
  */
 export async function collectResourcesFromBuilding(userId, buildingId) {
-  const user = await getOrCreateUser(userId);
-
-  const { data: building, error: buildError } = await supabase
-    .from('user_buildings')
-    .select('*')
-    .eq('id', buildingId)
-    .eq('user_id', user.id)
-    .single();
-
-  if (buildError) {
-    throw new Error('Building not found');
+  try {
+    // Use transactional version that prevents double-collection
+    const result = await transactionCollectResources(userId, buildingId);
+    return result;
+  } catch (error) {
+    console.error('Error collecting resources:', error.message);
+    throw error;
   }
-
-  // If building hasn't been activated, can't collect
-  if (!building.last_activated) {
-    throw new Error('Building must be activated first');
-  }
-
-  // Calculate accumulated resources since last activation
-  const level = building.level || 1;
-  const productionRate = getProductionRate(building.building_type, level);
-  const capacity = getCapacity(building.building_type, level);
-
-  const lastActivated = new Date(building.last_activated);
-  const now = new Date();
-  const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
-
-  // Calculate total accumulated (with decimals for smooth progress)
-  const totalAccumulated = (building.collected_amount || 0) + (hoursPassed * productionRate);
-  const accumulated = Math.floor(Math.min(totalAccumulated, capacity));
-  const collectedAmount = Math.floor(accumulated);
-
-  // ✅ CRITICAL FIX: Validate capacity BEFORE updating building state
-  // Different resources have different capacity limits!
-  const resourceType = getResourceType(building.building_type);
-  const currentResourceAmount = user[resourceType] || 0;
-  const newResourceAmount = currentResourceAmount + collectedAmount;
-
-  // Treasury capacity for gold (mine), Storage capacity for other resources
-  let maxCapacity;
-  let containerName;
-
-  if (resourceType === 'gold') {
-    // Gold goes to treasury
-    const treasuryLevel = user.treasury_level || 1;
-    maxCapacity = getTreasuryCapacity(treasuryLevel);
-    containerName = 'Treasury';
-  } else {
-    // Wood, stone, meat go to storage
-    const storageLevel = user.storage_level || 1;
-    maxCapacity = getStorageCapacity(storageLevel);
-    containerName = 'Storage';
-  }
-
-  if (newResourceAmount > maxCapacity) {
-    // Capacity exceeded - throw error BEFORE any database updates
-    const canCollect = maxCapacity - currentResourceAmount;
-    throw new Error(`${containerName} is full! Can only collect ${canCollect} more ${resourceType}`);
-  }
-
-  // ✅ Only now update building (after validation passed)
-  const { data: updatedBuilding, error: updateError } = await supabase
-    .from('user_buildings')
-    .update({
-      collected_amount: 0,
-      last_activated: new Date().toISOString(),
-    })
-    .eq('id', buildingId)
-    .select()
-    .single();
-
-  if (updateError) {
-    throw new Error('Failed to collect resources');
-  }
-
-  // ✅ Finally add resources to user (we already validated this won't exceed capacity)
-  const updateData = {};
-  updateData[resourceType] = newResourceAmount;
-
-  const { data: updatedUser, error: userUpdateError } = await supabase
-    .from('users')
-    .update(updateData)
-    .eq('id', user.id)
-    .select()
-    .single();
-
-  if (userUpdateError) {
-    throw new Error('Failed to update resources');
-  }
-
-  return {
-    success: true,
-    collectedAmount: collectedAmount,
-    resourceType,
-    user: updatedUser,
-    building: updatedBuilding,
-  };
 }
 
 /**
  * Upgrade a building to the next level
- * Mine requires stone + wood
- * Others require gold
+ * Uses database transactions to prevent race conditions
+ * ATOMICALLY: checks resources, deducts them, and upgrades building level
+ * Ensures consistent state even if one operation fails
  */
 export async function upgradeBuilding(userId, buildingId) {
-  const user = await getOrCreateUser(userId);
-
-  const { data: building, error: buildError } = await supabase
-    .from('user_buildings')
-    .select('*')
-    .eq('id', buildingId)
-    .eq('user_id', user.id)
-    .single();
-
-  if (buildError) {
-    throw new Error('Building not found');
+  try {
+    // Use transactional version that prevents double-upgrade and resource deduction issues
+    const result = await transactionUpgradeBuilding(userId, buildingId);
+    return result;
+  } catch (error) {
+    console.error('Error upgrading building:', error.message);
+    throw error;
   }
-
-  const currentLevel = building.level || 1;
-
-  // Can't upgrade beyond level 5
-  if (currentLevel >= 5) {
-    throw new Error('Building is already at maximum level (5)');
-  }
-
-  const nextLevel = currentLevel + 1;
-  const buildingType = building.building_type;
-
-  // Get upgrade cost
-  const costData = getUpgradeCost(buildingType, nextLevel);
-  if (!costData) {
-    throw new Error('Invalid level for upgrade');
-  }
-
-  // Check resources
-  if (buildingType === 'mine') {
-    // Mine requires stone + wood
-    if ((user.stone || 0) < costData.stone) {
-      throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
-    }
-    if ((user.wood || 0) < costData.wood) {
-      throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
-    }
-
-    // Deduct resources
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        stone: user.stone - costData.stone,
-        wood: user.wood - costData.wood,
-      })
-      .eq('id', user.id);
-
-    if (updateError) {
-      throw new Error('Failed to deduct resources');
-    }
-  } else {
-    // Quarry, Lumber Mill, Farm require gold
-    if ((user.gold || 0) < costData.gold) {
-      throw new Error(`Not enough gold. Need ${costData.gold}, have ${user.gold || 0}`);
-    }
-
-    // Deduct gold
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        gold: user.gold - costData.gold,
-      })
-      .eq('id', user.id);
-
-    if (updateError) {
-      throw new Error('Failed to deduct gold');
-    }
-  }
-
-  // Update building level
-  const newProductionRate = getProductionRate(buildingType, nextLevel);
-
-  const { data: updatedBuilding, error: upgradeBuildingError } = await supabase
-    .from('user_buildings')
-    .update({
-      level: nextLevel,
-      production_rate: newProductionRate,
-    })
-    .eq('id', buildingId)
-    .select()
-    .single();
-
-  if (upgradeBuildingError) {
-    throw new Error('Failed to upgrade building');
-  }
-
-  // Get updated user data
-  const { data: updatedUser, error: getUserError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (getUserError) {
-    throw new Error('Failed to get updated user data');
-  }
-
-  return {
-    success: true,
-    cost: costData,
-    user: updatedUser,
-    building: updatedBuilding,
-  };
 }
 
 /**

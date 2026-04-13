@@ -199,6 +199,22 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
 }
 
+/* Loading state for buttons */
+.btn-loading {
+  opacity: 0.7;
+  cursor: wait !important;
+  animation: btnPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes btnPulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
 .btn-secondary {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;

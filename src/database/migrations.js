@@ -133,15 +133,15 @@ const migrations = [
   // === DISABLE ROW LEVEL SECURITY ===
   {
     name: 'Disable RLS on users table',
-    sql: `ALTER TABLE users DISABLE ROW LEVEL SECURITY;`,
+    sql: `ALTER TABLE IF EXISTS users DISABLE ROW LEVEL SECURITY;`,
   },
   {
     name: 'Disable RLS on user_buildings table',
-    sql: `ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;`,
+    sql: `ALTER TABLE IF EXISTS user_buildings DISABLE ROW LEVEL SECURITY;`,
   },
   {
     name: 'Disable RLS on completed_quests table',
-    sql: `ALTER TABLE completed_quests DISABLE ROW LEVEL SECURITY;`,
+    sql: `ALTER TABLE IF EXISTS completed_quests DISABLE ROW LEVEL SECURITY;`,
   },
 ];
 

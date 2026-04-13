@@ -7,54 +7,130 @@ import { getBuildingConfig, getCapacity } from './config.js';
 
 /**
  * Activate a building to start production
+ * Prevents double-click by disabling button during request
  */
 export async function activateBuilding(buildingId) {
-  try {
-    const result = await apiClient.activateBuilding(appState.userId, buildingId);
+  const card = document.querySelector(`[data-building-id="${buildingId}"]`);
+  const activateBtn = card?.querySelector('.btn-activate');
 
-    // Update building in local array
-    const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
-    if (buildingIndex !== -1) {
-      appState.allBuildings[buildingIndex] = result.building;
-      appState.allBuildings[buildingIndex].currentAccumulated = 0;
+  if (activateBtn) {
+    activateBtn.disabled = true;
+    activateBtn.classList.add('btn-loading');
+    const originalText = activateBtn.textContent;
+    activateBtn.textContent = '⏳ Загрузка...';
+
+    try {
+      const result = await apiClient.activateBuilding(appState.userId, buildingId);
+
+      // Update building in local array
+      const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
+      if (buildingIndex !== -1) {
+        appState.allBuildings[buildingIndex] = result.building;
+        appState.allBuildings[buildingIndex].currentAccumulated = 0;
+      }
+
+      renderBuildings();
+
+      const config = getBuildingConfig(result.building.building_type);
+      window.tg.showAlert(`✅ ${config.name} активирована и начинает производство!`);
+    } catch (error) {
+      console.error('Error activating building:', error);
+      window.tg.showAlert(error.message || 'Ошибка при активировании здания');
+
+      // Re-enable button on error
+      activateBtn.disabled = false;
+      activateBtn.classList.remove('btn-loading');
+      activateBtn.textContent = originalText;
     }
+  } else {
+    // Fallback if button not found
+    try {
+      const result = await apiClient.activateBuilding(appState.userId, buildingId);
 
-    renderBuildings();
+      const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
+      if (buildingIndex !== -1) {
+        appState.allBuildings[buildingIndex] = result.building;
+        appState.allBuildings[buildingIndex].currentAccumulated = 0;
+      }
 
-    const config = getBuildingConfig(result.building.building_type);
-    window.tg.showAlert(`✅ ${config.name} активирована и начинает производство!`);
-  } catch (error) {
-    console.error('Error activating building:', error);
-    window.tg.showAlert(error.message || 'Ошибка при активировании здания');
+      renderBuildings();
+
+      const config = getBuildingConfig(result.building.building_type);
+      window.tg.showAlert(`✅ ${config.name} активирована и начинает производство!`);
+    } catch (error) {
+      console.error('Error activating building:', error);
+      window.tg.showAlert(error.message || 'Ошибка при активировании здания');
+    }
   }
 }
 
 /**
  * Collect resources from a building (when at full capacity)
+ * Prevents double-click by disabling button during request
  */
 export async function collectResources(buildingId) {
-  try {
-    const result = await apiClient.collectResources(appState.userId, buildingId);
-    appState.currentUser = result.user;
-    updateUI(appState.currentUser);
+  // Find the button and disable it to prevent double-click
+  const card = document.querySelector(`[data-building-id="${buildingId}"]`);
+  const collectBtn = card?.querySelector('.btn-collect');
 
-    // Update building in local array
-    const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
-    if (buildingIndex !== -1) {
-      appState.allBuildings[buildingIndex] = result.building;
-      appState.allBuildings[buildingIndex].currentAccumulated = 0;
+  if (collectBtn) {
+    collectBtn.disabled = true;
+    collectBtn.classList.add('btn-loading');
+    const originalText = collectBtn.innerHTML;
+    collectBtn.innerHTML = '<span>⏳ Загрузка...</span>';
+
+    try {
+      const result = await apiClient.collectResources(appState.userId, buildingId);
+      appState.currentUser = result.user;
+      updateUI(appState.currentUser);
+
+      // Update building in local array
+      const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
+      if (buildingIndex !== -1) {
+        appState.allBuildings[buildingIndex] = result.building;
+        appState.allBuildings[buildingIndex].currentAccumulated = 0;
+      }
+
+      renderBuildings();
+
+      const config = getBuildingConfig(result.building.building_type);
+      const emoji = config.resourceEmoji;
+      window.tg.showAlert(
+        `✅ Собрано ${result.collectedAmount}${emoji}! Здание перезагрузилось.`
+      );
+    } catch (error) {
+      console.error('Error collecting resources:', error);
+      window.tg.showAlert(error.message || 'Ошибка при сборе ресурсов');
+
+      // Re-enable button on error
+      collectBtn.disabled = false;
+      collectBtn.classList.remove('btn-loading');
+      collectBtn.innerHTML = originalText;
     }
+  } else {
+    // Fallback if button not found
+    try {
+      const result = await apiClient.collectResources(appState.userId, buildingId);
+      appState.currentUser = result.user;
+      updateUI(appState.currentUser);
 
-    renderBuildings();
+      const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
+      if (buildingIndex !== -1) {
+        appState.allBuildings[buildingIndex] = result.building;
+        appState.allBuildings[buildingIndex].currentAccumulated = 0;
+      }
 
-    const config = getBuildingConfig(result.building.building_type);
-    const emoji = config.resourceEmoji;
-    window.tg.showAlert(
-      `✅ Собрано ${result.collectedAmount}${emoji}! Здание перезагрузилось.`
-    );
-  } catch (error) {
-    console.error('Error collecting resources:', error);
-    window.tg.showAlert(error.message || 'Ошибка при сборе ресурсов');
+      renderBuildings();
+
+      const config = getBuildingConfig(result.building.building_type);
+      const emoji = config.resourceEmoji;
+      window.tg.showAlert(
+        `✅ Собрано ${result.collectedAmount}${emoji}! Здание перезагрузилось.`
+      );
+    } catch (error) {
+      console.error('Error collecting resources:', error);
+      window.tg.showAlert(error.message || 'Ошибка при сборе ресурсов');
+    }
   }
 }
 
@@ -71,27 +147,65 @@ export function upgradeBuilding(buildingId) {
 
 /**
  * Confirm upgrade after modal
+ * Prevents double-click by disabling button during request
  */
 export async function confirmUpgradeBuilding(buildingId) {
-  try {
-    const result = await apiClient.upgradeBuilding(appState.userId, buildingId);
-    appState.currentUser = result.user;
-    updateUI(appState.currentUser);
+  // Find and disable the confirm button
+  const confirmBtn = document.querySelector('[data-upgrade-confirm]');
 
-    // Update building in local array
-    const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
-    if (buildingIndex !== -1) {
-      appState.allBuildings[buildingIndex] = result.building;
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.classList.add('btn-loading');
+    const originalText = confirmBtn.textContent;
+    confirmBtn.textContent = '⏳ Загрузка...';
+
+    try {
+      const result = await apiClient.upgradeBuilding(appState.userId, buildingId);
+      appState.currentUser = result.user;
+      updateUI(appState.currentUser);
+
+      // Update building in local array
+      const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
+      if (buildingIndex !== -1) {
+        appState.allBuildings[buildingIndex] = result.building;
+      }
+
+      renderBuildings();
+
+      const config = getBuildingConfig(result.building.building_type);
+      window.tg.showAlert(
+        `⬆️ ${config.name} улучшена до уровня ${result.building.level}!`
+      );
+    } catch (error) {
+      console.error('Error upgrading building:', error);
+      window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
+
+      // Re-enable button on error
+      confirmBtn.disabled = false;
+      confirmBtn.classList.remove('btn-loading');
+      confirmBtn.textContent = originalText;
     }
+  } else {
+    // Fallback if button not found
+    try {
+      const result = await apiClient.upgradeBuilding(appState.userId, buildingId);
+      appState.currentUser = result.user;
+      updateUI(appState.currentUser);
 
-    renderBuildings();
+      const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
+      if (buildingIndex !== -1) {
+        appState.allBuildings[buildingIndex] = result.building;
+      }
 
-    const config = getBuildingConfig(result.building.building_type);
-    window.tg.showAlert(
-      `⬆️ ${config.name} улучшена до уровня ${result.building.level}!`
-    );
-  } catch (error) {
-    console.error('Error upgrading building:', error);
-    window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
+      renderBuildings();
+
+      const config = getBuildingConfig(result.building.building_type);
+      window.tg.showAlert(
+        `⬆️ ${config.name} улучшена до уровня ${result.building.level}!`
+      );
+    } catch (error) {
+      console.error('Error upgrading building:', error);
+      window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
+    }
   }
 }

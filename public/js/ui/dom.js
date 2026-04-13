@@ -113,11 +113,13 @@ export function updateTreasuryModal(user) {
   if (!user) return;
 
   const treasuryLevel = user.treasury_level || 1;
+  const maxLevel = getTreasuryMaxLevel();
   const treasuryCapacity = getTreasuryCapacity(treasuryLevel);
   const treasuryAmount = user.gold || 0;
   const progressPercent = (treasuryAmount / treasuryCapacity) * 100;
 
   document.getElementById('treasury-level-display').textContent = treasuryLevel;
+  document.getElementById('treasury-max-level').textContent = maxLevel;
   document.getElementById('treasury-current-amount').textContent = formatNumber(treasuryAmount);
   document.getElementById('treasury-capacity-display').textContent = formatNumber(treasuryCapacity);
 
@@ -126,6 +128,18 @@ export function updateTreasuryModal(user) {
     statusBar.style.width = Math.min(progressPercent, 100) + '%';
     statusBar.textContent = progressPercent.toFixed(0) + '%';
   }
+
+  // Disable upgrade button if at max level
+  const upgradeBtn = document.getElementById('treasury-upgrade-btn');
+  if (upgradeBtn) {
+    if (treasuryLevel >= maxLevel) {
+      upgradeBtn.disabled = true;
+      upgradeBtn.textContent = '✅ Максимальный уровень';
+    } else {
+      upgradeBtn.disabled = false;
+      upgradeBtn.textContent = '⬆️ Улучшить';
+    }
+  }
 }
 
 // Update Storage info modal
@@ -133,9 +147,11 @@ export function updateStorageModal(user) {
   if (!user) return;
 
   const storageLevel = user.storage_level || 1;
+  const maxLevel = getStorageMaxLevel();
   const storageCapacity = getStorageCapacity(storageLevel);
 
   document.getElementById('storage-level-display').textContent = storageLevel;
+  document.getElementById('storage-max-level').textContent = maxLevel;
   document.getElementById('storage-capacity-display').textContent = formatNumber(storageCapacity);
 
   document.getElementById('storage-wood-amount').textContent = formatNumber(user.wood || 0);
@@ -146,6 +162,13 @@ export function updateStorageModal(user) {
 
   document.getElementById('storage-meat-amount').textContent = formatNumber(user.meat || 0);
   document.getElementById('storage-meat-limit').textContent = formatNumber(storageCapacity);
+
+  // Disable sell button and show note if storage is empty
+  const sellBtn = document.querySelectorAll('[onclick="openStorageSellModal()"]')[0];
+  if (sellBtn) {
+    const hasResources = (user.wood || 0) > 0 || (user.stone || 0) > 0 || (user.meat || 0) > 0;
+    sellBtn.disabled = !hasResources;
+  }
 }
 
 // Update Storage/Treasury upgrade modals with cost and capacity info
@@ -154,7 +177,18 @@ export function updateStorageUpgradeModal(user) {
 
   const currentLevel = user.storage_level || 1;
   const maxLevel = getStorageMaxLevel();
-  if (currentLevel >= maxLevel) return;
+  const btn = document.getElementById('storage-upgrade-confirm-btn');
+
+  // If at max level, disable button and show message
+  if (currentLevel >= maxLevel) {
+    btn.disabled = true;
+    btn.textContent = '✅ Максимальный уровень';
+    return;
+  }
+
+  // Re-enable button if it was disabled
+  btn.disabled = false;
+  btn.textContent = 'Улучшить';
 
   const nextLevel = currentLevel + 1;
   const currentCapacity = getStorageCapacity(currentLevel);
@@ -181,7 +215,18 @@ export function updateTreasuryUpgradeModal(user) {
 
   const currentLevel = user.treasury_level || 1;
   const maxLevel = getTreasuryMaxLevel();
-  if (currentLevel >= maxLevel) return;
+  const btn = document.getElementById('treasury-upgrade-confirm-btn');
+
+  // If at max level, disable button and show message
+  if (currentLevel >= maxLevel) {
+    btn.disabled = true;
+    btn.textContent = '✅ Максимальный уровень';
+    return;
+  }
+
+  // Re-enable button if it was disabled
+  btn.disabled = false;
+  btn.textContent = 'Улучшить';
 
   const nextLevel = currentLevel + 1;
   const currentCapacity = getTreasuryCapacity(currentLevel);

@@ -32,6 +32,7 @@ import {
   setupModalHandlers,
 } from './ui/modals/index.js';
 import { renderBuildings } from './ui/builders.js';
+import * as market from './game/market.js';
 
 // Register all event listeners
 export function setupEventListeners() {
@@ -45,9 +46,9 @@ export function setupEventListeners() {
   // Treasury modal buttons
   document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
 
-  // Market button (not implemented yet)
+  // Market button
   document.getElementById('market-btn').addEventListener('click', () => {
-    tg.showAlert('🔧 Функция "Рынок" скоро будет доступна!');
+    showPage('market');
   });
 
   // Quests modal buttons
@@ -95,10 +96,27 @@ export function setupEventListeners() {
   document.getElementById('nav-main').addEventListener('click', () => showPage('main'));
   document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));
   document.getElementById('nav-coin-mining').addEventListener('click', () => showPage('coin-mining'));
+  document.getElementById('nav-market-back').addEventListener('click', () => showPage('main'));
 
   document.getElementById('nav-barracks').addEventListener('click', () => {
     tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
   });
+
+  // Market tabs
+  document.querySelectorAll('.market-tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.market-tab-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      market.loadMarketListings(e.target.dataset.resource);
+    });
+  });
+
+  // Price modal input handlers
+  document.getElementById('price-per-unit')?.addEventListener('input', market.updatePriceTotal);
+  document.getElementById('price-quantity')?.addEventListener('input', market.updatePriceTotal);
+
+  // Buy modal input handlers
+  document.getElementById('buy-quantity')?.addEventListener('input', market.updateBuyTotal);
 
   // Building type tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -143,4 +161,17 @@ export function setupEventListeners() {
   window.setMaxWarehouseMeat = setMaxWarehouseMeat;
   window.sellWarehouseResources = sellWarehouseResources;
   window.upgradeWarehouseToLevel = upgradeWarehouseToLevel;
+
+  // Market functions
+  window.market = market;
+  window.openSetPriceModal = market.openSetPriceModal;
+  window.closeSetPriceModal = market.closeSetPriceModal;
+  window.setMaxPriceQuantity = market.setMaxPriceQuantity;
+  window.confirmSellPrice = market.confirmSellPrice;
+  window.openBuyQuantityModal = market.openBuyQuantityModal;
+  window.closeBuyQuantityModal = market.closeBuyQuantityModal;
+  window.setMaxBuyQuantity = market.setMaxBuyQuantity;
+  window.confirmBuyQuantity = market.confirmBuyQuantity;
+  window.updatePriceTotal = market.updatePriceTotal;
+  window.updateBuyTotal = market.updateBuyTotal;
 }

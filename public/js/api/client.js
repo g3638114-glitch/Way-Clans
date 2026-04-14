@@ -167,4 +167,82 @@ export const apiClient = {
     }
     return response.json();
   },
+
+  // Create market listing
+  async createMarketListing(userId, { resourceType, quantity, pricePerUnit }) {
+    const response = await fetch(`/api/user/${userId}/market/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ resourceType, quantity, pricePerUnit }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create listing');
+    }
+    return response.json();
+  },
+
+  // Get market listings for a resource
+  async getMarketListings(userId, resourceType) {
+    const response = await fetch(`/api/user/${userId}/market/listings/${resourceType}`);
+    if (!response.ok) {
+      throw new Error('Failed to load market listings');
+    }
+    return response.json();
+  },
+
+  // Get user's market listings
+  async getMyMarketListings(userId) {
+    const response = await fetch(`/api/user/${userId}/market/my-listings`);
+    if (!response.ok) {
+      throw new Error('Failed to load your listings');
+    }
+    return response.json();
+  },
+
+  // Buy from market listing
+  async buyFromMarketListing(userId, listingId, quantity) {
+    const response = await fetch(`/api/user/${userId}/market/buy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ listingId, quantity }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to buy from listing');
+    }
+    return response.json();
+  },
+
+  // Delete market listing
+  async deleteMarketListing(userId, listingId) {
+    const response = await fetch(`/api/user/${userId}/market/${listingId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete listing');
+    }
+    return response.json();
+  },
+
+  // Edit market listing
+  async editMarketListing(userId, listingId, { quantity, pricePerUnit }) {
+    const response = await fetch(`/api/user/${userId}/market/${listingId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ quantity, pricePerUnit }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to edit listing');
+    }
+    return response.json();
+  },
 };

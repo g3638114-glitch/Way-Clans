@@ -2,6 +2,7 @@ import { appState } from '../../utils/state.js';
 import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { getMaxWarehouseLevel, getWarehouseCapacity, getWarehouseUpgradeCost } from '../../game/config.js';
+import { updateWarehouseSellModal } from '../../game/market.js';
 
 export function openWarehouseModal() {
   renderWarehouseContent();
@@ -14,6 +15,7 @@ export function closeWarehouseModal() {
 
 export function openWarehouseSellModal() {
   updateWarehouseSellDisplay();
+  updateWarehouseSellModal(); // Update with market module data
   document.getElementById('warehouse-sell-modal').classList.add('active');
 }
 

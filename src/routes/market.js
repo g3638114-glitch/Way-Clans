@@ -4,6 +4,7 @@ import {
   getListingsByResource,
   getUserListings,
   cancelListing,
+  updateListing,
   buyListing,
 } from '../services/marketService.js';
 
@@ -47,6 +48,24 @@ router.get('/:userId/market/my-listings', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error fetching user listings:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+// PUT /api/user/:userId/market/listings/:listingId
+router.put('/:userId/market/listings/:listingId', async (req, res) => {
+  try {
+    const { userId, listingId } = req.params;
+    const { price } = req.body;
+
+    if (!price || price < 1) {
+      return res.status(400).json({ error: 'Invalid price' });
+    }
+
+    const result = await updateListing(listingId, userId, price);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating listing:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

@@ -41,6 +41,10 @@ import {
   decrementBuyQuantity,
   setMaxBuyQuantity,
   confirmBuyFromMarket,
+  openEditListingModal,
+  closeEditListingModal,
+  updateEditPriceDisplay,
+  confirmEditListing,
   updateWarehouseSellDisplay,
   setupModalHandlers,
 } from './ui/modals/index.js';
@@ -167,5 +171,12 @@ export function setupEventListeners() {
   window.decrementBuyQuantity = decrementBuyQuantity;
   window.setMaxBuyQuantity = setMaxBuyQuantity;
   window.confirmBuyFromMarket = confirmBuyFromMarket;
+  window.openEditListingModal = openEditListingModal;
+  window.closeEditListingModal = closeEditListingModal;
+  window.updateEditPriceDisplay = updateEditPriceDisplay;
+  window.confirmEditListing = confirmEditListing;
   window.updateWarehouseSellDisplay = updateWarehouseSellDisplay;
+
+  // Page navigation functions
+  window.showPage = showPage;
 }

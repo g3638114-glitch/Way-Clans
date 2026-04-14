@@ -214,6 +214,22 @@ export const apiClient = {
     return response.json();
   },
 
+  // Market - Update listing price
+  async updateMarketListing(userId, listingId, price) {
+    const response = await fetch(`/api/user/${userId}/market/listings/${listingId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ price }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update listing');
+    }
+    return response.json();
+  },
+
   // Market - Buy listing
   async buyFromMarket(userId, listingId, quantity) {
     const response = await fetch(`/api/user/${userId}/market/buy`, {

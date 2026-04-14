@@ -19,11 +19,11 @@ let currentMarketFilter = 'wood';
 export function openMarketModal() {
   renderMarketListings('wood');
   currentMarketFilter = 'wood';
-  document.getElementById('market-modal').classList.add('active');
+  window.showPage('market');
 }
 
 export function closeMarketModal() {
-  document.getElementById('market-modal').classList.remove('active');
+  window.showPage('main');
 }
 
 export function openSellPriceModal(resourceType) {
@@ -186,10 +186,11 @@ async function renderMarketListings(resourceType) {
               ? `<div class="listing-seller">👤 ${listing.users.username || 'Unknown'}</div>`
               : ''
           }
-          <div class="listing-actions ${isMyListing ? 'single' : ''}">
+          <div class="listing-actions ${isMyListing ? '' : 'single'}">
             ${
               isMyListing
                 ? `
+              <button class="btn btn-edit" onclick="openEditListingModal('${listing.id}', '${listing.resource_type}', ${listing.quantity}, ${listing.price_per_unit})">✏️ Редакт.</button>
               <button class="btn btn-cancel" onclick="cancelMarketListing('${listing.id}')">🗑 Удалить</button>
             `
                 : `
@@ -242,7 +243,7 @@ export function openMarketBuyModal(listingId, pricePerUnit, availableQuantity, r
   document.getElementById('buy-price-per-unit').textContent = pricePerUnit;
   document.getElementById('buy-available-quantity').textContent = availableQuantity;
   document.getElementById('buy-quantity-input').value = '1';
-  document.getElementById('buy-player-balance').textContent = appState.currentUser.gold || 0;
+  document.getElementById('buy-player-balance').textContent = appState.currentUser?.gold || 0;
 
   updateBuyPriceDisplay();
   document.getElementById('market-buy-modal').classList.add('active');
@@ -284,7 +285,7 @@ function updateBuyPriceDisplay() {
   document.getElementById('buy-total-price').textContent = total;
 
   // Check if player has enough gold
-  const hasEnough = (appState.currentUser.gold || 0) >= total;
+  const hasEnough = (appState.currentUser?.gold || 0) >= total;
   const buyBtn = document.getElementById('buy-confirm-btn');
   buyBtn.disabled = !hasEnough;
   buyBtn.className = hasEnough ? 'btn btn-primary' : 'btn btn-primary disabled';
@@ -318,4 +319,66 @@ export function updateWarehouseSellDisplay() {
   document.getElementById('sell-wood-amount').textContent = appState.currentUser.wood;
   document.getElementById('sell-stone-amount').textContent = appState.currentUser.stone;
   document.getElementById('sell-meat-amount').textContent = appState.currentUser.meat;
+}
+
+// State for edit listing modal
+let currentEditListingId = null;
+let currentEditResourceType = null;
+let currentEditQuantity = 0;
+let currentEditPrice = 0;
+
+export function openEditListingModal(listingId, resourceType, quantity, price) {
+  currentEditListingId = listingId;
+  currentEditResourceType = resourceType;
+  currentEditQuantity = quantity;
+  currentEditPrice = price;
+
+  // Update display
+  const resourceIcons = { wood: '🌲', stone: '🪨', meat: '🍖' };
+  const resourceNames = { wood: 'Дерево', stone: 'Камень', meat: 'Мясо' };
+
+  document.getElementById('edit-resource-type').textContent = `${resourceIcons[resourceType]} ${resourceNames[resourceType]}`;
+  document.getElementById('edit-quantity-display').textContent = quantity;
+  document.getElementById('edit-price-input').value = price;
+  document.getElementById('edit-price-display').textContent = price;
+
+  document.getElementById('edit-listing-modal').classList.add('active');
+}
+
+export function closeEditListingModal() {
+  document.getElementById('edit-listing-modal').classList.remove('active');
+  currentEditListingId = null;
+  currentEditResourceType = null;
+  currentEditQuantity = 0;
+  currentEditPrice = 0;
+}
+
+export function updateEditPriceDisplay() {
+  const priceInput = document.getElementById('edit-price-input').value;
+  currentEditPrice = parseInt(priceInput) || 0;
+  document.getElementById('edit-price-display').textContent = currentEditPrice;
+}
+
+export async function confirmEditListing() {
+  try {
+    const newPrice = parseInt(document.getElementById('edit-price-input').value);
+
+    if (!newPrice || newPrice < 1) {
+      tg.showAlert('Введите корректную цену');
+      return;
+    }
+
+    // Note: This assumes your API supports updating listings
+    // If your API doesn't support this, you'll need to delete and recreate the listing
+    const result = await apiClient.updateMarketListing(appState.userId, currentEditListingId, newPrice);
+
+    closeEditListingModal();
+    tg.showAlert('✅ Объявление обновлено!');
+
+    // Refresh market view
+    renderMarketListings(currentMarketFilter);
+  } catch (error) {
+    console.error('Error updating listing:', error);
+    tg.showAlert(error.message || 'Ошибка при обновлении объявления');
+  }
 }

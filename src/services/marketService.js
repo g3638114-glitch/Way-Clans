@@ -226,6 +226,64 @@ export async function cancelListing(listingId, userId) {
 }
 
 /**
+ * Update a listing price
+ */
+export async function updateListing(listingId, userId, newPrice) {
+  try {
+    // Get listing
+    const { data: listing, error: listingError } = await supabase
+      .from('market_listings')
+      .select('*')
+      .eq('id', listingId)
+      .single();
+
+    if (listingError || !listing) {
+      throw new Error('Listing not found');
+    }
+
+    // Get user
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', userId)
+      .single();
+
+    if (userError || !user) {
+      throw new Error('User not found');
+    }
+
+    // Verify user is the seller
+    if (listing.seller_id !== user.id) {
+      throw new Error('Not authorized to update this listing');
+    }
+
+    // Validate new price
+    if (!newPrice || newPrice < 1) {
+      throw new Error('Invalid price');
+    }
+
+    // Update listing price
+    const { data: updatedListing, error: updateError } = await supabase
+      .from('market_listings')
+      .update({
+        price_per_unit: newPrice,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', listingId)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw new Error('Failed to update listing');
+    }
+
+    return { success: true, listing: updatedListing };
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
  * Buy a listing from market
  */
 export async function buyListing(listingId, buyerId, quantityToBuy) {

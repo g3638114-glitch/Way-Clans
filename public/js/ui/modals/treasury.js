@@ -40,9 +40,9 @@ async function renderTreasuryContent() {
       const nextLevel = currentLevel + 1;
       const costData = getTreasuryUpgradeCost(nextLevel);
 
-      const hasJamcoins = (appState.currentUser.gold || 0) >= costData.jamcoins;
-      const hasStone = (appState.currentUser.stone || 0) >= costData.stone;
-      const hasWood = (appState.currentUser.wood || 0) >= costData.wood;
+      const hasJamcoins = (appState.currentUser?.gold || 0) >= costData.jamcoins;
+      const hasStone = (appState.currentUser?.stone || 0) >= costData.stone;
+      const hasWood = (appState.currentUser?.wood || 0) >= costData.wood;
       const canUpgrade = hasJamcoins && hasStone && hasWood;
 
       upgradeBtn.style.display = 'block';
@@ -73,7 +73,7 @@ function renderUpgradeInfo(currentLevel, currentJamcoins) {
   const nextCapacity = getTreasuryCapacity(nextLevel);
   const costData = getTreasuryUpgradeCost(nextLevel);
 
-  const user = appState.currentUser;
+  const user = appState.currentUser || {};
   const hasJamcoins = (user.gold || 0) >= costData.jamcoins;
   const hasStone = (user.stone || 0) >= costData.stone;
   const hasWood = (user.wood || 0) >= costData.wood;

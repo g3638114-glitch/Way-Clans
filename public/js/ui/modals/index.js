@@ -58,6 +58,10 @@ import {
   decrementBuyQuantity,
   setMaxBuyQuantity,
   confirmBuyFromMarket,
+  openEditListingModal,
+  closeEditListingModal,
+  updateEditPriceDisplay,
+  confirmEditListing,
   updateWarehouseSellDisplay,
 } from './market.js';
 
@@ -103,6 +107,10 @@ export {
   decrementBuyQuantity,
   setMaxBuyQuantity,
   confirmBuyFromMarket,
+  openEditListingModal,
+  closeEditListingModal,
+  updateEditPriceDisplay,
+  confirmEditListing,
   updateWarehouseSellDisplay,
 };
 
@@ -165,6 +173,12 @@ export function setupModalHandlers() {
   document.getElementById('market-buy-modal').addEventListener('click', (e) => {
     if (e.target.id === 'market-buy-modal') {
       closeMarketBuyModal();
+    }
+  });
+
+  document.getElementById('edit-listing-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'edit-listing-modal') {
+      closeEditListingModal();
     }
   });
 }

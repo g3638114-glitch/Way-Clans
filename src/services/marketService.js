@@ -4,18 +4,55 @@ import { getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.j
 /**
  * Get or create user
  */
-async function getOrCreateUser(telegramId) {
+async function getOrCreateUser(telegramId, userInfo = null) {
   const { data: user, error } = await supabase
     .from('users')
     .select('*')
     .eq('telegram_id', telegramId)
     .single();
 
-  if (error && error.code !== 'PGRST116') {
-    throw new Error('User not found');
+  // User exists - return it
+  if (!error) {
+    return user;
   }
 
-  return user;
+  // User doesn't exist - create new
+  if (error.code === 'PGRST116') {
+    console.log(`📝 Creating new user ${telegramId}`);
+
+    // Use provided Telegram user info or defaults
+    const username = userInfo?.username || `user_${telegramId}`;
+    const firstName = userInfo?.first_name || 'Player';
+
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        telegram_id: telegramId,
+        username: username,
+        first_name: firstName,
+        photo_url: null,
+        gold: 5000,
+        wood: 2500,
+        stone: 2500,
+        meat: 500,
+        jabcoins: 0,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Error creating user:', insertError);
+      throw new Error('Failed to create user');
+    }
+
+    console.log(`✅ User ${telegramId} created successfully (${firstName}/${username})`);
+
+    return newUser;
+  }
+
+  // Some other error occurred
+  throw new Error('User not found');
 }
 
 

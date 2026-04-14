@@ -10,7 +10,8 @@ export function showPage(page) {
   document.getElementById('main-page').classList.remove('active');
   document.getElementById('mining-page').classList.remove('active');
   document.getElementById('coin-mining-page').classList.remove('active');
-  document.getElementById('market-page').classList.remove('active');
+  document.getElementById('sell-page').classList.remove('active');
+  document.getElementById('marketplace-page').classList.remove('active');
 
   // Update nav items
   const navItems = document.querySelectorAll('.nav-item');
@@ -39,10 +40,15 @@ export function showPage(page) {
     stopProductionRefresh();
     // Hide resources header on coin mining page
     if (resourcesHeader) resourcesHeader.style.display = 'none';
-  } else if (page === 'market') {
-    document.getElementById('market-page').classList.add('active');
+  } else if (page === 'sell') {
+    document.getElementById('sell-page').classList.add('active');
     stopProductionRefresh();
-    // Show resources header on market page
+    // Show resources header on sell page
+    if (resourcesHeader) resourcesHeader.style.display = 'grid';
+  } else if (page === 'marketplace') {
+    document.getElementById('marketplace-page').classList.add('active');
+    stopProductionRefresh();
+    // Show resources header on marketplace page
     if (resourcesHeader) resourcesHeader.style.display = 'grid';
   }
 }

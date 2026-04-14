@@ -24,30 +24,30 @@ import {
   closeWarehouseModal,
   openWarehouseSellModal,
   closeWarehouseSellModal,
+  setMaxWarehouseWood,
+  setMaxWarehouseStone,
+  setMaxWarehouseMeat,
+  sellWarehouseResources,
   upgradeWarehouseToLevel,
-  openMarketModal,
-  closeMarketModal,
-  openSellPriceModal,
-  closeSellPriceModal,
-  incrementSellQuantity,
-  decrementSellQuantity,
-  setSellMaxQuantity,
-  confirmSellPrice,
-  filterMarketByResource,
-  cancelMarketListing,
-  openMarketBuyModal,
-  closeMarketBuyModal,
-  incrementBuyQuantity,
-  decrementBuyQuantity,
-  setMaxBuyQuantity,
-  confirmBuyFromMarket,
-  openEditListingModal,
-  closeEditListingModal,
-  updateEditPriceDisplay,
-  confirmEditListing,
-  updateWarehouseSellDisplay,
   setupModalHandlers,
 } from './ui/modals/index.js';
+import {
+  openSellPage,
+  openMarketplaceSellModal,
+  closeMarketplaceSellModal,
+  setMaxMarketplaceQuantity,
+  createMarketplaceListing,
+  openMarketplace,
+  openMarketplaceBuyModal,
+  closeMarketplaceBuyModal,
+  setMaxBuyQuantity,
+  confirmMarketplaceBuy,
+  openEditListingModal,
+  closeEditListingModal,
+  setMaxEditQuantity,
+  confirmEditListing,
+  closeMarketplaceAndReturnMain,
+} from './ui/marketplace.js';
 import { renderBuildings } from './ui/builders.js';
 
 // Register all event listeners
@@ -63,7 +63,9 @@ export function setupEventListeners() {
   document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
 
   // Market button
-  document.getElementById('market-btn').addEventListener('click', openMarketModal);
+  document.getElementById('market-btn').addEventListener('click', () => {
+    openMarketplace();
+  });
 
   // Quests modal buttons
   document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
@@ -153,30 +155,26 @@ export function setupEventListeners() {
   window.closeWarehouseModal = closeWarehouseModal;
   window.openWarehouseSellModal = openWarehouseSellModal;
   window.closeWarehouseSellModal = closeWarehouseSellModal;
+  window.setMaxWarehouseWood = setMaxWarehouseWood;
+  window.setMaxWarehouseStone = setMaxWarehouseStone;
+  window.setMaxWarehouseMeat = setMaxWarehouseMeat;
+  window.sellWarehouseResources = sellWarehouseResources;
   window.upgradeWarehouseToLevel = upgradeWarehouseToLevel;
 
-  window.openMarketModal = openMarketModal;
-  window.closeMarketModal = closeMarketModal;
-  window.openSellPriceModal = openSellPriceModal;
-  window.closeSellPriceModal = closeSellPriceModal;
-  window.incrementSellQuantity = incrementSellQuantity;
-  window.decrementSellQuantity = decrementSellQuantity;
-  window.setSellMaxQuantity = setSellMaxQuantity;
-  window.confirmSellPrice = confirmSellPrice;
-  window.filterMarketByResource = filterMarketByResource;
-  window.cancelMarketListing = cancelMarketListing;
-  window.openMarketBuyModal = openMarketBuyModal;
-  window.closeMarketBuyModal = closeMarketBuyModal;
-  window.incrementBuyQuantity = incrementBuyQuantity;
-  window.decrementBuyQuantity = decrementBuyQuantity;
+  // Marketplace functions
+  window.openSellPage = openSellPage;
+  window.openMarketplaceSellModal = openMarketplaceSellModal;
+  window.closeMarketplaceSellModal = closeMarketplaceSellModal;
+  window.setMaxMarketplaceQuantity = setMaxMarketplaceQuantity;
+  window.createMarketplaceListing = createMarketplaceListing;
+  window.openMarketplace = openMarketplace;
+  window.openMarketplaceBuyModal = openMarketplaceBuyModal;
+  window.closeMarketplaceBuyModal = closeMarketplaceBuyModal;
   window.setMaxBuyQuantity = setMaxBuyQuantity;
-  window.confirmBuyFromMarket = confirmBuyFromMarket;
+  window.confirmMarketplaceBuy = confirmMarketplaceBuy;
   window.openEditListingModal = openEditListingModal;
   window.closeEditListingModal = closeEditListingModal;
-  window.updateEditPriceDisplay = updateEditPriceDisplay;
+  window.setMaxEditQuantity = setMaxEditQuantity;
   window.confirmEditListing = confirmEditListing;
-  window.updateWarehouseSellDisplay = updateWarehouseSellDisplay;
-
-  // Page navigation functions
-  window.showPage = showPage;
+  window.closeMarketplaceAndReturnMain = closeMarketplaceAndReturnMain;
 }

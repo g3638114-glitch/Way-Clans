@@ -77,8 +77,7 @@ export function openUpgradeModal(buildingId, currentLevel) {
     playerGoldInfoEl.textContent = '';
   } else {
     // Others cost gold
-    const playerGold = appState.currentUser?.gold || 0;
-    const hasGold = playerGold >= costData.gold;
+    const hasGold = appState.currentUser.gold >= costData.gold;
     canAfford = hasGold;
 
     costValueEl.textContent = formatNumber(costData.gold);
@@ -87,7 +86,7 @@ export function openUpgradeModal(buildingId, currentLevel) {
       costIconEl.style.display = 'inline';
       costIconEl.textContent = '💰';
     }
-    playerGoldInfoEl.innerHTML = `Ваши Jamcoins: <span style="color: #d4af37; font-weight: bold;">${formatNumber(playerGold)} 💰</span>`;
+    playerGoldInfoEl.innerHTML = `Ваши Jamcoins: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
   }
 
   // Enable/disable upgrade button

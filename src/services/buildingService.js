@@ -227,7 +227,7 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
         stone: '🪨',
         meat: '🍖',
       };
-      throw new Error(`Склад переполнен! Собрать невозможно. ${collectedAmount} ${resourceNames[resourceType]}. Вместимость: ${warehouseCapacity}, У вас: ${user[resourceType] || 0} ${resourceEmojis[resourceType]}`);
+      throw new Error(`Warehouse is full! Cannot collect ${collectedAmount} ${resourceNames[resourceType]}. Capacity: ${warehouseCapacity}, Current: ${user[resourceType] || 0} ${resourceEmojis[resourceType]}`);
     }
   }
 

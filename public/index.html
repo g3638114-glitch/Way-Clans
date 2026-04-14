@@ -128,17 +128,6 @@
         </div>
       </div>
 
-      <!-- Sell Page -->
-      <div id="sell-page" class="page">
-        <div class="sell-header">
-          <h2>💱 Продать ресурсы</h2>
-          <button class="btn btn-secondary" onclick="closeMarketplaceAndReturnMain()">← Вернуться</button>
-        </div>
-        <div class="sell-resources-list" id="sell-resources-list">
-          <!-- Resource buttons will be inserted here -->
-        </div>
-      </div>
-
       <!-- Marketplace Page -->
       <div id="marketplace-page" class="page">
         <div class="marketplace-header">
@@ -162,51 +151,18 @@
     </nav>
   </div>
 
-  <!-- Storage Modal -->
-  <div class="modal" id="storage-modal">
-    <div class="modal-content">
+  <!-- Marketplace Resource Menu (inline) -->
+  <div class="modal" id="marketplace-resource-menu">
+    <div class="modal-content modal-content-compact">
       <div class="modal-header">
-        <h2>📦 Склад</h2>
-        <button class="close-btn" onclick="closeStorageModal()">&times;</button>
+        <h2>🛍 Выставить на рынок</h2>
+        <button class="close-btn" onclick="closeMarketplaceResourceMenu()">&times;</button>
       </div>
 
       <div class="modal-body">
-        <div class="resource-input-group">
-          <div class="resource-row">
-            <span>🌲 Дерево: <span id="storage-wood">2 500</span></span>
-            <div class="input-controls">
-              <input type="number" id="wood-input" min="0" placeholder="0">
-              <button class="max-btn" onclick="setMaxWood()">Макс</button>
-            </div>
-          </div>
+        <div class="marketplace-resource-menu-list" id="marketplace-resource-menu-list">
+          <!-- Resource buttons will be inserted here -->
         </div>
-
-        <div class="resource-input-group">
-          <div class="resource-row">
-            <span>🪨 Камень: <span id="storage-stone">2 500</span></span>
-            <div class="input-controls">
-              <input type="number" id="stone-input" min="0" placeholder="0">
-              <button class="max-btn" onclick="setMaxStone()">Макс</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="resource-input-group">
-          <div class="resource-row">
-            <span>🍖 Мясо: <span id="storage-meat">500</span></span>
-            <div class="input-controls">
-              <input type="number" id="meat-input" min="0" placeholder="0">
-              <button class="max-btn" onclick="setMaxMeat()">Макс</button>
-            </div>
-          </div>
-        </div>
-
-        <p class="storage-hint">(Введите количество ресурсов для продажи)</p>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="sellResources()">Продать</button>
-        <button class="btn btn-secondary" onclick="closeStorageModal()">Закрыть</button>
       </div>
     </div>
   </div>
@@ -407,58 +363,8 @@
 
       <div class="modal-footer">
         <button class="btn btn-primary" id="warehouse-upgrade-btn" onclick="upgradeWarehouseToLevel()" style="display:none;">Улучшить</button>
-        <button class="btn btn-secondary" id="warehouse-marketplace-btn" onclick="openSellPage()">🛍 На рынок</button>
-        <button class="btn btn-secondary" id="warehouse-sell-btn" onclick="openWarehouseSellModal()">Продать</button>
+        <button class="btn btn-secondary" id="warehouse-marketplace-btn" onclick="openMarketplaceResourceMenu()">🛍 На рынок</button>
         <button class="btn btn-secondary" onclick="closeWarehouseModal()">Закрыть</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Warehouse Sell Modal (for selling resources from warehouse) -->
-  <div class="modal" id="warehouse-sell-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>💱 Продать ресурсы</h2>
-        <button class="close-btn" onclick="closeWarehouseSellModal()">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="resource-input-group">
-          <div class="resource-row">
-            <span>🌲 Дерево: <span id="warehouse-sell-wood">0</span></span>
-            <div class="input-controls">
-              <input type="number" id="warehouse-wood-input" min="0" placeholder="0">
-              <button class="max-btn" onclick="setMaxWarehouseWood()">Макс</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="resource-input-group">
-          <div class="resource-row">
-            <span>🪨 Камень: <span id="warehouse-sell-stone">0</span></span>
-            <div class="input-controls">
-              <input type="number" id="warehouse-stone-input" min="0" placeholder="0">
-              <button class="max-btn" onclick="setMaxWarehouseStone()">Макс</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="resource-input-group">
-          <div class="resource-row">
-            <span>🍖 Мясо: <span id="warehouse-sell-meat">0</span></span>
-            <div class="input-controls">
-              <input type="number" id="warehouse-meat-input" min="0" placeholder="0">
-              <button class="max-btn" onclick="setMaxWarehouseMeat()">Макс</button>
-            </div>
-          </div>
-        </div>
-
-        <p class="storage-hint">(Введите количество ресурсов для продажи)</p>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="sellWarehouseResources()">Продать</button>
-        <button class="btn btn-secondary" onclick="closeWarehouseSellModal()">Закрыть</button>
       </div>
     </div>
   </div>

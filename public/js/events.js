@@ -3,12 +3,6 @@ import { showPage } from './ui/pages.js';
 import { updateUI } from './ui/dom.js';
 import { apiClient } from './api/client.js';
 import {
-  openStorageModal,
-  closeStorageModal,
-  setMaxWood,
-  setMaxStone,
-  setMaxMeat,
-  sellResources,
   openExchangeModal,
   closeExchangeModal,
   updateExchangeResult,
@@ -22,17 +16,12 @@ import {
   upgradeTreasuryToLevel,
   openWarehouseModal,
   closeWarehouseModal,
-  openWarehouseSellModal,
-  closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
   upgradeWarehouseToLevel,
   setupModalHandlers,
 } from './ui/modals/index.js';
 import {
-  openSellPage,
+  openMarketplaceResourceMenu,
+  closeMarketplaceResourceMenu,
   openMarketplaceSellModal,
   closeMarketplaceSellModal,
   setMaxMarketplaceQuantity,
@@ -131,13 +120,6 @@ export function setupEventListeners() {
   setupModalHandlers();
 
   // Make functions available globally for onclick handlers
-  window.openStorageModal = openStorageModal;
-  window.closeStorageModal = closeStorageModal;
-  window.setMaxWood = setMaxWood;
-  window.setMaxStone = setMaxStone;
-  window.setMaxMeat = setMaxMeat;
-  window.sellResources = sellResources;
-
   window.openExchangeModal = openExchangeModal;
   window.closeExchangeModal = closeExchangeModal;
   window.exchangeGold = exchangeGold;
@@ -153,16 +135,11 @@ export function setupEventListeners() {
 
   window.openWarehouseModal = openWarehouseModal;
   window.closeWarehouseModal = closeWarehouseModal;
-  window.openWarehouseSellModal = openWarehouseSellModal;
-  window.closeWarehouseSellModal = closeWarehouseSellModal;
-  window.setMaxWarehouseWood = setMaxWarehouseWood;
-  window.setMaxWarehouseStone = setMaxWarehouseStone;
-  window.setMaxWarehouseMeat = setMaxWarehouseMeat;
-  window.sellWarehouseResources = sellWarehouseResources;
   window.upgradeWarehouseToLevel = upgradeWarehouseToLevel;
 
   // Marketplace functions
-  window.openSellPage = openSellPage;
+  window.openMarketplaceResourceMenu = openMarketplaceResourceMenu;
+  window.closeMarketplaceResourceMenu = closeMarketplaceResourceMenu;
   window.openMarketplaceSellModal = openMarketplaceSellModal;
   window.closeMarketplaceSellModal = closeMarketplaceSellModal;
   window.setMaxMarketplaceQuantity = setMaxMarketplaceQuantity;

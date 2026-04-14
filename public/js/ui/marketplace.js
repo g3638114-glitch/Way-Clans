@@ -15,25 +15,34 @@ let currentMarketplaceListingData = null;
 let currentEditingListing = null;
 
 /**
- * Open the sell page with resource buttons
+ * Open inline marketplace resource menu
  */
-export function openSellPage() {
-  const sellResourcesList = document.getElementById('sell-resources-list');
-  sellResourcesList.innerHTML = '';
+export function openMarketplaceResourceMenu() {
+  const menuList = document.getElementById('marketplace-resource-menu-list');
+  menuList.innerHTML = '';
 
   // Add resource buttons
   Object.entries(RESOURCES).forEach(([resourceKey, resourceData]) => {
     const amount = appState.currentUser[resourceKey] || 0;
     const btn = document.createElement('button');
-    btn.className = 'btn sell-resource-btn';
-    btn.innerHTML = `${resourceData.emoji} ${resourceData.name}: ${amount} — Нажмите чтобы продать`;
+    btn.className = 'btn marketplace-resource-menu-btn';
+    btn.innerHTML = `${resourceData.emoji} ${resourceData.name}: ${amount}`;
     btn.addEventListener('click', () => {
+      closeMarketplaceResourceMenu();
       openMarketplaceSellModal(resourceKey);
     });
-    sellResourcesList.appendChild(btn);
+    menuList.appendChild(btn);
   });
 
-  showPage('sell');
+  // Show modal
+  document.getElementById('marketplace-resource-menu').style.display = 'flex';
+}
+
+/**
+ * Close marketplace resource menu
+ */
+export function closeMarketplaceResourceMenu() {
+  document.getElementById('marketplace-resource-menu').style.display = 'none';
 }
 
 /**

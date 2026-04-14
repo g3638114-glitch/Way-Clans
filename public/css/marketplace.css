@@ -1,34 +1,33 @@
-/* Sell Page */
-#sell-page {
+/* Marketplace Resource Menu (inline) */
+#marketplace-resource-menu {
   display: none;
-  flex-direction: column;
-  padding: 15px;
-  gap: 20px;
-}
-
-#sell-page.active {
-  display: flex;
-}
-
-.sell-header {
-  display: flex;
-  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
   align-items: center;
+  justify-content: center;
+}
+
+#marketplace-resource-menu.show {
+  display: flex;
+}
+
+.modal-content-compact {
+  max-width: 350px;
+  width: 90%;
+}
+
+.marketplace-resource-menu-list {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.sell-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
-.sell-resources-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.sell-resource-btn {
+.marketplace-resource-menu-btn {
   padding: 15px;
   border: 2px solid #ddd;
   border-radius: 10px;
@@ -38,15 +37,15 @@
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-align: left;
+  text-align: center;
 }
 
-.sell-resource-btn:hover {
+.marketplace-resource-menu-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.sell-resource-btn:active {
+.marketplace-resource-menu-btn:active {
   transform: translateY(0);
 }
 

@@ -168,16 +168,14 @@ export const apiClient = {
     return response.json();
   },
 
-  // Marketplace methods
-
-  // Create marketplace listing
-  async createMarketplaceListing(userId, resourceType, pricePerUnit, quantity) {
-    const response = await fetch(`/api/user/${userId}/marketplace/listings`, {
+  // Create market listing
+  async createMarketListing(userId, { resourceType, quantity, pricePerUnit }) {
+    const response = await fetch(`/api/user/${userId}/market/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ resource_type: resourceType, price_per_unit: pricePerUnit, quantity }),
+      body: JSON.stringify({ resourceType, quantity, pricePerUnit }),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -186,45 +184,43 @@ export const apiClient = {
     return response.json();
   },
 
-  // Get marketplace listings by resource type
-  async getMarketplaceListings(userId, resourceType) {
-    const response = await fetch(`/api/user/${userId}/marketplace/listings/${resourceType}`);
+  // Get market listings for a resource
+  async getMarketListings(userId, resourceType) {
+    const response = await fetch(`/api/user/${userId}/market/listings/${resourceType}`);
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to load listings');
+      throw new Error('Failed to load market listings');
     }
     return response.json();
   },
 
-  // Get user's own marketplace listings
-  async getMarketplaceUserListings(userId) {
-    const response = await fetch(`/api/user/${userId}/marketplace/my-listings`);
+  // Get user's market listings
+  async getMyMarketListings(userId) {
+    const response = await fetch(`/api/user/${userId}/market/my-listings`);
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to load your listings');
+      throw new Error('Failed to load your listings');
     }
     return response.json();
   },
 
-  // Buy from marketplace listing
-  async buyFromMarketplace(userId, listingId, quantity) {
-    const response = await fetch(`/api/user/${userId}/marketplace/buy`, {
+  // Buy from market listing
+  async buyFromMarketListing(userId, listingId, quantity) {
+    const response = await fetch(`/api/user/${userId}/market/buy`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ listing_id: listingId, quantity }),
+      body: JSON.stringify({ listingId, quantity }),
     });
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to buy from marketplace');
+      throw new Error(error.error || 'Failed to buy from listing');
     }
     return response.json();
   },
 
-  // Delete marketplace listing
-  async deleteMarketplaceListing(userId, listingId) {
-    const response = await fetch(`/api/user/${userId}/marketplace/listings/${listingId}`, {
+  // Delete market listing
+  async deleteMarketListing(userId, listingId) {
+    const response = await fetch(`/api/user/${userId}/market/${listingId}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -234,14 +230,14 @@ export const apiClient = {
     return response.json();
   },
 
-  // Edit marketplace listing
-  async editMarketplaceListing(userId, listingId, pricePerUnit, quantity) {
-    const response = await fetch(`/api/user/${userId}/marketplace/listings/${listingId}`, {
-      method: 'PUT',
+  // Edit market listing
+  async editMarketListing(userId, listingId, { quantity, pricePerUnit }) {
+    const response = await fetch(`/api/user/${userId}/market/${listingId}`, {
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ price_per_unit: pricePerUnit, quantity }),
+      body: JSON.stringify({ quantity, pricePerUnit }),
     });
     if (!response.ok) {
       const error = await response.json();

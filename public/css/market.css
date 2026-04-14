@@ -1,0 +1,336 @@
+/* ========================================
+   MARKET PAGE STYLES
+   ======================================== */
+
+.market-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(76, 111, 166, 0.05);
+  border-radius: 10px;
+}
+
+.market-tab-btn {
+  padding: 12px 10px;
+  background: rgba(76, 111, 166, 0.2);
+  border: 2px solid rgba(76, 111, 166, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.market-tab-btn:hover {
+  background: rgba(76, 111, 166, 0.3);
+  border-color: rgba(76, 111, 166, 0.5);
+}
+
+.market-tab-btn.active {
+  background: linear-gradient(135deg, #4c6fa6 0%, #3a5080 100%);
+  border-color: #4c6fa6;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.3);
+}
+
+/* ========================================
+   MARKET LISTINGS CONTAINER
+   ======================================== */
+
+.market-listings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ========================================
+   MARKET LISTING ITEM
+   ======================================== */
+
+.market-listing-item {
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(76, 111, 166, 0.3);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.market-listing-item:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(76, 111, 166, 0.5);
+  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.2);
+}
+
+.listing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.seller-info {
+  flex: 1;
+}
+
+.seller-info strong {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.listing-price {
+  background: rgba(212, 175, 55, 0.2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.listing-price span {
+  color: #d4af37;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.listing-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.listing-quantity {
+  flex: 1;
+}
+
+.listing-quantity p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.listing-quantity strong {
+  color: #fff;
+  font-size: 16px;
+}
+
+/* ========================================
+   MY LISTINGS ITEM
+   ======================================== */
+
+.market-listing-item.my-listing {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.05);
+}
+
+.market-listing-item.my-listing:hover {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.5);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.resource-info {
+  flex: 1;
+}
+
+.resource-info strong {
+  display: block;
+  color: #4caf50;
+  font-size: 15px;
+}
+
+.listing-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-sm {
+  flex: 0.5;
+  padding: 8px 10px;
+  font-size: 12px;
+  min-height: auto;
+}
+
+.btn-danger {
+  background: rgba(244, 67, 54, 0.3);
+  border-color: rgba(244, 67, 54, 0.5);
+  color: #ff6b6b;
+}
+
+.btn-danger:hover {
+  background: rgba(244, 67, 54, 0.4);
+  border-color: rgba(244, 67, 54, 0.7);
+}
+
+/* ========================================
+   MARKET SELL BUTTONS (Warehouse Modal)
+   ======================================== */
+
+.market-sell-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-resource {
+  padding: 14px 12px;
+  background: rgba(76, 111, 166, 0.2);
+  border: 1px solid rgba(76, 111, 166, 0.3);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-weight: 500;
+}
+
+.btn-resource:hover {
+  background: rgba(76, 111, 166, 0.3);
+  border-color: rgba(76, 111, 166, 0.5);
+  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.2);
+}
+
+.btn-resource:active {
+  transform: scale(0.98);
+}
+
+.btn-resource span {
+  font-weight: bold;
+  color: #d4af37;
+}
+
+/* ========================================
+   MODAL CENTERED (for price/buy modals)
+   ======================================== */
+
+.modal-centered .modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-centered .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ========================================
+   PRICE MODAL STYLES
+   ======================================== */
+
+.resource-input-group {
+  margin: 0;
+  padding: 12px;
+  background: rgba(76, 111, 166, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(76, 111, 166, 0.3);
+}
+
+.resource-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.resource-row > span:first-child,
+.resource-row > label {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.resource-row label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.resource-row input {
+  flex: 1;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.resource-row input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.resource-row input:focus {
+  outline: none;
+  border-color: rgba(76, 111, 166, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.input-controls {
+  display: flex;
+  gap: 8px;
+  flex: 0.7;
+}
+
+.max-btn {
+  padding: 6px 12px;
+  background: rgba(76, 111, 166, 0.3);
+  color: #fff;
+  border: 1px solid rgba(76, 111, 166, 0.5);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.max-btn:hover {
+  background: rgba(76, 111, 166, 0.5);
+  border-color: rgba(76, 111, 166, 0.7);
+}
+
+.max-btn:active {
+  transform: scale(0.95);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 480px) {
+  .market-tabs {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .market-tab-btn {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+
+  .listing-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .listing-actions {
+    width: 100%;
+  }
+
+  .btn-sm {
+    flex: 1;
+  }
+}

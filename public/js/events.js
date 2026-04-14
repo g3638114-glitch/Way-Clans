@@ -3,6 +3,12 @@ import { showPage } from './ui/pages.js';
 import { updateUI } from './ui/dom.js';
 import { apiClient } from './api/client.js';
 import {
+  openStorageModal,
+  closeStorageModal,
+  setMaxWood,
+  setMaxStone,
+  setMaxMeat,
+  sellResources,
   openExchangeModal,
   closeExchangeModal,
   updateExchangeResult,
@@ -16,28 +22,17 @@ import {
   upgradeTreasuryToLevel,
   openWarehouseModal,
   closeWarehouseModal,
+  openWarehouseSellModal,
+  closeWarehouseSellModal,
+  setMaxWarehouseWood,
+  setMaxWarehouseStone,
+  setMaxWarehouseMeat,
+  sellWarehouseResources,
   upgradeWarehouseToLevel,
   setupModalHandlers,
 } from './ui/modals/index.js';
-import {
-  openMarketplaceResourceMenu,
-  closeMarketplaceResourceMenu,
-  openMarketplaceSellModal,
-  closeMarketplaceSellModal,
-  setMaxMarketplaceQuantity,
-  createMarketplaceListing,
-  openMarketplace,
-  openMarketplaceBuyModal,
-  closeMarketplaceBuyModal,
-  setMaxBuyQuantity,
-  confirmMarketplaceBuy,
-  openEditListingModal,
-  closeEditListingModal,
-  setMaxEditQuantity,
-  confirmEditListing,
-  closeMarketplaceAndReturnMain,
-} from './ui/marketplace.js';
 import { renderBuildings } from './ui/builders.js';
+import * as market from './game/market.js';
 
 // Register all event listeners
 export function setupEventListeners() {
@@ -53,7 +48,7 @@ export function setupEventListeners() {
 
   // Market button
   document.getElementById('market-btn').addEventListener('click', () => {
-    openMarketplace();
+    showPage('market');
   });
 
   // Quests modal buttons
@@ -101,10 +96,27 @@ export function setupEventListeners() {
   document.getElementById('nav-main').addEventListener('click', () => showPage('main'));
   document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));
   document.getElementById('nav-coin-mining').addEventListener('click', () => showPage('coin-mining'));
+  document.getElementById('nav-market-back').addEventListener('click', () => showPage('main'));
 
   document.getElementById('nav-barracks').addEventListener('click', () => {
     tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
   });
+
+  // Market tabs
+  document.querySelectorAll('.market-tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.market-tab-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      market.loadMarketListings(e.target.dataset.resource);
+    });
+  });
+
+  // Price modal input handlers
+  document.getElementById('price-per-unit')?.addEventListener('input', market.updatePriceTotal);
+  document.getElementById('price-quantity')?.addEventListener('input', market.updatePriceTotal);
+
+  // Buy modal input handlers
+  document.getElementById('buy-quantity')?.addEventListener('input', market.updateBuyTotal);
 
   // Building type tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -120,6 +132,13 @@ export function setupEventListeners() {
   setupModalHandlers();
 
   // Make functions available globally for onclick handlers
+  window.openStorageModal = openStorageModal;
+  window.closeStorageModal = closeStorageModal;
+  window.setMaxWood = setMaxWood;
+  window.setMaxStone = setMaxStone;
+  window.setMaxMeat = setMaxMeat;
+  window.sellResources = sellResources;
+
   window.openExchangeModal = openExchangeModal;
   window.closeExchangeModal = closeExchangeModal;
   window.exchangeGold = exchangeGold;
@@ -135,23 +154,24 @@ export function setupEventListeners() {
 
   window.openWarehouseModal = openWarehouseModal;
   window.closeWarehouseModal = closeWarehouseModal;
+  window.openWarehouseSellModal = openWarehouseSellModal;
+  window.closeWarehouseSellModal = closeWarehouseSellModal;
+  window.setMaxWarehouseWood = setMaxWarehouseWood;
+  window.setMaxWarehouseStone = setMaxWarehouseStone;
+  window.setMaxWarehouseMeat = setMaxWarehouseMeat;
+  window.sellWarehouseResources = sellWarehouseResources;
   window.upgradeWarehouseToLevel = upgradeWarehouseToLevel;
 
-  // Marketplace functions
-  window.openMarketplaceResourceMenu = openMarketplaceResourceMenu;
-  window.closeMarketplaceResourceMenu = closeMarketplaceResourceMenu;
-  window.openMarketplaceSellModal = openMarketplaceSellModal;
-  window.closeMarketplaceSellModal = closeMarketplaceSellModal;
-  window.setMaxMarketplaceQuantity = setMaxMarketplaceQuantity;
-  window.createMarketplaceListing = createMarketplaceListing;
-  window.openMarketplace = openMarketplace;
-  window.openMarketplaceBuyModal = openMarketplaceBuyModal;
-  window.closeMarketplaceBuyModal = closeMarketplaceBuyModal;
-  window.setMaxBuyQuantity = setMaxBuyQuantity;
-  window.confirmMarketplaceBuy = confirmMarketplaceBuy;
-  window.openEditListingModal = openEditListingModal;
-  window.closeEditListingModal = closeEditListingModal;
-  window.setMaxEditQuantity = setMaxEditQuantity;
-  window.confirmEditListing = confirmEditListing;
-  window.closeMarketplaceAndReturnMain = closeMarketplaceAndReturnMain;
+  // Market functions
+  window.market = market;
+  window.openSetPriceModal = market.openSetPriceModal;
+  window.closeSetPriceModal = market.closeSetPriceModal;
+  window.setMaxPriceQuantity = market.setMaxPriceQuantity;
+  window.confirmSellPrice = market.confirmSellPrice;
+  window.openBuyQuantityModal = market.openBuyQuantityModal;
+  window.closeBuyQuantityModal = market.closeBuyQuantityModal;
+  window.setMaxBuyQuantity = market.setMaxBuyQuantity;
+  window.confirmBuyQuantity = market.confirmBuyQuantity;
+  window.updatePriceTotal = market.updatePriceTotal;
+  window.updateBuyTotal = market.updateBuyTotal;
 }

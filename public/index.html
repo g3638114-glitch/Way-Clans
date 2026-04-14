@@ -541,6 +541,52 @@
     </div>
   </div>
 
+  <!-- Edit Listing Modal (for editing existing market listings) -->
+  <div class="modal" id="edit-listing-modal">
+    <div class="modal-content modal-centered">
+      <div class="modal-header">
+        <h2>Редактировать объявление</h2>
+        <button class="close-btn" onclick="closeEditListingModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>Ресурс: <span id="edit-resource-name">Дерево</span></span>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <label>Цена за 1 единицу (Jamcoin)</label>
+            <input type="number" id="edit-price-per-unit" min="1" placeholder="0" value="1">
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <label>Количество для продажи</label>
+            <div class="input-controls">
+              <input type="number" id="edit-quantity" min="1" placeholder="0">
+              <button class="max-btn" onclick="setMaxEditQuantity()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>Итого получу: <span id="edit-total">0</span> Jamcoin</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="confirmEditListing()">Сохранить</button>
+        <button class="btn btn-secondary" onclick="closeEditListingModal()">Отменить</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>

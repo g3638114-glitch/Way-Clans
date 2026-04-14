@@ -120,4 +120,16 @@ export function setupModalHandlers() {
       closeWarehouseSellModal();
     }
   });
+
+  // Note: Edit listing modal and other market modals are handled via classList.add/remove('active'),
+  // but we still handle backdrop clicks for consistency
+  const editModal = document.getElementById('edit-listing-modal');
+  if (editModal) {
+    editModal.addEventListener('click', (e) => {
+      if (e.target.id === 'edit-listing-modal') {
+        // Import and use market's close function
+        import('../game/market.js').then(m => m.closeEditListingModal());
+      }
+    });
+  }
 }

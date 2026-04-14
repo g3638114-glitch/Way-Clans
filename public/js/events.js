@@ -118,6 +118,10 @@ export function setupEventListeners() {
   // Buy modal input handlers
   document.getElementById('buy-quantity')?.addEventListener('input', market.updateBuyTotal);
 
+  // Edit listing modal input handlers
+  document.getElementById('edit-price-per-unit')?.addEventListener('input', market.updateEditTotal);
+  document.getElementById('edit-quantity')?.addEventListener('input', market.updateEditTotal);
+
   // Building type tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -174,4 +178,9 @@ export function setupEventListeners() {
   window.confirmBuyQuantity = market.confirmBuyQuantity;
   window.updatePriceTotal = market.updatePriceTotal;
   window.updateBuyTotal = market.updateBuyTotal;
+  window.openEditListingModal = market.openEditListingModal;
+  window.closeEditListingModal = market.closeEditListingModal;
+  window.setMaxEditQuantity = market.setMaxEditQuantity;
+  window.confirmEditListing = market.confirmEditListing;
+  window.updateEditTotal = market.updateEditTotal;
 }

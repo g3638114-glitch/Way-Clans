@@ -21,19 +21,13 @@ export function openWarehouseSellModal() {
 
 export function closeWarehouseSellModal() {
   document.getElementById('warehouse-sell-modal').classList.remove('active');
-  resetWarehouseSellInputs();
 }
 
-function resetWarehouseSellInputs() {
-  document.getElementById('warehouse-wood-input').value = '';
-  document.getElementById('warehouse-stone-input').value = '';
-  document.getElementById('warehouse-meat-input').value = '';
-}
 
 function updateWarehouseSellDisplay() {
-  document.getElementById('warehouse-sell-wood').textContent = appState.currentUser.wood;
-  document.getElementById('warehouse-sell-stone').textContent = appState.currentUser.stone;
-  document.getElementById('warehouse-sell-meat').textContent = appState.currentUser.meat;
+  document.getElementById('warehouse-sell-wood-amount').textContent = appState.currentUser.wood;
+  document.getElementById('warehouse-sell-stone-amount').textContent = appState.currentUser.stone;
+  document.getElementById('warehouse-sell-meat-amount').textContent = appState.currentUser.meat;
 }
 
 export function setMaxWarehouseWood() {

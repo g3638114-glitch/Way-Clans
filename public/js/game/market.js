@@ -4,6 +4,8 @@ import { getTreasuryCapacity, getWarehouseCapacity } from './config.js';
 
 let currentSetPriceResource = null;
 let currentBuyListing = null;
+let currentEditListing = null;
+let currentEditMaxQuantity = 0;
 
 /**
  * Open set price modal for selling resources
@@ -413,6 +415,121 @@ export function updateWarehouseSellModal() {
  * Open edit listing modal
  */
 export function openEditListingModal(listingId, resourceType, quantity, pricePerUnit) {
-  // TODO: Implement edit modal
-  alert('Редактирование объявлений пока не реализовано');
+  currentEditListing = {
+    id: listingId,
+    resourceType: resourceType,
+    originalQuantity: quantity,
+  };
+  currentEditMaxQuantity = quantity + (appState.currentUser[resourceType] || 0);
+
+  const resourceNames = {
+    wood: 'Дерево',
+    stone: 'Камень',
+    meat: 'Мясо',
+  };
+
+  const resourceIcons = {
+    wood: '🌲',
+    stone: '🪨',
+    meat: '🍖',
+  };
+
+  // Update modal
+  document.getElementById('edit-resource-name').textContent = `${resourceIcons[resourceType]} ${resourceNames[resourceType]}`;
+  document.getElementById('edit-price-per-unit').value = pricePerUnit;
+  document.getElementById('edit-quantity').value = quantity;
+  document.getElementById('edit-quantity').max = currentEditMaxQuantity;
+
+  updateEditTotal();
+
+  // Show modal
+  document.getElementById('edit-listing-modal').classList.add('active');
+}
+
+/**
+ * Close edit listing modal
+ */
+export function closeEditListingModal() {
+  document.getElementById('edit-listing-modal').classList.remove('active');
+  currentEditListing = null;
+}
+
+/**
+ * Set max quantity in edit modal
+ */
+export function setMaxEditQuantity() {
+  document.getElementById('edit-quantity').value = currentEditMaxQuantity;
+  updateEditTotal();
+}
+
+/**
+ * Update total price in edit modal
+ */
+export function updateEditTotal() {
+  const quantity = parseInt(document.getElementById('edit-quantity').value) || 0;
+  const pricePerUnit = parseInt(document.getElementById('edit-price-per-unit').value) || 0;
+  const total = quantity * pricePerUnit;
+
+  document.getElementById('edit-total').textContent = total.toLocaleString();
+
+  // Check treasury capacity
+  const treasuryCapacity = getTreasuryCapacity(appState.currentUser.treasury_level || 1);
+  const currentGold = appState.currentUser.gold || 0;
+  const originalQuantity = currentEditListing?.originalQuantity || 0;
+  const priceChange = (quantity - originalQuantity) * pricePerUnit;
+  const newGoldAmount = currentGold + priceChange;
+  const totalElement = document.getElementById('edit-total');
+
+  if (newGoldAmount > treasuryCapacity) {
+    totalElement.style.color = '#ff6b6b';
+    totalElement.title = 'Казна переполнится!';
+  } else {
+    totalElement.style.color = '#d4af37';
+    totalElement.title = '';
+  }
+}
+
+/**
+ * Confirm editing a listing
+ */
+export async function confirmEditListing() {
+  if (!currentEditListing) return;
+
+  const quantity = parseInt(document.getElementById('edit-quantity').value);
+  const pricePerUnit = parseInt(document.getElementById('edit-price-per-unit').value);
+
+  if (!quantity || quantity <= 0) {
+    alert('Введите количество');
+    return;
+  }
+
+  if (!pricePerUnit || pricePerUnit <= 0) {
+    alert('Введите цену');
+    return;
+  }
+
+  if (quantity > currentEditMaxQuantity) {
+    alert(`Максимальное количество: ${currentEditMaxQuantity}`);
+    return;
+  }
+
+  try {
+    await apiClient.editMarketListing(appState.userId, currentEditListing.id, {
+      quantity,
+      pricePerUnit,
+    });
+
+    alert('✅ Объявление обновлено!');
+
+    // Refresh user data
+    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
+
+    // Reload my listings
+    loadMyListings();
+    updateWarehouseSellModal();
+
+    closeEditListingModal();
+  } catch (error) {
+    alert('Ошибка: ' + (error.message || 'Не удалось обновить объявление'));
+  }
 }

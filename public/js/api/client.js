@@ -167,4 +167,66 @@ export const apiClient = {
     }
     return response.json();
   },
+
+  // Market - Create listing
+  async createMarketListing(userId, resourceType, quantity, pricePerUnit) {
+    const response = await fetch(`/api/user/${userId}/market/create-listing`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ resourceType, quantity, pricePerUnit }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create listing');
+    }
+    return response.json();
+  },
+
+  // Market - Get listings for resource
+  async getMarketListings(userId, resourceType) {
+    const response = await fetch(`/api/user/${userId}/market/listings/${resourceType}`);
+    if (!response.ok) {
+      throw new Error('Failed to load market listings');
+    }
+    return response.json();
+  },
+
+  // Market - Get user's listings
+  async getMyMarketListings(userId) {
+    const response = await fetch(`/api/user/${userId}/market/my-listings`);
+    if (!response.ok) {
+      throw new Error('Failed to load your listings');
+    }
+    return response.json();
+  },
+
+  // Market - Cancel listing
+  async cancelMarketListing(userId, listingId) {
+    const response = await fetch(`/api/user/${userId}/market/listings/${listingId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to cancel listing');
+    }
+    return response.json();
+  },
+
+  // Market - Buy listing
+  async buyFromMarket(userId, listingId, quantity) {
+    const response = await fetch(`/api/user/${userId}/market/buy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ listingId, quantity }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to buy from market');
+    }
+    return response.json();
+  },
 };

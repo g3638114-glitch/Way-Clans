@@ -1,0 +1,387 @@
+/* Market Modal Styles */
+
+.modal-full {
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow: auto;
+}
+
+.modal-small {
+  max-width: 85vw;
+  max-height: 70vh;
+}
+
+.market-body {
+  max-height: calc(85vh - 140px);
+  overflow-y: auto;
+}
+
+/* Resource Sell Buttons */
+.resource-sell-buttons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.btn-resource-sell {
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  background: #f5f5f5;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  line-height: 1.4;
+}
+
+.btn-resource-sell:hover {
+  border-color: #4CAF50;
+  background: #f0f7f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.btn-resource-sell:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.15);
+}
+
+.btn-resource-sell small {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+/* Price Input Group */
+.price-input-group {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-input-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.price-input-group input {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.price-input-group input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+}
+
+/* Quantity Controls */
+.quantity-controls {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.qty-btn {
+  padding: 10px 8px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qty-btn:hover {
+  border-color: #4CAF50;
+  background: #f5f5f5;
+}
+
+.qty-btn:active {
+  background: #e8e8e8;
+}
+
+.quantity-controls input {
+  padding: 10px 8px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  font-family: inherit;
+}
+
+.quantity-controls input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.max-btn {
+  padding: 8px 12px;
+  border: 2px solid #4CAF50;
+  border-radius: 6px;
+  background: #fff;
+  color: #4CAF50;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.max-btn:hover {
+  background: #f0f7f0;
+}
+
+.max-btn:active {
+  background: #e8f5e9;
+}
+
+/* Price Summary */
+.price-summary {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+  text-align: center;
+}
+
+.price-summary p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.price-summary strong {
+  color: #4CAF50;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.summary-small {
+  color: #777;
+  font-size: 12px !important;
+}
+
+/* Market Filter Buttons */
+.market-filter-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 0 0 12px 0;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.filter-btn {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  border-color: #4CAF50;
+  background: #f0f7f0;
+}
+
+.filter-btn.active {
+  border-color: #4CAF50;
+  background: #4CAF50;
+  color: #fff;
+}
+
+/* Market Listings Container */
+#market-listings-container {
+  min-height: 200px;
+}
+
+.market-listings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.market-listing-card {
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 14px;
+  background: #fff;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.market-listing-card:hover {
+  border-color: #4CAF50;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+}
+
+.market-listing-card.my-listing {
+  background: #f0f7f0;
+  border-color: #4CAF50;
+}
+
+.listing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.listing-resource {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.listing-quantity {
+  background: #e8e8e8;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.listing-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #4CAF50;
+  margin-bottom: 8px;
+}
+
+.listing-seller {
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 8px;
+}
+
+.listing-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.listing-actions.single {
+  grid-template-columns: 1fr;
+}
+
+.btn-buy,
+.btn-edit,
+.btn-cancel {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-buy {
+  background: #4CAF50;
+  color: #fff;
+}
+
+.btn-buy:hover:not(:disabled) {
+  background: #45a049;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-buy:disabled {
+  background: #ccc;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.btn-edit {
+  background: #2196F3;
+  color: #fff;
+}
+
+.btn-edit:hover {
+  background: #0b7dda;
+}
+
+.btn-cancel {
+  background: #f44336;
+  color: #fff;
+}
+
+.btn-cancel:hover {
+  background: #da190b;
+}
+
+.empty-listings {
+  text-align: center;
+  padding: 40px 20px;
+  color: #777;
+}
+
+.empty-listings p {
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.empty-listings strong {
+  color: #333;
+}
+
+/* Market Buy Info */
+.market-buy-info {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.market-buy-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.market-buy-info strong {
+  color: #4CAF50;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .market-filter-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .quantity-controls {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px;
+  }
+
+  .modal-full {
+    max-width: 95vw;
+    max-height: 90vh;
+  }
+
+  .modal-small {
+    max-width: 95vw;
+    max-height: 75vh;
+  }
+}

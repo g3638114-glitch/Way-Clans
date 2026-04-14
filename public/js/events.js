@@ -24,11 +24,24 @@ import {
   closeWarehouseModal,
   openWarehouseSellModal,
   closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
   upgradeWarehouseToLevel,
+  openMarketModal,
+  closeMarketModal,
+  openSellPriceModal,
+  closeSellPriceModal,
+  incrementSellQuantity,
+  decrementSellQuantity,
+  setSellMaxQuantity,
+  confirmSellPrice,
+  filterMarketByResource,
+  cancelMarketListing,
+  openMarketBuyModal,
+  closeMarketBuyModal,
+  incrementBuyQuantity,
+  decrementBuyQuantity,
+  setMaxBuyQuantity,
+  confirmBuyFromMarket,
+  updateWarehouseSellDisplay,
   setupModalHandlers,
 } from './ui/modals/index.js';
 import { renderBuildings } from './ui/builders.js';
@@ -45,10 +58,8 @@ export function setupEventListeners() {
   // Treasury modal buttons
   document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
 
-  // Market button (not implemented yet)
-  document.getElementById('market-btn').addEventListener('click', () => {
-    tg.showAlert('🔧 Функция "Рынок" скоро будет доступна!');
-  });
+  // Market button
+  document.getElementById('market-btn').addEventListener('click', openMarketModal);
 
   // Quests modal buttons
   document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
@@ -138,9 +149,23 @@ export function setupEventListeners() {
   window.closeWarehouseModal = closeWarehouseModal;
   window.openWarehouseSellModal = openWarehouseSellModal;
   window.closeWarehouseSellModal = closeWarehouseSellModal;
-  window.setMaxWarehouseWood = setMaxWarehouseWood;
-  window.setMaxWarehouseStone = setMaxWarehouseStone;
-  window.setMaxWarehouseMeat = setMaxWarehouseMeat;
-  window.sellWarehouseResources = sellWarehouseResources;
   window.upgradeWarehouseToLevel = upgradeWarehouseToLevel;
+
+  window.openMarketModal = openMarketModal;
+  window.closeMarketModal = closeMarketModal;
+  window.openSellPriceModal = openSellPriceModal;
+  window.closeSellPriceModal = closeSellPriceModal;
+  window.incrementSellQuantity = incrementSellQuantity;
+  window.decrementSellQuantity = decrementSellQuantity;
+  window.setSellMaxQuantity = setSellMaxQuantity;
+  window.confirmSellPrice = confirmSellPrice;
+  window.filterMarketByResource = filterMarketByResource;
+  window.cancelMarketListing = cancelMarketListing;
+  window.openMarketBuyModal = openMarketBuyModal;
+  window.closeMarketBuyModal = closeMarketBuyModal;
+  window.incrementBuyQuantity = incrementBuyQuantity;
+  window.decrementBuyQuantity = decrementBuyQuantity;
+  window.setMaxBuyQuantity = setMaxBuyQuantity;
+  window.confirmBuyFromMarket = confirmBuyFromMarket;
+  window.updateWarehouseSellDisplay = updateWarehouseSellDisplay;
 }

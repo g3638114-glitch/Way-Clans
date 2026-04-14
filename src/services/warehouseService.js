@@ -60,7 +60,7 @@ export async function upgradeWarehouse(userId) {
 
   // Can't upgrade beyond max level
   if (currentLevel >= maxLevel) {
-    throw new Error(`Warehouse is already at maximum level (${maxLevel})`);
+    throw new Error(`Склад уже достиг максимального уровня (${maxLevel})`);
   }
 
   const nextLevel = currentLevel + 1;

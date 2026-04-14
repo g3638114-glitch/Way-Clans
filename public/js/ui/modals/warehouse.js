@@ -19,31 +19,12 @@ export function openWarehouseSellModal() {
 
 export function closeWarehouseSellModal() {
   document.getElementById('warehouse-sell-modal').classList.remove('active');
-  resetWarehouseSellInputs();
-}
-
-function resetWarehouseSellInputs() {
-  document.getElementById('warehouse-wood-input').value = '';
-  document.getElementById('warehouse-stone-input').value = '';
-  document.getElementById('warehouse-meat-input').value = '';
 }
 
 function updateWarehouseSellDisplay() {
-  document.getElementById('warehouse-sell-wood').textContent = appState.currentUser.wood;
-  document.getElementById('warehouse-sell-stone').textContent = appState.currentUser.stone;
-  document.getElementById('warehouse-sell-meat').textContent = appState.currentUser.meat;
-}
-
-export function setMaxWarehouseWood() {
-  document.getElementById('warehouse-wood-input').value = appState.currentUser.wood;
-}
-
-export function setMaxWarehouseStone() {
-  document.getElementById('warehouse-stone-input').value = appState.currentUser.stone;
-}
-
-export function setMaxWarehouseMeat() {
-  document.getElementById('warehouse-meat-input').value = appState.currentUser.meat;
+  document.getElementById('sell-wood-amount').textContent = appState.currentUser.wood;
+  document.getElementById('sell-stone-amount').textContent = appState.currentUser.stone;
+  document.getElementById('sell-meat-amount').textContent = appState.currentUser.meat;
 }
 
 async function renderWarehouseContent() {
@@ -184,34 +165,5 @@ export async function upgradeWarehouseToLevel() {
   } catch (error) {
     console.error('Error upgrading warehouse:', error);
     tg.showAlert(error.message || 'Ошибка при обновлении склада.');
-  }
-}
-
-export async function sellWarehouseResources() {
-  try {
-    const wood = parseInt(document.getElementById('warehouse-wood-input').value) || 0;
-    const stone = parseInt(document.getElementById('warehouse-stone-input').value) || 0;
-    const meat = parseInt(document.getElementById('warehouse-meat-input').value) || 0;
-
-    if (wood === 0 && stone === 0 && meat === 0) {
-      tg.showAlert('Выберите ресурсы для продажи');
-      return;
-    }
-
-    const result = await apiClient.sellResources(appState.userId, { wood, stone, meat });
-    appState.currentUser = result.user;
-    updateUI(appState.currentUser);
-    closeWarehouseSellModal();
-    tg.showAlert('✅ Ресурсы успешно проданы!');
-  } catch (error) {
-    console.error('Error selling resources:', error);
-
-    // Handle warehouse full error separately - show as notification, not error
-    if (error.message.includes('Warehouse is full')) {
-      tg.showAlert('🏭 Склад переполнен! Продайте ресурсы, чтобы продолжить сбор.');
-      return;
-    }
-
-    tg.showAlert(error.message || 'Ошибка при продаже ресурсов');
   }
 }

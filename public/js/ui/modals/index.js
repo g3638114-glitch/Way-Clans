@@ -38,12 +38,28 @@ import {
   closeWarehouseModal,
   openWarehouseSellModal,
   closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
   upgradeWarehouseToLevel,
 } from './warehouse.js';
+
+import {
+  openMarketModal,
+  closeMarketModal,
+  openSellPriceModal,
+  closeSellPriceModal,
+  incrementSellQuantity,
+  decrementSellQuantity,
+  setSellMaxQuantity,
+  confirmSellPrice,
+  filterMarketByResource,
+  cancelMarketListing,
+  openMarketBuyModal,
+  closeMarketBuyModal,
+  incrementBuyQuantity,
+  decrementBuyQuantity,
+  setMaxBuyQuantity,
+  confirmBuyFromMarket,
+  updateWarehouseSellDisplay,
+} from './market.js';
 
 // Re-export all functions
 export {
@@ -70,11 +86,24 @@ export {
   closeWarehouseModal,
   openWarehouseSellModal,
   closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
   upgradeWarehouseToLevel,
+  openMarketModal,
+  closeMarketModal,
+  openSellPriceModal,
+  closeSellPriceModal,
+  incrementSellQuantity,
+  decrementSellQuantity,
+  setSellMaxQuantity,
+  confirmSellPrice,
+  filterMarketByResource,
+  cancelMarketListing,
+  openMarketBuyModal,
+  closeMarketBuyModal,
+  incrementBuyQuantity,
+  decrementBuyQuantity,
+  setMaxBuyQuantity,
+  confirmBuyFromMarket,
+  updateWarehouseSellDisplay,
 };
 
 // Setup modal background click handlers
@@ -118,6 +147,24 @@ export function setupModalHandlers() {
   document.getElementById('warehouse-sell-modal').addEventListener('click', (e) => {
     if (e.target.id === 'warehouse-sell-modal') {
       closeWarehouseSellModal();
+    }
+  });
+
+  document.getElementById('sell-price-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'sell-price-modal') {
+      closeSellPriceModal();
+    }
+  });
+
+  document.getElementById('market-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'market-modal') {
+      closeMarketModal();
+    }
+  });
+
+  document.getElementById('market-buy-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'market-buy-modal') {
+      closeMarketBuyModal();
     }
   });
 }

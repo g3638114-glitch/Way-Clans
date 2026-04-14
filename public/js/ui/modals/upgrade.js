@@ -53,8 +53,8 @@ export function openUpgradeModal(buildingId, currentLevel) {
 
   if (building.building_type === 'mine') {
     // Mine costs stone + wood
-    const hasStone = (appState.currentUser?.stone || 0) >= costData.stone;
-    const hasWood = (appState.currentUser?.wood || 0) >= costData.wood;
+    const hasStone = appState.currentUser.stone >= costData.stone;
+    const hasWood = appState.currentUser.wood >= costData.wood;
     canAfford = hasStone && hasWood;
 
     costValueEl.innerHTML = `
@@ -62,13 +62,13 @@ export function openUpgradeModal(buildingId, currentLevel) {
         <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
           <span>Камень:</span>
           <span style="color: ${!hasStone ? '#ff6b6b' : '#d4af37'}; font-weight: bold;">
-            ${formatNumber(costData.stone)} / ${formatNumber(appState.currentUser?.stone || 0)}
+            ${formatNumber(costData.stone)} / ${formatNumber(appState.currentUser.stone || 0)}
           </span>
         </div>
         <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
           <span>Дерево:</span>
           <span style="color: ${!hasWood ? '#ff6b6b' : '#d4af37'}; font-weight: bold;">
-            ${formatNumber(costData.wood)} / ${formatNumber(appState.currentUser?.wood || 0)}
+            ${formatNumber(costData.wood)} / ${formatNumber(appState.currentUser.wood || 0)}
           </span>
         </div>
       </div>
@@ -77,7 +77,7 @@ export function openUpgradeModal(buildingId, currentLevel) {
     playerGoldInfoEl.textContent = '';
   } else {
     // Others cost gold
-    const hasGold = (appState.currentUser?.gold || 0) >= costData.gold;
+    const hasGold = appState.currentUser.gold >= costData.gold;
     canAfford = hasGold;
 
     costValueEl.textContent = formatNumber(costData.gold);
@@ -86,7 +86,7 @@ export function openUpgradeModal(buildingId, currentLevel) {
       costIconEl.style.display = 'inline';
       costIconEl.textContent = '💰';
     }
-    playerGoldInfoEl.innerHTML = `Ваши Jamcoins: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser?.gold || 0)} 💰</span>`;
+    playerGoldInfoEl.innerHTML = `Ваши Jamcoins: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
   }
 
   // Enable/disable upgrade button

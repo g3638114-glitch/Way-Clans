@@ -36,18 +36,18 @@ export function openSetPriceModal(resourceType) {
   document.getElementById('price-total').textContent = '0';
 
   // Show modal
-  document.getElementById('set-price-modal').style.display = 'flex';
+  document.getElementById('set-price-modal').classList.add('active');
 
   // Close warehouse sell modal
-  document.getElementById('warehouse-sell-modal').style.display = 'none';
+  document.getElementById('warehouse-sell-modal').classList.remove('active');
 }
 
 /**
  * Close set price modal
  */
 export function closeSetPriceModal() {
-  document.getElementById('set-price-modal').style.display = 'none';
-  document.getElementById('warehouse-sell-modal').style.display = 'flex';
+  document.getElementById('set-price-modal').classList.remove('active');
+  document.getElementById('warehouse-sell-modal').classList.add('active');
   currentSetPriceResource = null;
 }
 
@@ -187,14 +187,14 @@ export function openBuyQuantityModal(listing) {
   }
 
   // Show modal
-  document.getElementById('buy-quantity-modal').style.display = 'flex';
+  document.getElementById('buy-quantity-modal').classList.add('active');
 }
 
 /**
  * Close buy quantity modal
  */
 export function closeBuyQuantityModal() {
-  document.getElementById('buy-quantity-modal').style.display = 'none';
+  document.getElementById('buy-quantity-modal').classList.remove('active');
   currentBuyListing = null;
 }
 

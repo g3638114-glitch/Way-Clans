@@ -121,15 +121,22 @@ export function setupModalHandlers() {
     }
   });
 
-  // Note: Edit listing modal and other market modals are handled via classList.add/remove('active'),
-  // but we still handle backdrop clicks for consistency
-  const editModal = document.getElementById('edit-listing-modal');
-  if (editModal) {
-    editModal.addEventListener('click', (e) => {
-      if (e.target.id === 'edit-listing-modal') {
-        // Import and use market's close function
-        import('../game/market.js').then(m => m.closeEditListingModal());
-      }
-    });
-  }
+  // Setup backdrop click handlers for market modals
+  document.getElementById('set-price-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'set-price-modal') {
+      import('../game/market.js').then(m => m.closeSetPriceModal());
+    }
+  });
+
+  document.getElementById('buy-quantity-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'buy-quantity-modal') {
+      import('../game/market.js').then(m => m.closeBuyQuantityModal());
+    }
+  });
+
+  document.getElementById('edit-listing-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'edit-listing-modal') {
+      import('../game/market.js').then(m => m.closeEditListingModal());
+    }
+  });
 }

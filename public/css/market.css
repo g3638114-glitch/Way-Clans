@@ -233,6 +233,7 @@
   background: rgba(76, 111, 166, 0.1);
   border-radius: 8px;
   border: 1px solid rgba(76, 111, 166, 0.3);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .resource-row {
@@ -241,6 +242,7 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .resource-row > span:first-child,
@@ -280,11 +282,18 @@
 .input-controls {
   display: flex;
   gap: 8px;
-  flex: 0.7;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+}
+
+.input-controls input {
+  flex: 1;
+  min-width: 0;
 }
 
 .max-btn {
-  padding: 6px 12px;
+  padding: 8px 10px;
   background: rgba(76, 111, 166, 0.3);
   color: #fff;
   border: 1px solid rgba(76, 111, 166, 0.5);
@@ -294,6 +303,7 @@
   font-weight: bold;
   transition: all 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .max-btn:hover {

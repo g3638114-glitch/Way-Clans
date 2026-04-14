@@ -4,6 +4,7 @@ import { getTreasuryCapacity, getWarehouseCapacity } from './config.js';
 
 let currentSetPriceResource = null;
 let currentBuyListing = null;
+let currentBuyMaxQuantity = 0;
 let currentEditListing = null;
 let currentEditMaxQuantity = 0;
 
@@ -161,13 +162,14 @@ export function openBuyQuantityModal(listing) {
   const warehouseCapacity = getWarehouseCapacity(appState.currentUser.warehouse_level || 1);
   const warehouseLoad = getWarehouseLoad();
   const availableSpace = warehouseCapacity - warehouseLoad;
-  const maxBuyQuantity = Math.min(listing.quantity, Math.max(0, availableSpace));
+  currentBuyMaxQuantity = Math.min(listing.quantity, Math.max(0, availableSpace));
 
   // Update modal
   document.getElementById('buy-resource-name').textContent = `${resourceIcons[listing.resource_type]} ${resourceNames[listing.resource_type]}`;
   document.getElementById('buy-price-per-unit').textContent = listing.price_per_unit.toLocaleString();
   document.getElementById('buy-available').textContent = listing.quantity;
   document.getElementById('buy-quantity').value = '';
+  document.getElementById('buy-quantity').max = currentBuyMaxQuantity;
   document.getElementById('buy-total').textContent = '0';
   document.getElementById('buy-player-gold').textContent = (appState.currentUser.gold || 0).toLocaleString();
 
@@ -202,9 +204,8 @@ export function closeBuyQuantityModal() {
  * Set max quantity in buy modal
  */
 export function setMaxBuyQuantity() {
-  const available = parseInt(document.getElementById('buy-available').textContent) || 0;
   const maxAffordable = Math.floor((appState.currentUser.gold || 0) / currentBuyListing.price_per_unit);
-  const maxQuantity = Math.min(available, maxAffordable);
+  const maxQuantity = Math.min(currentBuyMaxQuantity, maxAffordable);
 
   document.getElementById('buy-quantity').value = maxQuantity;
   updateBuyTotal();

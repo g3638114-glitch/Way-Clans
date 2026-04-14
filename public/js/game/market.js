@@ -294,8 +294,15 @@ export async function loadMarketListings(resourceType) {
 
     listings.forEach((listing) => {
       const seller = listing.users;
+      const isOwnListing = appState.currentUser && appState.currentUser.id === seller.id;
+
       const listingDiv = document.createElement('div');
       listingDiv.className = 'market-listing-item';
+
+      const buyButtonHTML = isOwnListing
+        ? '<p style="color: #999; text-align: center; font-size: 14px;">Ваше объявление</p>'
+        : `<button class="btn btn-primary" onclick="window.market.openBuyQuantityModal(${JSON.stringify(listing).replace(/"/g, '&quot;')})">Купить</button>`;
+
       listingDiv.innerHTML = `
         <div class="listing-header">
           <div class="seller-info">
@@ -309,9 +316,7 @@ export async function loadMarketListings(resourceType) {
           <div class="listing-quantity">
             <p>Доступно: <strong>${listing.quantity.toLocaleString()}</strong></p>
           </div>
-          <button class="btn btn-primary" onclick="window.market.openBuyQuantityModal(${JSON.stringify(listing).replace(/"/g, '&quot;')})">
-            Купить
-          </button>
+          ${buyButtonHTML}
         </div>
       `;
       container.appendChild(listingDiv);

@@ -211,6 +211,11 @@ export async function buyFromListing(buyerTelegramId, listingId, quantity) {
 
   if (listingError || !listing) throw new Error('Listing not found');
 
+  // Check if buyer is trying to buy their own listing
+  if (buyer.id === listing.seller_id) {
+    throw new Error('You cannot buy your own listings');
+  }
+
   if (quantity > listing.quantity) {
     throw new Error('Not enough quantity in listing');
   }

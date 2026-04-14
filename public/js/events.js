@@ -3,6 +3,12 @@ import { showPage } from './ui/pages.js';
 import { updateUI } from './ui/dom.js';
 import { apiClient } from './api/client.js';
 import {
+  openStorageModal,
+  closeStorageModal,
+  setMaxWood,
+  setMaxStone,
+  setMaxMeat,
+  sellResources,
   openExchangeModal,
   closeExchangeModal,
   updateExchangeResult,
@@ -16,27 +22,15 @@ import {
   upgradeTreasuryToLevel,
   openWarehouseModal,
   closeWarehouseModal,
+  openWarehouseSellModal,
+  closeWarehouseSellModal,
+  setMaxWarehouseWood,
+  setMaxWarehouseStone,
+  setMaxWarehouseMeat,
+  sellWarehouseResources,
   upgradeWarehouseToLevel,
   setupModalHandlers,
 } from './ui/modals/index.js';
-import {
-  openMarketplaceResourceMenu,
-  closeMarketplaceResourceMenu,
-  openMarketplaceSellModal,
-  closeMarketplaceSellModal,
-  setMaxMarketplaceQuantity,
-  createMarketplaceListing,
-  openMarketplace,
-  openMarketplaceBuyModal,
-  closeMarketplaceBuyModal,
-  setMaxBuyQuantity,
-  confirmMarketplaceBuy,
-  openEditListingModal,
-  closeEditListingModal,
-  setMaxEditQuantity,
-  confirmEditListing,
-  closeMarketplaceAndReturnMain,
-} from './ui/marketplace.js';
 import { renderBuildings } from './ui/builders.js';
 
 // Register all event listeners
@@ -51,9 +45,9 @@ export function setupEventListeners() {
   // Treasury modal buttons
   document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
 
-  // Market button
+  // Market button (not implemented yet)
   document.getElementById('market-btn').addEventListener('click', () => {
-    openMarketplace();
+    tg.showAlert('🔧 Функция "Рынок" скоро будет доступна!');
   });
 
   // Quests modal buttons
@@ -120,6 +114,13 @@ export function setupEventListeners() {
   setupModalHandlers();
 
   // Make functions available globally for onclick handlers
+  window.openStorageModal = openStorageModal;
+  window.closeStorageModal = closeStorageModal;
+  window.setMaxWood = setMaxWood;
+  window.setMaxStone = setMaxStone;
+  window.setMaxMeat = setMaxMeat;
+  window.sellResources = sellResources;
+
   window.openExchangeModal = openExchangeModal;
   window.closeExchangeModal = closeExchangeModal;
   window.exchangeGold = exchangeGold;
@@ -135,23 +136,11 @@ export function setupEventListeners() {
 
   window.openWarehouseModal = openWarehouseModal;
   window.closeWarehouseModal = closeWarehouseModal;
+  window.openWarehouseSellModal = openWarehouseSellModal;
+  window.closeWarehouseSellModal = closeWarehouseSellModal;
+  window.setMaxWarehouseWood = setMaxWarehouseWood;
+  window.setMaxWarehouseStone = setMaxWarehouseStone;
+  window.setMaxWarehouseMeat = setMaxWarehouseMeat;
+  window.sellWarehouseResources = sellWarehouseResources;
   window.upgradeWarehouseToLevel = upgradeWarehouseToLevel;
-
-  // Marketplace functions
-  window.openMarketplaceResourceMenu = openMarketplaceResourceMenu;
-  window.closeMarketplaceResourceMenu = closeMarketplaceResourceMenu;
-  window.openMarketplaceSellModal = openMarketplaceSellModal;
-  window.closeMarketplaceSellModal = closeMarketplaceSellModal;
-  window.setMaxMarketplaceQuantity = setMaxMarketplaceQuantity;
-  window.createMarketplaceListing = createMarketplaceListing;
-  window.openMarketplace = openMarketplace;
-  window.openMarketplaceBuyModal = openMarketplaceBuyModal;
-  window.closeMarketplaceBuyModal = closeMarketplaceBuyModal;
-  window.setMaxBuyQuantity = setMaxBuyQuantity;
-  window.confirmMarketplaceBuy = confirmMarketplaceBuy;
-  window.openEditListingModal = openEditListingModal;
-  window.closeEditListingModal = closeEditListingModal;
-  window.setMaxEditQuantity = setMaxEditQuantity;
-  window.confirmEditListing = confirmEditListing;
-  window.closeMarketplaceAndReturnMain = closeMarketplaceAndReturnMain;
 }

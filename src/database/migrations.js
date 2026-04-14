@@ -143,38 +143,6 @@ const migrations = [
     name: 'Disable RLS on completed_quests table',
     sql: `ALTER TABLE completed_quests DISABLE ROW LEVEL SECURITY;`,
   },
-
-  // === MARKETPLACE_LISTINGS TABLE ===
-  {
-    name: 'Create marketplace_listings table',
-    sql: `CREATE TABLE IF NOT EXISTS marketplace_listings (
-      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-      seller_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      resource_type TEXT NOT NULL,
-      price_per_unit BIGINT NOT NULL,
-      quantity_available BIGINT NOT NULL,
-      quantity_sold BIGINT DEFAULT 0,
-      status TEXT DEFAULT 'active',
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-    );`,
-  },
-  {
-    name: 'Create index on marketplace_listings.seller_id',
-    sql: `CREATE INDEX IF NOT EXISTS idx_marketplace_seller_id ON marketplace_listings(seller_id);`,
-  },
-  {
-    name: 'Create index on marketplace_listings.resource_type',
-    sql: `CREATE INDEX IF NOT EXISTS idx_marketplace_resource_type ON marketplace_listings(resource_type);`,
-  },
-  {
-    name: 'Create index on marketplace_listings.status',
-    sql: `CREATE INDEX IF NOT EXISTS idx_marketplace_status ON marketplace_listings(status);`,
-  },
-  {
-    name: 'Disable RLS on marketplace_listings table',
-    sql: `ALTER TABLE marketplace_listings DISABLE ROW LEVEL SECURITY;`,
-  },
 ];
 
 /**

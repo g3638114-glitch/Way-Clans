@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="css/buildings.css">
   <link rel="stylesheet" href="css/quests.css">
   <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/marketplace.css">
   <!-- Effects & Responsive -->
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/responsive.css">
@@ -127,19 +126,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Marketplace Page -->
-      <div id="marketplace-page" class="page">
-        <div class="marketplace-header">
-          <button class="btn btn-back" onclick="closeMarketplaceAndReturnMain()">← Главная</button>
-        </div>
-        <div class="marketplace-filters" id="marketplace-filters">
-          <!-- Filter buttons will be inserted here -->
-        </div>
-        <div class="marketplace-listings" id="marketplace-listings">
-          <!-- Listings will be inserted here -->
-        </div>
-      </div>
     </div>
 
     <!-- Bottom Navigation - FIXED AT BOTTOM -->
@@ -151,18 +137,51 @@
     </nav>
   </div>
 
-  <!-- Marketplace Resource Menu (inline) -->
-  <div class="modal" id="marketplace-resource-menu">
-    <div class="modal-content modal-content-compact">
+  <!-- Storage Modal -->
+  <div class="modal" id="storage-modal">
+    <div class="modal-content">
       <div class="modal-header">
-        <h2>🛍 Выставить на рынок</h2>
-        <button class="close-btn" onclick="closeMarketplaceResourceMenu()">&times;</button>
+        <h2>📦 Склад</h2>
+        <button class="close-btn" onclick="closeStorageModal()">&times;</button>
       </div>
 
       <div class="modal-body">
-        <div class="marketplace-resource-menu-list" id="marketplace-resource-menu-list">
-          <!-- Resource buttons will be inserted here -->
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🌲 Дерево: <span id="storage-wood">2 500</span></span>
+            <div class="input-controls">
+              <input type="number" id="wood-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxWood()">Макс</button>
+            </div>
+          </div>
         </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🪨 Камень: <span id="storage-stone">2 500</span></span>
+            <div class="input-controls">
+              <input type="number" id="stone-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxStone()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🍖 Мясо: <span id="storage-meat">500</span></span>
+            <div class="input-controls">
+              <input type="number" id="meat-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxMeat()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="storage-hint">(Введите количество ресурсов для продажи)</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="sellResources()">Продать</button>
+        <button class="btn btn-secondary" onclick="closeStorageModal()">Закрыть</button>
       </div>
     </div>
   </div>
@@ -363,127 +382,57 @@
 
       <div class="modal-footer">
         <button class="btn btn-primary" id="warehouse-upgrade-btn" onclick="upgradeWarehouseToLevel()" style="display:none;">Улучшить</button>
-        <button class="btn btn-secondary" id="warehouse-marketplace-btn" onclick="openMarketplaceResourceMenu()">🛍 На рынок</button>
+        <button class="btn btn-secondary" id="warehouse-sell-btn" onclick="openWarehouseSellModal()">Продать</button>
         <button class="btn btn-secondary" onclick="closeWarehouseModal()">Закрыть</button>
       </div>
     </div>
   </div>
 
-  <!-- Marketplace Sell Modal (for putting resources on marketplace) -->
-  <div class="modal" id="marketplace-sell-modal">
+  <!-- Warehouse Sell Modal (for selling resources from warehouse) -->
+  <div class="modal" id="warehouse-sell-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>💱 Выставить на рынок</h2>
-        <button class="close-btn" onclick="closeMarketplaceSellModal()">&times;</button>
+        <h2>💱 Продать ресурсы</h2>
+        <button class="close-btn" onclick="closeWarehouseSellModal()">&times;</button>
       </div>
 
       <div class="modal-body">
-        <div class="marketplace-resource-info">
-          <p class="resource-type-display" id="marketplace-resource-name">🌲 Дерево</p>
-          <p class="available-amount">Доступно: <span id="marketplace-available-amount">0</span></p>
-        </div>
-
-        <div class="marketplace-sell-form">
-          <div class="form-group">
-            <label>Цена за 1 шт (Jamcoin):</label>
-            <input type="number" id="marketplace-price-input" min="1" placeholder="Введите цену">
-          </div>
-
-          <div class="form-group">
-            <label>Количество:</label>
-            <div class="quantity-controls">
-              <input type="number" id="marketplace-quantity-input" min="1" placeholder="0">
-              <button class="max-btn" onclick="setMaxMarketplaceQuantity()">Макс</button>
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🌲 Дерево: <span id="warehouse-sell-wood">0</span></span>
+            <div class="input-controls">
+              <input type="number" id="warehouse-wood-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxWarehouseWood()">Макс</button>
             </div>
           </div>
+        </div>
 
-          <div class="total-calculation">
-            <p>Сумма после продажи: <span id="marketplace-total-gold">0</span> Jamcoin</p>
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🪨 Камень: <span id="warehouse-sell-stone">0</span></span>
+            <div class="input-controls">
+              <input type="number" id="warehouse-stone-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxWarehouseStone()">Макс</button>
+            </div>
           </div>
         </div>
+
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🍖 Мясо: <span id="warehouse-sell-meat">0</span></span>
+            <div class="input-controls">
+              <input type="number" id="warehouse-meat-input" min="0" placeholder="0">
+              <button class="max-btn" onclick="setMaxWarehouseMeat()">Макс</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="storage-hint">(Введите количество ресурсов для продажи)</p>
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-primary" onclick="createMarketplaceListing()">Выставить</button>
-        <button class="btn btn-secondary" onclick="closeMarketplaceSellModal()">Отмена</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Marketplace Buy Modal -->
-  <div class="modal" id="marketplace-buy-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>🛒 Купить ресурсы</h2>
-        <button class="close-btn" onclick="closeMarketplaceBuyModal()">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="buy-listing-info">
-          <p class="resource-display" id="buy-resource-display">🌲 Дерево</p>
-          <p class="price-display">Цена за 1 шт: <span id="buy-price-per-unit">0</span> Jamcoin</p>
-          <p class="available-display">Доступно: <span id="buy-available-quantity">0</span></p>
-        </div>
-
-        <div class="buy-form">
-          <div class="form-group">
-            <label>Количество к покупке:</label>
-            <div class="quantity-controls">
-              <input type="number" id="buy-quantity-input" min="1" placeholder="0">
-              <button class="max-btn" onclick="setMaxBuyQuantity()">Макс</button>
-            </div>
-          </div>
-
-          <div class="total-cost">
-            <p>Общая стоимость: <span id="buy-total-cost">0</span> Jamcoin</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="confirmMarketplaceBuy()">Купить</button>
-        <button class="btn btn-secondary" onclick="closeMarketplaceBuyModal()">Отмена</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Marketplace Edit Modal -->
-  <div class="modal" id="marketplace-edit-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>✏️ Изменить объявление</h2>
-        <button class="close-btn" onclick="closeEditListingModal()">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="edit-listing-info">
-          <p class="resource-display" id="edit-resource-display">🌲 Дерево</p>
-          <p class="sold-amount">Уже продано: <span id="edit-quantity-sold">0</span></p>
-        </div>
-
-        <div class="edit-form">
-          <div class="form-group">
-            <label>Цена за 1 шт (Jamcoin):</label>
-            <input type="number" id="edit-price-input" min="1" placeholder="Введите цену">
-          </div>
-
-          <div class="form-group">
-            <label>Всего ресурсов для продажи:</label>
-            <div class="quantity-controls">
-              <input type="number" id="edit-quantity-input" min="1" placeholder="0">
-              <button class="max-btn" onclick="setMaxEditQuantity()">Макс</button>
-            </div>
-          </div>
-
-          <div class="edit-info-text">
-            <p>Вы сможете добавить больше ресурсов или уменьшить количество. При увеличении количества необходимые ресурсы будут удалены из баланса.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="confirmEditListing()">Сохранить</button>
-        <button class="btn btn-secondary" onclick="closeEditListingModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="sellWarehouseResources()">Продать</button>
+        <button class="btn btn-secondary" onclick="closeWarehouseSellModal()">Закрыть</button>
       </div>
     </div>
   </div>

@@ -18,20 +18,6 @@ async function getOrCreateUser(telegramId) {
   return user;
 }
 
-/**
- * Get total resources in warehouse for a user
- */
-async function getWarehouseLoad(userId) {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('wood, stone, meat')
-    .eq('id', userId)
-    .single();
-
-  if (error) throw new Error('Failed to get warehouse load');
-
-  return (user.wood || 0) + (user.stone || 0) + (user.meat || 0);
-}
 
 /**
  * Create a market listing for selling resources
@@ -209,11 +195,11 @@ export async function buyFromListing(buyerTelegramId, listingId, quantity) {
     throw new Error('Not enough Jamcoin');
   }
 
-  // Check buyer's warehouse capacity
+  // Check buyer's warehouse capacity for this specific resource
   const warehouseCapacity = getWarehouseCapacity(buyer.warehouse_level || 1);
-  const warehouseLoad = await getWarehouseLoad(buyer.id);
+  const currentResourceAmount = buyer[listing.resource_type] || 0;
 
-  if (warehouseLoad + quantity > warehouseCapacity) {
+  if (currentResourceAmount + quantity > warehouseCapacity) {
     throw new Error('Not enough warehouse space');
   }
 

@@ -42,6 +42,12 @@ import {
   setMaxBuyQuantity,
   confirmBuyFromMarket,
   updateWarehouseSellDisplay,
+  openMarketEditModal,
+  closeMarketEditModal,
+  incrementEditQuantity,
+  decrementEditQuantity,
+  setMaxEditQuantity,
+  confirmEditMarketListing,
   setupModalHandlers,
 } from './ui/modals/index.js';
 import { renderBuildings } from './ui/builders.js';
@@ -58,8 +64,8 @@ export function setupEventListeners() {
   // Treasury modal buttons
   document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
 
-  // Market button
-  document.getElementById('market-btn').addEventListener('click', openMarketModal);
+  // Market button - navigate to market page
+  document.getElementById('market-btn').addEventListener('click', () => showPage('market'));
 
   // Quests modal buttons
   document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
@@ -106,6 +112,7 @@ export function setupEventListeners() {
   document.getElementById('nav-main').addEventListener('click', () => showPage('main'));
   document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));
   document.getElementById('nav-coin-mining').addEventListener('click', () => showPage('coin-mining'));
+  document.getElementById('nav-market').addEventListener('click', () => showPage('market'));
 
   document.getElementById('nav-barracks').addEventListener('click', () => {
     tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
@@ -168,4 +175,11 @@ export function setupEventListeners() {
   window.setMaxBuyQuantity = setMaxBuyQuantity;
   window.confirmBuyFromMarket = confirmBuyFromMarket;
   window.updateWarehouseSellDisplay = updateWarehouseSellDisplay;
+
+  window.openMarketEditModal = openMarketEditModal;
+  window.closeMarketEditModal = closeMarketEditModal;
+  window.incrementEditQuantity = incrementEditQuantity;
+  window.decrementEditQuantity = decrementEditQuantity;
+  window.setMaxEditQuantity = setMaxEditQuantity;
+  window.confirmEditMarketListing = confirmEditMarketListing;
 }

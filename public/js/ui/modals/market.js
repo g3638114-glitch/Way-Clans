@@ -16,14 +16,29 @@ let currentBuyAvailable = 0;
 // State for market modal
 let currentMarketFilter = 'wood';
 
+// State for edit listing modal
+let editListingId = null;
+let editListingResourceType = null;
+let editCurrentQuantity = 0;
+let editMaxQuantity = 0;
+let editPrice = 0;
+
 export function openMarketModal() {
-  renderMarketListings('wood');
-  currentMarketFilter = 'wood';
-  document.getElementById('market-modal').classList.add('active');
+  // Legacy function - market is now a page, not a modal
+  const marketModal = document.getElementById('market-modal');
+  if (marketModal) {
+    renderMarketListings('wood');
+    currentMarketFilter = 'wood';
+    marketModal.classList.add('active');
+  }
 }
 
 export function closeMarketModal() {
-  document.getElementById('market-modal').classList.remove('active');
+  // Legacy function - market is now a page, not a modal
+  const marketModal = document.getElementById('market-modal');
+  if (marketModal) {
+    marketModal.classList.remove('active');
+  }
 }
 
 export function openSellPriceModal(resourceType) {
@@ -117,8 +132,11 @@ export async function confirmSellPrice() {
     closeSellPriceModal();
     tg.showAlert('✅ Объявление выставлено на рынок!');
 
-    // Refresh market view if it's open
-    if (document.getElementById('market-modal').classList.contains('active')) {
+    // Refresh market view if it's open (page or modal)
+    const marketPage = document.getElementById('market-page');
+    const marketModal = document.getElementById('market-modal');
+    if ((marketPage && marketPage.classList.contains('active')) ||
+        (marketModal && marketModal.classList.contains('active'))) {
       renderMarketListings(currentMarketFilter);
     }
   } catch (error) {
@@ -138,10 +156,32 @@ export function filterMarketByResource(resourceType) {
   renderMarketListings(resourceType);
 }
 
-async function renderMarketListings(resourceType) {
+export async function renderMarketListings(resourceType) {
   try {
     const container = document.getElementById('market-listings-container');
     container.innerHTML = '<p style="text-align: center;">Загрузка...</p>';
+
+    // Update active filter button
+    document.querySelectorAll('.filter-btn').forEach((btn) => {
+      btn.classList.remove('active');
+    });
+    if (resourceType === 'my-listings') {
+      document.querySelectorAll('.filter-btn').forEach((btn) => {
+        if (btn.textContent.includes('Мои объявления')) {
+          btn.classList.add('active');
+        }
+      });
+    } else {
+      document.querySelectorAll('.filter-btn').forEach((btn) => {
+        if (resourceType === 'wood' && btn.textContent.includes('Дерево')) {
+          btn.classList.add('active');
+        } else if (resourceType === 'stone' && btn.textContent.includes('Камень')) {
+          btn.classList.add('active');
+        } else if (resourceType === 'meat' && btn.textContent.includes('Мясо')) {
+          btn.classList.add('active');
+        }
+      });
+    }
 
     let listings = [];
     let currentUserId = null;
@@ -186,10 +226,11 @@ async function renderMarketListings(resourceType) {
               ? `<div class="listing-seller">👤 ${listing.users.username || 'Unknown'}</div>`
               : ''
           }
-          <div class="listing-actions ${isMyListing ? 'single' : ''}">
+          <div class="listing-actions ${isMyListing ? 'double' : ''}">
             ${
               isMyListing
                 ? `
+              <button class="btn btn-edit" onclick="openMarketEditModal('${listing.id}', '${listing.resource_type}', ${listing.quantity}, ${listing.price_per_unit})">✏️ Редактировать</button>
               <button class="btn btn-cancel" onclick="cancelMarketListing('${listing.id}')">🗑 Удалить</button>
             `
                 : `
@@ -242,7 +283,7 @@ export function openMarketBuyModal(listingId, pricePerUnit, availableQuantity, r
   document.getElementById('buy-price-per-unit').textContent = pricePerUnit;
   document.getElementById('buy-available-quantity').textContent = availableQuantity;
   document.getElementById('buy-quantity-input').value = '1';
-  document.getElementById('buy-player-balance').textContent = appState.currentUser.gold || 0;
+  document.getElementById('buy-player-balance').textContent = (appState.currentUser?.gold) || 0;
 
   updateBuyPriceDisplay();
   document.getElementById('market-buy-modal').classList.add('active');
@@ -284,7 +325,7 @@ function updateBuyPriceDisplay() {
   document.getElementById('buy-total-price').textContent = total;
 
   // Check if player has enough gold
-  const hasEnough = (appState.currentUser.gold || 0) >= total;
+  const hasEnough = ((appState.currentUser?.gold) || 0) >= total;
   const buyBtn = document.getElementById('buy-confirm-btn');
   buyBtn.disabled = !hasEnough;
   buyBtn.className = hasEnough ? 'btn btn-primary' : 'btn btn-primary disabled';
@@ -318,4 +359,103 @@ export function updateWarehouseSellDisplay() {
   document.getElementById('sell-wood-amount').textContent = appState.currentUser.wood;
   document.getElementById('sell-stone-amount').textContent = appState.currentUser.stone;
   document.getElementById('sell-meat-amount').textContent = appState.currentUser.meat;
+}
+
+export function openMarketEditModal(listingId, resourceType, quantity, pricePerUnit) {
+  editListingId = listingId;
+  editListingResourceType = resourceType;
+  editMaxQuantity = quantity;
+  editCurrentQuantity = quantity;
+  editPrice = pricePerUnit;
+
+  const resourceIcons = { wood: '🌲', stone: '🪨', meat: '🍖' };
+  const resourceNames = { wood: 'Дерево', stone: 'Камень', meat: 'Мясо' };
+
+  document.getElementById('edit-resource-name').textContent = `${resourceIcons[resourceType]} ${resourceNames[resourceType]}`;
+  document.getElementById('edit-available-quantity').textContent = quantity;
+  document.getElementById('edit-price-input').value = pricePerUnit;
+  document.getElementById('edit-quantity-input').value = quantity;
+
+  updateEditPriceDisplay();
+  document.getElementById('market-edit-modal').classList.add('active');
+}
+
+export function closeMarketEditModal() {
+  document.getElementById('market-edit-modal').classList.remove('active');
+  editListingId = null;
+  editListingResourceType = null;
+  editCurrentQuantity = 0;
+  editMaxQuantity = 0;
+  editPrice = 0;
+}
+
+export function incrementEditQuantity() {
+  if (editCurrentQuantity < editMaxQuantity) {
+    editCurrentQuantity++;
+    updateEditPriceDisplay();
+  }
+}
+
+export function decrementEditQuantity() {
+  if (editCurrentQuantity > 1) {
+    editCurrentQuantity--;
+    updateEditPriceDisplay();
+  }
+}
+
+export function setMaxEditQuantity() {
+  editCurrentQuantity = editMaxQuantity;
+  document.getElementById('edit-quantity-input').value = editCurrentQuantity;
+  updateEditPriceDisplay();
+}
+
+function updateEditPriceDisplay() {
+  const priceInput = document.getElementById('edit-price-input').value;
+  editPrice = parseInt(priceInput) || 0;
+  const quantityInput = parseInt(document.getElementById('edit-quantity-input').value) || 1;
+  editCurrentQuantity = Math.min(Math.max(quantityInput, 1), editMaxQuantity);
+
+  document.getElementById('edit-quantity-input').value = editCurrentQuantity;
+  document.getElementById('edit-price-display').textContent = editPrice;
+
+  const total = editPrice * editCurrentQuantity;
+  document.getElementById('edit-total-price').textContent = total;
+}
+
+export async function confirmEditMarketListing() {
+  try {
+    const priceInput = parseInt(document.getElementById('edit-price-input').value);
+    const quantityInput = parseInt(document.getElementById('edit-quantity-input').value);
+
+    if (!priceInput || priceInput < 1) {
+      tg.showAlert('Введите корректную цену');
+      return;
+    }
+
+    if (!quantityInput || quantityInput < 1) {
+      tg.showAlert('Введите корректное количество');
+      return;
+    }
+
+    if (quantityInput > editMaxQuantity) {
+      tg.showAlert(`Количество не может превышать ${editMaxQuantity}`);
+      return;
+    }
+
+    const result = await apiClient.updateMarketListing(
+      appState.userId,
+      editListingId,
+      quantityInput,
+      priceInput
+    );
+
+    closeMarketEditModal();
+    tg.showAlert('✅ Объявление обновлено!');
+
+    // Refresh market view
+    renderMarketListings(currentMarketFilter);
+  } catch (error) {
+    console.error('Error updating listing:', error);
+    tg.showAlert(error.message || 'Ошибка при редактировании объявления');
+  }
 }

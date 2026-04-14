@@ -127,6 +127,22 @@
           </div>
         </div>
       </div>
+
+      <!-- Market Page -->
+      <div id="market-page" class="page">
+        <!-- Market filter buttons -->
+        <div class="market-filter-buttons">
+          <button class="filter-btn active" onclick="filterMarketByResource('wood')">🌲 Дерево</button>
+          <button class="filter-btn" onclick="filterMarketByResource('stone')">🪨 Камень</button>
+          <button class="filter-btn" onclick="filterMarketByResource('meat')">🍖 Мясо</button>
+          <button class="filter-btn" onclick="filterMarketByResource('my-listings')">📋 Мои объявления</button>
+        </div>
+
+        <!-- Market listings container -->
+        <div id="market-listings-container">
+          <!-- Listings will be inserted here -->
+        </div>
+      </div>
     </div>
 
     <!-- Bottom Navigation - FIXED AT BOTTOM -->
@@ -134,7 +150,7 @@
       <button class="nav-item active" id="nav-main">🏠 Главная</button>
       <button class="nav-item" id="nav-mining">⛏ Добыча</button>
       <button class="nav-item" id="nav-coin-mining">⛏ Майнинг</button>
-      <button class="nav-item" id="nav-barracks">🛡 Казарма</button>
+      <button class="nav-item" id="nav-market">🛍 Рынок</button>
     </nav>
   </div>
 
@@ -459,35 +475,6 @@
     </div>
   </div>
 
-  <!-- Market Modal -->
-  <div class="modal" id="market-modal">
-    <div class="modal-content modal-full">
-      <div class="modal-header">
-        <h2>🛍 Рынок</h2>
-        <button class="close-btn" onclick="closeMarketModal()">&times;</button>
-      </div>
-
-      <div class="modal-body market-body">
-        <!-- Market filter buttons -->
-        <div class="market-filter-buttons">
-          <button class="filter-btn active" onclick="filterMarketByResource('wood')">🌲 Дерево</button>
-          <button class="filter-btn" onclick="filterMarketByResource('stone')">🪨 Камень</button>
-          <button class="filter-btn" onclick="filterMarketByResource('meat')">🍖 Мясо</button>
-          <button class="filter-btn" onclick="filterMarketByResource('my-listings')">📋 Мои объявления</button>
-        </div>
-
-        <!-- Market listings container -->
-        <div id="market-listings-container">
-          <!-- Listings will be inserted here -->
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeMarketModal()">Закрыть</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Buy from Market Modal -->
   <div class="modal" id="market-buy-modal">
     <div class="modal-content modal-small">
@@ -522,6 +509,48 @@
       <div class="modal-footer">
         <button class="btn btn-primary" id="buy-confirm-btn" onclick="confirmBuyFromMarket()">Купить</button>
         <button class="btn btn-secondary" onclick="closeMarketBuyModal()">Отменить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Market Listing Modal -->
+  <div class="modal" id="market-edit-modal">
+    <div class="modal-content modal-small">
+      <div class="modal-header">
+        <h2>✏️ Редактировать объявление</h2>
+        <button class="close-btn" onclick="closeMarketEditModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="market-buy-info">
+          <p>Ресурс: <strong id="edit-resource-name"></strong></p>
+          <p>Доступно: <strong id="edit-available-quantity">0</strong></p>
+        </div>
+
+        <div class="price-input-group">
+          <label>Новая цена за 1 шт (Jamcoin):</label>
+          <input type="number" id="edit-price-input" min="1" placeholder="Введите цену">
+        </div>
+
+        <div class="price-input-group">
+          <label>Количество для продажи:</label>
+          <div class="quantity-controls">
+            <button class="qty-btn" onclick="decrementEditQuantity()">-</button>
+            <input type="number" id="edit-quantity-input" min="1" value="1">
+            <button class="qty-btn" onclick="incrementEditQuantity()">+</button>
+            <button class="max-btn" onclick="setMaxEditQuantity()">Макс</button>
+          </div>
+        </div>
+
+        <div class="price-summary">
+          <p>Всего получите: <strong id="edit-total-price">0</strong> 💰</p>
+          <p class="summary-small">при цене <span id="edit-price-display">0</span> за 1 шт</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="edit-confirm-btn" onclick="confirmEditMarketListing()">Сохранить</button>
+        <button class="btn btn-secondary" onclick="closeMarketEditModal()">Отменить</button>
       </div>
     </div>
   </div>

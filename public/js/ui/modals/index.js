@@ -59,6 +59,13 @@ import {
   setMaxBuyQuantity,
   confirmBuyFromMarket,
   updateWarehouseSellDisplay,
+  openMarketEditModal,
+  closeMarketEditModal,
+  incrementEditQuantity,
+  decrementEditQuantity,
+  setMaxEditQuantity,
+  confirmEditMarketListing,
+  renderMarketListings,
 } from './market.js';
 
 // Re-export all functions
@@ -104,6 +111,13 @@ export {
   setMaxBuyQuantity,
   confirmBuyFromMarket,
   updateWarehouseSellDisplay,
+  openMarketEditModal,
+  closeMarketEditModal,
+  incrementEditQuantity,
+  decrementEditQuantity,
+  setMaxEditQuantity,
+  confirmEditMarketListing,
+  renderMarketListings,
 };
 
 // Setup modal background click handlers
@@ -165,6 +179,12 @@ export function setupModalHandlers() {
   document.getElementById('market-buy-modal').addEventListener('click', (e) => {
     if (e.target.id === 'market-buy-modal') {
       closeMarketBuyModal();
+    }
+  });
+
+  document.getElementById('market-edit-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'market-edit-modal') {
+      closeMarketEditModal();
     }
   });
 }

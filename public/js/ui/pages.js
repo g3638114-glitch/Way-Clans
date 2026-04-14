@@ -1,6 +1,7 @@
 import { appState } from '../utils/state.js';
 import { renderBuildings } from './builders.js';
 import { startProductionRefresh, stopProductionRefresh } from '../game/production.js';
+import { renderMarketListings } from './modals/market.js';
 
 // Show specific page
 export function showPage(page) {
@@ -10,6 +11,7 @@ export function showPage(page) {
   document.getElementById('main-page').classList.remove('active');
   document.getElementById('mining-page').classList.remove('active');
   document.getElementById('coin-mining-page').classList.remove('active');
+  document.getElementById('market-page').classList.remove('active');
 
   // Update nav items
   const navItems = document.querySelectorAll('.nav-item');
@@ -38,5 +40,13 @@ export function showPage(page) {
     stopProductionRefresh();
     // Hide resources header on coin mining page
     if (resourcesHeader) resourcesHeader.style.display = 'none';
+  } else if (page === 'market') {
+    document.getElementById('market-page').classList.add('active');
+    document.getElementById('nav-market').classList.add('active');
+    stopProductionRefresh();
+    // Show resources header on market page
+    if (resourcesHeader) resourcesHeader.style.display = 'grid';
+    // Load market listings
+    renderMarketListings('wood');
   }
 }

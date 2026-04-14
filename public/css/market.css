@@ -1,3 +1,11 @@
+/* Market Page Styles */
+#market-page {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 12px;
+}
+
 /* Market Modal Styles */
 
 .modal-full {
@@ -282,6 +290,10 @@
 
 .listing-actions.single {
   grid-template-columns: 1fr;
+}
+
+.listing-actions.double {
+  grid-template-columns: 1fr 1fr;
 }
 
 .btn-buy,

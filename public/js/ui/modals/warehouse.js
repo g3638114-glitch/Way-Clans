@@ -66,9 +66,9 @@ async function renderWarehouseContent() {
       const nextLevel = currentLevel + 1;
       const costData = getWarehouseUpgradeCost(nextLevel);
 
-      const hasJamcoins = (appState.currentUser.gold || 0) >= costData.jamcoins;
-      const hasStone = (appState.currentUser.stone || 0) >= costData.stone;
-      const hasWood = (appState.currentUser.wood || 0) >= costData.wood;
+      const hasJamcoins = ((appState.currentUser?.gold) || 0) >= costData.jamcoins;
+      const hasStone = ((appState.currentUser?.stone) || 0) >= costData.stone;
+      const hasWood = ((appState.currentUser?.wood) || 0) >= costData.wood;
       const canUpgrade = hasJamcoins && hasStone && hasWood;
 
       upgradeBtn.style.display = 'block';
@@ -99,10 +99,10 @@ function renderWarehouseUpgradeInfo(currentLevel, warehouse) {
   const nextCapacity = getWarehouseCapacity(nextLevel);
   const costData = getWarehouseUpgradeCost(nextLevel);
 
-  const user = appState.currentUser;
-  const hasJamcoins = (user.gold || 0) >= costData.jamcoins;
-  const hasStone = (user.stone || 0) >= costData.stone;
-  const hasWood = (user.wood || 0) >= costData.wood;
+  const user = appState.currentUser || {};
+  const hasJamcoins = ((user.gold) || 0) >= costData.jamcoins;
+  const hasStone = ((user.stone) || 0) >= costData.stone;
+  const hasWood = ((user.wood) || 0) >= costData.wood;
   const canUpgrade = hasJamcoins && hasStone && hasWood;
 
   return `

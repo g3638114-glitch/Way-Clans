@@ -5,6 +5,7 @@ import {
   getUserListings,
   cancelListing,
   buyListing,
+  updateListing,
 } from '../services/marketService.js';
 
 const router = express.Router();
@@ -59,6 +60,24 @@ router.delete('/:userId/market/listings/:listingId', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error canceling listing:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+// PUT /api/user/:userId/market/listings/:listingId
+router.put('/:userId/market/listings/:listingId', async (req, res) => {
+  try {
+    const { userId, listingId } = req.params;
+    const { quantity, pricePerUnit } = req.body;
+
+    if (!quantity || !pricePerUnit) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const result = await updateListing(listingId, userId, quantity, pricePerUnit);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating listing:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

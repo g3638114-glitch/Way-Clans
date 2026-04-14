@@ -134,13 +134,6 @@ export async function confirmSellPrice() {
 }
 
 /**
- * Get total warehouse load
- */
-function getWarehouseLoad() {
-  return (appState.currentUser.wood || 0) + (appState.currentUser.stone || 0) + (appState.currentUser.meat || 0);
-}
-
-/**
  * Open buy quantity modal
  */
 export function openBuyQuantityModal(listing) {
@@ -158,10 +151,10 @@ export function openBuyQuantityModal(listing) {
     meat: '🍖',
   };
 
-  // Check warehouse capacity
+  // Check warehouse capacity for this specific resource
   const warehouseCapacity = getWarehouseCapacity(appState.currentUser.warehouse_level || 1);
-  const warehouseLoad = getWarehouseLoad();
-  const availableSpace = warehouseCapacity - warehouseLoad;
+  const currentResourceAmount = appState.currentUser[listing.resource_type] || 0;
+  const availableSpace = warehouseCapacity - currentResourceAmount;
   currentBuyMaxQuantity = Math.min(listing.quantity, Math.max(0, availableSpace));
 
   // Update modal
@@ -173,7 +166,7 @@ export function openBuyQuantityModal(listing) {
   document.getElementById('buy-total').textContent = '0';
   document.getElementById('buy-player-gold').textContent = (appState.currentUser.gold || 0).toLocaleString();
 
-  // Disable/warn if warehouse is full
+  // Disable/warn if warehouse is full for this resource
   const buyQuantityInput = document.getElementById('buy-quantity');
   const maxBtn = document.querySelector('#buy-quantity-modal .max-btn');
   const confirmBtn = document.querySelector('#buy-quantity-modal .btn-primary');
@@ -242,6 +235,14 @@ export async function confirmBuyQuantity() {
   const totalCost = quantity * listing.price_per_unit;
   if (totalCost > (appState.currentUser.gold || 0)) {
     alert('Недостаточно Jamcoin');
+    return;
+  }
+
+  // Check warehouse capacity for this specific resource
+  const warehouseCapacity = getWarehouseCapacity(appState.currentUser.warehouse_level || 1);
+  const currentResourceAmount = appState.currentUser[listing.resource_type] || 0;
+  if (currentResourceAmount + quantity > warehouseCapacity) {
+    alert('❌ Недостаточно места в складе! Продайте ресурсы, чтобы продолжить.');
     return;
   }
 

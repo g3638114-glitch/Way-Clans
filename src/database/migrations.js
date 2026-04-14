@@ -130,6 +130,20 @@ const migrations = [
     sql: `ALTER TABLE completed_quests ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`,
   },
 
+  // === DISABLE ROW LEVEL SECURITY ===
+  {
+    name: 'Disable RLS on users table',
+    sql: `ALTER TABLE users DISABLE ROW LEVEL SECURITY;`,
+  },
+  {
+    name: 'Disable RLS on user_buildings table',
+    sql: `ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;`,
+  },
+  {
+    name: 'Disable RLS on completed_quests table',
+    sql: `ALTER TABLE completed_quests DISABLE ROW LEVEL SECURITY;`,
+  },
+
   // === MARKET_LISTINGS TABLE ===
   {
     name: 'Create market_listings table',
@@ -139,6 +153,8 @@ const migrations = [
       resource_type TEXT NOT NULL,
       quantity BIGINT NOT NULL,
       price_per_unit BIGINT NOT NULL,
+      total_price BIGINT NOT NULL,
+      active BOOLEAN DEFAULT true,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );`,
@@ -152,22 +168,12 @@ const migrations = [
     sql: `CREATE INDEX IF NOT EXISTS idx_market_listings_resource_type ON market_listings(resource_type);`,
   },
   {
+    name: 'Create index on market_listings.active',
+    sql: `CREATE INDEX IF NOT EXISTS idx_market_listings_active ON market_listings(active);`,
+  },
+  {
     name: 'Disable RLS on market_listings table',
     sql: `ALTER TABLE market_listings DISABLE ROW LEVEL SECURITY;`,
-  },
-
-  // === DISABLE ROW LEVEL SECURITY ===
-  {
-    name: 'Disable RLS on users table',
-    sql: `ALTER TABLE users DISABLE ROW LEVEL SECURITY;`,
-  },
-  {
-    name: 'Disable RLS on user_buildings table',
-    sql: `ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;`,
-  },
-  {
-    name: 'Disable RLS on completed_quests table',
-    sql: `ALTER TABLE completed_quests DISABLE ROW LEVEL SECURITY;`,
   },
 ];
 

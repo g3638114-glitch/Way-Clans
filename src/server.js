@@ -34,7 +34,7 @@ app.use('/api/user', resourcesRouter);
 app.use('/api/user', questsRouter);
 app.use('/api/user', treasuryRouter);
 app.use('/api/user', warehouseRouter);
-app.use('/api/user', marketRouter);
+app.use('/api/market', marketRouter);
 
 // Serve MiniApp HTML
 app.get('/', (req, res) => {

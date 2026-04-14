@@ -2,149 +2,310 @@
    MARKET PAGE STYLES
    ======================================== */
 
-.market-tabs {
+/* Market Page Layout */
+#market-page {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+#market-page.active {
+  display: flex;
+}
+
+.market-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.market-buttons {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: rgba(76, 111, 166, 0.05);
-  border-radius: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.market-tab-btn {
-  padding: 12px 10px;
-  background: rgba(76, 111, 166, 0.2);
-  border: 2px solid rgba(76, 111, 166, 0.3);
-  color: rgba(255, 255, 255, 0.8);
-  border-radius: 8px;
-  font-size: 13px;
+.market-resource-btn {
+  background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+  color: white;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  border: 2px solid transparent;
 }
 
-.market-tab-btn:hover {
-  background: rgba(76, 111, 166, 0.3);
-  border-color: rgba(76, 111, 166, 0.5);
+.market-resource-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.5);
 }
 
-.market-tab-btn.active {
-  background: linear-gradient(135deg, #4c6fa6 0%, #3a5080 100%);
-  border-color: #4c6fa6;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.3);
+.market-resource-btn.active {
+  border-color: #FFD700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
 }
 
-/* ========================================
-   MARKET LISTINGS CONTAINER
-   ======================================== */
+.market-listings-btn {
+  background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+  color: white;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  grid-column: 1 / -1;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
 
+.market-listings-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.5);
+}
+
+/* Market Listings Container */
 .market-listings-container {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
 }
 
-/* ========================================
-   MARKET LISTING ITEM
-   ======================================== */
+.no-listings {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 14px;
+}
 
-.market-listing-item {
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(76, 111, 166, 0.3);
-  border-radius: 10px;
+/* Market Listing Card */
+.market-listing-card {
+  background: linear-gradient(135deg, #f5f5f5 0%, #efefef 100%);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  transition: all 0.3s ease;
+  gap: 10px;
+  border-left: 4px solid #2196F3;
 }
 
-.market-listing-item:hover {
-  background: rgba(0, 0, 0, 0.4);
-  border-color: rgba(76, 111, 166, 0.5);
-  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.2);
+.listing-seller {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #666;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+}
+
+.seller-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.seller-id {
+  font-size: 11px;
+  color: #999;
+}
+
+.listing-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.item-info {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.item-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.price-per-unit {
+  font-size: 12px;
+  color: #666;
+}
+
+.price-total {
+  font-size: 14px;
+  font-weight: bold;
+  color: #2196F3;
+}
+
+.btn-buy {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-buy:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
+}
+
+.btn-buy:active {
+  transform: scale(0.95);
+}
+
+/* Market Back Button */
+.market-back-container {
+  display: none;
+  padding: 16px;
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+}
+
+.market-back-container.active {
+  display: block;
+}
+
+.btn-back-market {
+  background: linear-gradient(135deg, #555 0%, #333 100%);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-back-market:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Market Sell Modal - Price/Quantity Input */
+.market-sell-available {
+  background: #f0f0f0;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.market-sell-available strong {
+  color: #2196F3;
+  font-weight: bold;
+}
+
+.market-sell-total,
+.market-buy-total,
+.market-buy-balance,
+.market-edit-total {
+  background: #f0f0f0;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+.market-sell-total strong,
+.market-buy-total strong,
+.market-edit-total strong {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.market-buy-balance {
+  background: #fff3e0;
+  color: #333;
+  margin-top: 8px;
+}
+
+/* Market Buy Modal */
+.market-buy-info {
+  background: #f0f0f0;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.info-row span:first-child {
+  color: #666;
+}
+
+.info-row strong {
+  color: #2196F3;
+  font-weight: bold;
+}
+
+/* My Listings Card */
+.listing-card {
+  background: linear-gradient(135deg, #f5f5f5 0%, #efefef 100%);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #FF9800;
+  margin-bottom: 12px;
 }
 
 .listing-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
 }
 
-.seller-info {
-  flex: 1;
-}
-
-.seller-info strong {
-  display: block;
-  color: #fff;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.listing-price {
-  background: rgba(212, 175, 55, 0.2);
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  text-align: center;
-  white-space: nowrap;
-}
-
-.listing-price span {
-  color: #d4af37;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.listing-body {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.listing-quantity {
-  flex: 1;
-}
-
-.listing-quantity p {
+.listing-header h3 {
   margin: 0;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  color: #333;
+}
+
+.listing-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.listing-row {
+  display: flex;
+  justify-content: space-between;
   font-size: 13px;
+  color: #666;
 }
 
-.listing-quantity strong {
-  color: #fff;
-  font-size: 16px;
-}
-
-/* ========================================
-   MY LISTINGS ITEM
-   ======================================== */
-
-.market-listing-item.my-listing {
-  border-color: rgba(76, 175, 80, 0.3);
-  background: rgba(76, 175, 80, 0.05);
-}
-
-.market-listing-item.my-listing:hover {
-  background: rgba(76, 175, 80, 0.1);
-  border-color: rgba(76, 175, 80, 0.5);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
-}
-
-.resource-info {
-  flex: 1;
-}
-
-.resource-info strong {
-  display: block;
-  color: #4caf50;
-  font-size: 15px;
+.listing-row strong {
+  color: #333;
+  font-weight: 600;
 }
 
 .listing-actions {
@@ -152,185 +313,183 @@
   gap: 8px;
 }
 
-.btn-sm {
-  flex: 0.5;
-  padding: 8px 10px;
+.btn-small {
+  flex: 1;
+  padding: 8px 12px;
   font-size: 12px;
-  min-height: auto;
-}
-
-.btn-danger {
-  background: rgba(244, 67, 54, 0.3);
-  border-color: rgba(244, 67, 54, 0.5);
-  color: #ff6b6b;
-}
-
-.btn-danger:hover {
-  background: rgba(244, 67, 54, 0.4);
-  border-color: rgba(244, 67, 54, 0.7);
-}
-
-/* ========================================
-   MARKET SELL BUTTONS (Warehouse Modal)
-   ======================================== */
-
-.market-sell-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.btn-resource {
-  padding: 14px 12px;
-  background: rgba(76, 111, 166, 0.2);
-  border: 1px solid rgba(76, 111, 166, 0.3);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: left;
-  font-weight: 500;
-}
-
-.btn-resource:hover {
-  background: rgba(76, 111, 166, 0.3);
-  border-color: rgba(76, 111, 166, 0.5);
-  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.2);
-}
-
-.btn-resource:active {
-  transform: scale(0.98);
-}
-
-.btn-resource span {
-  font-weight: bold;
-  color: #d4af37;
-}
-
-/* ========================================
-   MODAL CENTERED (for price/buy modals)
-   ======================================== */
-
-.modal-centered .modal-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-centered .modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* ========================================
-   PRICE MODAL STYLES
-   ======================================== */
-
-.resource-input-group {
-  margin: 0;
-  padding: 12px;
-  background: rgba(76, 111, 166, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(76, 111, 166, 0.3);
-}
-
-.resource-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
-
-.resource-row > span:first-child,
-.resource-row > label {
-  flex: 1;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.resource-row label {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.resource-row input {
-  flex: 1;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
-  color: #fff;
+  cursor: pointer;
+  border: none;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.btn-small {
+  background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+}
+
+.btn-small:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(33, 150, 243, 0.4);
+}
+
+.btn-small.btn-danger {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+}
+
+.btn-small.btn-danger:hover {
+  box-shadow: 0 3px 8px rgba(244, 67, 54, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #757575 0%, #424242 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.btn-primary:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
+}
+
+.btn-primary.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Warehouse Sell Menu */
+.warehouse-sell-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.warehouse-sell-option {
+  background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%) !important;
+  color: white !important;
+  padding: 16px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 4px;
+  text-align: left !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.warehouse-sell-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.5);
+}
+
+.warehouse-sell-option span {
+  display: block;
+}
+
+.warehouse-sell-option .quantity {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.warehouse-sell-option .hint {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Market Edit Modal */
+.market-edit-info {
+  background: #f0f0f0;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Input Styling */
+.resource-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.resource-input-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.resource-input-group input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   font-size: 14px;
-  min-width: 0;
-}
-
-.resource-row input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.resource-row input:focus {
-  outline: none;
-  border-color: rgba(76, 111, 166, 0.5);
-  background: rgba(0, 0, 0, 0.4);
+  font-family: inherit;
 }
 
 .input-controls {
   display: flex;
   gap: 8px;
-  flex: 0.7;
+  align-items: center;
+}
+
+.input-controls input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
 }
 
 .max-btn {
-  padding: 6px 12px;
-  background: rgba(76, 111, 166, 0.3);
-  color: #fff;
-  border: 1px solid rgba(76, 111, 166, 0.5);
+  padding: 10px 16px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
   border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
   font-size: 12px;
-  font-weight: bold;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .max-btn:hover {
-  background: rgba(76, 111, 166, 0.5);
-  border-color: rgba(76, 111, 166, 0.7);
+  background: #e0e0e0;
 }
 
-.max-btn:active {
-  transform: scale(0.95);
-}
-
-/* ========================================
-   RESPONSIVE
-   ======================================== */
-
+/* Responsive */
 @media (max-width: 480px) {
-  .market-tabs {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 10px;
-    gap: 8px;
-  }
-
-  .market-tab-btn {
-    padding: 10px 8px;
-    font-size: 12px;
-  }
-
-  .listing-body {
-    flex-direction: column;
-    align-items: flex-start;
+  .market-buttons {
+    grid-template-columns: 1fr;
   }
 
   .listing-actions {
-    width: 100%;
+    flex-direction: column;
   }
 
-  .btn-sm {
-    flex: 1;
+  .market-resource-btn {
+    padding: 12px;
+    font-size: 13px;
   }
 }

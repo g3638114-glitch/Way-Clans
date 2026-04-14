@@ -38,12 +38,30 @@ import {
   closeWarehouseModal,
   openWarehouseSellModal,
   closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
+  openWarehouseSellToMarket,
   upgradeWarehouseToLevel,
 } from './warehouse.js';
+
+import {
+  openMarketSellModal,
+  closeMarketSellModal,
+  setMaxMarketSellQuantity,
+  updateMarketSellTotal,
+  confirmMarketSell,
+  openMarketBuyModal,
+  closeMarketBuyModal,
+  setMaxMarketBuyQuantity,
+  updateMarketBuyTotal,
+  confirmMarketBuy,
+  openMarketMyListingsModal,
+  closeMarketMyListingsModal,
+  openMarketEditModal,
+  closeMarketEditModal,
+  updateMarketEditTotal,
+  confirmMarketEdit,
+  deleteMarketListing,
+  renderMarketListings,
+} from './market.js';
 
 // Re-export all functions
 export {
@@ -70,11 +88,26 @@ export {
   closeWarehouseModal,
   openWarehouseSellModal,
   closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
+  openWarehouseSellToMarket,
   upgradeWarehouseToLevel,
+  openMarketSellModal,
+  closeMarketSellModal,
+  setMaxMarketSellQuantity,
+  updateMarketSellTotal,
+  confirmMarketSell,
+  openMarketBuyModal,
+  closeMarketBuyModal,
+  setMaxMarketBuyQuantity,
+  updateMarketBuyTotal,
+  confirmMarketBuy,
+  openMarketMyListingsModal,
+  closeMarketMyListingsModal,
+  openMarketEditModal,
+  closeMarketEditModal,
+  updateMarketEditTotal,
+  confirmMarketEdit,
+  deleteMarketListing,
+  renderMarketListings,
 };
 
 // Setup modal background click handlers
@@ -118,6 +151,30 @@ export function setupModalHandlers() {
   document.getElementById('warehouse-sell-modal').addEventListener('click', (e) => {
     if (e.target.id === 'warehouse-sell-modal') {
       closeWarehouseSellModal();
+    }
+  });
+
+  document.getElementById('market-sell-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'market-sell-modal') {
+      closeMarketSellModal();
+    }
+  });
+
+  document.getElementById('market-buy-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'market-buy-modal') {
+      closeMarketBuyModal();
+    }
+  });
+
+  document.getElementById('market-my-listings-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'market-my-listings-modal') {
+      closeMarketMyListingsModal();
+    }
+  });
+
+  document.getElementById('market-edit-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'market-edit-modal') {
+      closeMarketEditModal();
     }
   });
 }

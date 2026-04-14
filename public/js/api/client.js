@@ -168,14 +168,20 @@ export const apiClient = {
     return response.json();
   },
 
+  // Market methods
   // Create market listing
-  async createMarketListing(userId, { resourceType, quantity, pricePerUnit }) {
-    const response = await fetch(`/api/user/${userId}/market/create`, {
+  async createMarketListing(userId, resourceType, quantity, pricePerUnit) {
+    const response = await fetch('/api/market/listings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ resourceType, quantity, pricePerUnit }),
+      body: JSON.stringify({
+        userId,
+        resourceType,
+        quantity,
+        pricePerUnit,
+      }),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -184,64 +190,77 @@ export const apiClient = {
     return response.json();
   },
 
-  // Get market listings for a resource
-  async getMarketListings(userId, resourceType) {
-    const response = await fetch(`/api/user/${userId}/market/listings/${resourceType}`);
+  // Get listings for a resource
+  async getMarketListingsByResource(resourceType) {
+    const response = await fetch(`/api/market/listings/${resourceType}`);
     if (!response.ok) {
-      throw new Error('Failed to load market listings');
+      throw new Error('Failed to load listings');
     }
-    return response.json();
+    const data = await response.json();
+    return data.listings || [];
   },
 
-  // Get user's market listings
-  async getMyMarketListings(userId) {
-    const response = await fetch(`/api/user/${userId}/market/my-listings`);
+  // Get user's listings
+  async getUserMarketListings(userId) {
+    const response = await fetch(`/api/market/my-listings/${userId}`);
     if (!response.ok) {
       throw new Error('Failed to load your listings');
     }
-    return response.json();
+    const data = await response.json();
+    return data.listings || [];
   },
 
-  // Buy from market listing
-  async buyFromMarketListing(userId, listingId, quantity) {
-    const response = await fetch(`/api/user/${userId}/market/buy`, {
+  // Buy from listing
+  async buyMarketListing(buyerId, listingId, quantity) {
+    const response = await fetch('/api/market/buy', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ listingId, quantity }),
+      body: JSON.stringify({
+        buyerId,
+        listingId,
+        quantity,
+      }),
     });
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to buy from listing');
+      throw new Error(error.error || 'Failed to buy');
     }
     return response.json();
   },
 
-  // Delete market listing
-  async deleteMarketListing(userId, listingId) {
-    const response = await fetch(`/api/user/${userId}/market/${listingId}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to delete listing');
-    }
-    return response.json();
-  },
-
-  // Edit market listing
-  async editMarketListing(userId, listingId, { quantity, pricePerUnit }) {
-    const response = await fetch(`/api/user/${userId}/market/${listingId}`, {
-      method: 'PATCH',
+  // Edit listing
+  async editMarketListing(userId, listingId, pricePerUnit) {
+    const response = await fetch(`/api/market/listings/${listingId}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ quantity, pricePerUnit }),
+      body: JSON.stringify({
+        userId,
+        pricePerUnit,
+      }),
     });
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to edit listing');
+    }
+    return response.json();
+  },
+
+  // Delete listing
+  async deleteMarketListing(userId, listingId) {
+    const response = await fetch(`/api/market/listings/${listingId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete listing');
     }
     return response.json();
   },

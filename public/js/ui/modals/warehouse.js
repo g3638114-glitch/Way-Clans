@@ -2,7 +2,6 @@ import { appState } from '../../utils/state.js';
 import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { getMaxWarehouseLevel, getWarehouseCapacity, getWarehouseUpgradeCost } from '../../game/config.js';
-import { updateWarehouseSellModal } from '../../game/market.js';
 
 export function openWarehouseModal() {
   renderWarehouseContent();
@@ -15,38 +14,19 @@ export function closeWarehouseModal() {
 
 export function openWarehouseSellModal() {
   updateWarehouseSellDisplay();
-  updateWarehouseSellModal(); // Update with market module data
   document.getElementById('warehouse-sell-modal').classList.add('active');
 }
 
 export function closeWarehouseSellModal() {
   document.getElementById('warehouse-sell-modal').classList.remove('active');
-  resetWarehouseSellInputs();
-}
-
-function resetWarehouseSellInputs() {
-  document.getElementById('warehouse-wood-input').value = '';
-  document.getElementById('warehouse-stone-input').value = '';
-  document.getElementById('warehouse-meat-input').value = '';
 }
 
 function updateWarehouseSellDisplay() {
-  document.getElementById('warehouse-sell-wood').textContent = appState.currentUser.wood;
-  document.getElementById('warehouse-sell-stone').textContent = appState.currentUser.stone;
-  document.getElementById('warehouse-sell-meat').textContent = appState.currentUser.meat;
+  document.getElementById('warehouse-sell-qty-wood').textContent = appState.currentUser.wood;
+  document.getElementById('warehouse-sell-qty-stone').textContent = appState.currentUser.stone;
+  document.getElementById('warehouse-sell-qty-meat').textContent = appState.currentUser.meat;
 }
 
-export function setMaxWarehouseWood() {
-  document.getElementById('warehouse-wood-input').value = appState.currentUser.wood;
-}
-
-export function setMaxWarehouseStone() {
-  document.getElementById('warehouse-stone-input').value = appState.currentUser.stone;
-}
-
-export function setMaxWarehouseMeat() {
-  document.getElementById('warehouse-meat-input').value = appState.currentUser.meat;
-}
 
 async function renderWarehouseContent() {
   try {
@@ -189,31 +169,10 @@ export async function upgradeWarehouseToLevel() {
   }
 }
 
-export async function sellWarehouseResources() {
-  try {
-    const wood = parseInt(document.getElementById('warehouse-wood-input').value) || 0;
-    const stone = parseInt(document.getElementById('warehouse-stone-input').value) || 0;
-    const meat = parseInt(document.getElementById('warehouse-meat-input').value) || 0;
-
-    if (wood === 0 && stone === 0 && meat === 0) {
-      tg.showAlert('Выберите ресурсы для продажи');
-      return;
-    }
-
-    const result = await apiClient.sellResources(appState.userId, { wood, stone, meat });
-    appState.currentUser = result.user;
-    updateUI(appState.currentUser);
-    closeWarehouseSellModal();
-    tg.showAlert('✅ Ресурсы успешно проданы!');
-  } catch (error) {
-    console.error('Error selling resources:', error);
-
-    // Handle warehouse full error separately - show as notification, not error
-    if (error.message.includes('Warehouse is full')) {
-      tg.showAlert('🏭 Склад переполнен! Продайте ресурсы, чтобы продолжить сбор.');
-      return;
-    }
-
-    tg.showAlert(error.message || 'Ошибка при продаже ресурсов');
-  }
+export function openWarehouseSellToMarket(resourceType) {
+  // Import and call the market sell modal function
+  // We need to import it properly, but for now this function will be called globally
+  // The function will be defined in the events.js where we import market modals
+  closeWarehouseSellModal();
+  window.openWarehouseSellToMarket(resourceType);
 }

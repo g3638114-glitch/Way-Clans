@@ -1,7 +1,6 @@
 import { appState } from '../utils/state.js';
 import { renderBuildings } from './builders.js';
 import { startProductionRefresh, stopProductionRefresh } from '../game/production.js';
-import { loadMarketListings } from '../game/market.js';
 
 // Show specific page
 export function showPage(page) {
@@ -17,11 +16,10 @@ export function showPage(page) {
   const navItems = document.querySelectorAll('.nav-item');
   navItems.forEach(item => item.classList.remove('active'));
 
-  // Get resources header and navigation elements
+  // Get resources header
   const resourcesHeader = document.querySelector('.resources-header');
-  const mainNav = document.getElementById('bottom-nav');
-  const mainNavButtons = mainNav.querySelectorAll('#nav-main, #nav-mining, #nav-coin-mining, #nav-barracks');
-  const marketBackBtn = document.getElementById('nav-market-back');
+  const bottomNav = document.getElementById('bottom-nav');
+  const marketBackContainer = document.getElementById('market-back-container');
 
   // Show selected page
   if (page === 'main') {
@@ -30,9 +28,8 @@ export function showPage(page) {
     stopProductionRefresh();
     // Show resources header on main page
     if (resourcesHeader) resourcesHeader.style.display = 'grid';
-    // Show main nav buttons
-    mainNavButtons.forEach(btn => btn.style.display = '');
-    if (marketBackBtn) marketBackBtn.style.display = 'none';
+    if (bottomNav) bottomNav.style.display = 'grid';
+    if (marketBackContainer) marketBackContainer.style.display = 'none';
   } else if (page === 'mining') {
     document.getElementById('mining-page').classList.add('active');
     document.getElementById('nav-mining').classList.add('active');
@@ -40,27 +37,22 @@ export function showPage(page) {
     startProductionRefresh();
     // Show resources header on mining page
     if (resourcesHeader) resourcesHeader.style.display = 'grid';
-    // Show main nav buttons
-    mainNavButtons.forEach(btn => btn.style.display = '');
-    if (marketBackBtn) marketBackBtn.style.display = 'none';
+    if (bottomNav) bottomNav.style.display = 'grid';
+    if (marketBackContainer) marketBackContainer.style.display = 'none';
   } else if (page === 'coin-mining') {
     document.getElementById('coin-mining-page').classList.add('active');
     document.getElementById('nav-coin-mining').classList.add('active');
     stopProductionRefresh();
     // Hide resources header on coin mining page
     if (resourcesHeader) resourcesHeader.style.display = 'none';
-    // Show main nav buttons
-    mainNavButtons.forEach(btn => btn.style.display = '');
-    if (marketBackBtn) marketBackBtn.style.display = 'none';
+    if (bottomNav) bottomNav.style.display = 'grid';
+    if (marketBackContainer) marketBackContainer.style.display = 'none';
   } else if (page === 'market') {
     document.getElementById('market-page').classList.add('active');
     stopProductionRefresh();
     // Show resources header on market page
     if (resourcesHeader) resourcesHeader.style.display = 'grid';
-    // Hide main nav buttons, show market back button
-    mainNavButtons.forEach(btn => btn.style.display = 'none');
-    if (marketBackBtn) marketBackBtn.style.display = '';
-    // Load market listings
-    loadMarketListings('wood');
+    if (bottomNav) bottomNav.style.display = 'none';
+    if (marketBackContainer) marketBackContainer.style.display = 'grid';
   }
 }

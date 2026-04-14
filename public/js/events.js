@@ -29,10 +29,25 @@ import {
   setMaxWarehouseMeat,
   sellWarehouseResources,
   upgradeWarehouseToLevel,
+  openMarketSellModal,
+  closeMarketSellModal,
+  setMaxMarketSellQuantity,
+  updateMarketSellTotal,
+  confirmMarketSell,
+  openMarketBuyModal,
+  closeMarketBuyModal,
+  setMaxMarketBuyQuantity,
+  updateMarketBuyTotal,
+  confirmMarketBuy,
+  openMarketMyListingsModal,
+  closeMarketMyListingsModal,
+  updateMarketEditTotal,
+  confirmMarketEdit,
+  renderMarketListings,
   setupModalHandlers,
 } from './ui/modals/index.js';
 import { renderBuildings } from './ui/builders.js';
-import * as market from './game/market.js';
+import { apiClient } from './api/client.js';
 
 // Register all event listeners
 export function setupEventListeners() {
@@ -49,6 +64,7 @@ export function setupEventListeners() {
   // Market button
   document.getElementById('market-btn').addEventListener('click', () => {
     showPage('market');
+    loadMarketPage();
   });
 
   // Quests modal buttons
@@ -96,27 +112,10 @@ export function setupEventListeners() {
   document.getElementById('nav-main').addEventListener('click', () => showPage('main'));
   document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));
   document.getElementById('nav-coin-mining').addEventListener('click', () => showPage('coin-mining'));
-  document.getElementById('nav-market-back').addEventListener('click', () => showPage('main'));
 
   document.getElementById('nav-barracks').addEventListener('click', () => {
     tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
   });
-
-  // Market tabs
-  document.querySelectorAll('.market-tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.market-tab-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      market.loadMarketListings(e.target.dataset.resource);
-    });
-  });
-
-  // Price modal input handlers
-  document.getElementById('price-per-unit')?.addEventListener('input', market.updatePriceTotal);
-  document.getElementById('price-quantity')?.addEventListener('input', market.updatePriceTotal);
-
-  // Buy modal input handlers
-  document.getElementById('buy-quantity')?.addEventListener('input', market.updateBuyTotal);
 
   // Building type tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -126,6 +125,30 @@ export function setupEventListeners() {
       appState.selectedBuildingType = e.target.dataset.type;
       renderBuildings();
     });
+  });
+
+  // Market resource buttons
+  document.querySelectorAll('.market-resource-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const resourceType = e.target.dataset.resource;
+      try {
+        const listings = await apiClient.getMarketListingsByResource(resourceType);
+        renderMarketListings(resourceType, listings);
+      } catch (error) {
+        console.error('Error loading listings:', error);
+        tg.showAlert('❌ Ошибка при загрузке объявлений');
+      }
+    });
+  });
+
+  // Market my listings button
+  document.getElementById('market-my-listings-btn').addEventListener('click', () => {
+    openMarketMyListingsModal();
+  });
+
+  // Market back button
+  document.getElementById('market-back-btn').addEventListener('click', () => {
+    showPage('main');
   });
 
   // Setup modal background click handlers
@@ -156,22 +179,42 @@ export function setupEventListeners() {
   window.closeWarehouseModal = closeWarehouseModal;
   window.openWarehouseSellModal = openWarehouseSellModal;
   window.closeWarehouseSellModal = closeWarehouseSellModal;
-  window.setMaxWarehouseWood = setMaxWarehouseWood;
-  window.setMaxWarehouseStone = setMaxWarehouseStone;
-  window.setMaxWarehouseMeat = setMaxWarehouseMeat;
-  window.sellWarehouseResources = sellWarehouseResources;
   window.upgradeWarehouseToLevel = upgradeWarehouseToLevel;
 
-  // Market functions
-  window.market = market;
-  window.openSetPriceModal = market.openSetPriceModal;
-  window.closeSetPriceModal = market.closeSetPriceModal;
-  window.setMaxPriceQuantity = market.setMaxPriceQuantity;
-  window.confirmSellPrice = market.confirmSellPrice;
-  window.openBuyQuantityModal = market.openBuyQuantityModal;
-  window.closeBuyQuantityModal = market.closeBuyQuantityModal;
-  window.setMaxBuyQuantity = market.setMaxBuyQuantity;
-  window.confirmBuyQuantity = market.confirmBuyQuantity;
-  window.updatePriceTotal = market.updatePriceTotal;
-  window.updateBuyTotal = market.updateBuyTotal;
+  // Market sell from warehouse
+  window.openWarehouseSellToMarket = (resourceType) => {
+    openMarketSellModal(resourceType);
+  };
+
+  window.openMarketSellModal = openMarketSellModal;
+  window.closeMarketSellModal = closeMarketSellModal;
+  window.setMaxMarketSellQuantity = setMaxMarketSellQuantity;
+  window.updateMarketSellTotal = updateMarketSellTotal;
+  window.confirmMarketSell = confirmMarketSell;
+  window.openMarketBuyModal = openMarketBuyModal;
+  window.closeMarketBuyModal = closeMarketBuyModal;
+  window.setMaxMarketBuyQuantity = setMaxMarketBuyQuantity;
+  window.updateMarketBuyTotal = updateMarketBuyTotal;
+  window.confirmMarketBuy = confirmMarketBuy;
+  window.openMarketMyListingsModal = openMarketMyListingsModal;
+  window.closeMarketMyListingsModal = closeMarketMyListingsModal;
+  window.updateMarketEditTotal = updateMarketEditTotal;
+  window.confirmMarketEdit = confirmMarketEdit;
+}
+
+// Load market page with default listings (wood)
+export async function loadMarketPage() {
+  try {
+    const listings = await apiClient.getMarketListingsByResource('wood');
+    renderMarketListings('wood', listings);
+
+    // Mark wood button as active
+    document.querySelectorAll('.market-resource-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    document.getElementById('market-wood-btn').classList.add('active');
+  } catch (error) {
+    console.error('Error loading market page:', error);
+    tg.showAlert('❌ Ошибка при загрузке рынка');
+  }
 }

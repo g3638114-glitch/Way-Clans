@@ -1,22 +1,21 @@
 import express from 'express';
 import {
   createListing,
-  getListings,
-  getMyListings,
-  buyFromListing,
-  deleteListing,
+  getListingsByResource,
+  getUserListings,
+  buyListing,
   editListing,
+  deleteListing,
+  disableListingsForFullTreasury,
 } from '../services/marketService.js';
 
 const router = express.Router();
 
-// POST /api/user/:userId/market/create - Create a listing
-router.post('/:userId/market/create', async (req, res) => {
+// POST /api/market/listings - Create new listing
+router.post('/listings', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { resourceType, quantity, pricePerUnit } = req.body;
-
-    const result = await createListing(userId, { resourceType, quantity, pricePerUnit });
+    const { userId, resourceType, quantity, pricePerUnit } = req.body;
+    const result = await createListing(userId, resourceType, quantity, pricePerUnit);
     res.json(result);
   } catch (error) {
     console.error('Error creating listing:', error);
@@ -24,49 +23,60 @@ router.post('/:userId/market/create', async (req, res) => {
   }
 });
 
-// GET /api/user/:userId/market/listings/:resourceType - Get listings for a resource
-router.get('/:userId/market/listings/:resourceType', async (req, res) => {
+// GET /api/market/listings/:resourceType - Get listings for a resource
+router.get('/listings/:resourceType', async (req, res) => {
   try {
     const { resourceType } = req.params;
-    const listings = await getListings(resourceType);
-    res.json({ listings });
+    const listings = await getListingsByResource(resourceType);
+    res.json({ success: true, listings });
   } catch (error) {
-    console.error('Error getting listings:', error);
+    console.error('Error fetching listings:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });
 
-// GET /api/user/:userId/market/my-listings - Get current user's listings
-router.get('/:userId/market/my-listings', async (req, res) => {
+// GET /api/market/my-listings/:userId - Get user's listings
+router.get('/my-listings/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const listings = await getMyListings(userId);
-    res.json({ listings });
+    const listings = await getUserListings(userId);
+    res.json({ success: true, listings });
   } catch (error) {
-    console.error('Error getting my listings:', error);
+    console.error('Error fetching user listings:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });
 
-// POST /api/user/:userId/market/buy - Buy from a listing
-router.post('/:userId/market/buy', async (req, res) => {
+// POST /api/market/buy - Buy from listing
+router.post('/buy', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { listingId, quantity } = req.body;
-
-    const result = await buyFromListing(userId, listingId, quantity);
+    const { buyerId, listingId, quantity } = req.body;
+    const result = await buyListing(buyerId, listingId, quantity);
     res.json(result);
   } catch (error) {
-    console.error('Error buying from listing:', error);
+    console.error('Error buying listing:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });
 
-// DELETE /api/user/:userId/market/:listingId - Delete a listing
-router.delete('/:userId/market/:listingId', async (req, res) => {
+// PUT /api/market/listings/:listingId - Edit listing
+router.put('/listings/:listingId', async (req, res) => {
   try {
-    const { userId, listingId } = req.params;
+    const { listingId } = req.params;
+    const { userId, pricePerUnit } = req.body;
+    const result = await editListing(userId, listingId, pricePerUnit);
+    res.json(result);
+  } catch (error) {
+    console.error('Error editing listing:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
 
+// DELETE /api/market/listings/:listingId - Delete listing
+router.delete('/listings/:listingId', async (req, res) => {
+  try {
+    const { listingId } = req.params;
+    const { userId } = req.body;
     const result = await deleteListing(userId, listingId);
     res.json(result);
   } catch (error) {
@@ -75,16 +85,16 @@ router.delete('/:userId/market/:listingId', async (req, res) => {
   }
 });
 
-// PATCH /api/user/:userId/market/:listingId - Edit a listing
-router.patch('/:userId/market/:listingId', async (req, res) => {
+// POST /api/market/disable-full-treasury/:userId - Disable listings if treasury is full
+router.post('/disable-full-treasury/:userId', async (req, res) => {
   try {
-    const { userId, listingId } = req.params;
-    const { quantity, pricePerUnit } = req.body;
-
-    const result = await editListing(userId, listingId, { quantity, pricePerUnit });
+    const { userId } = req.params;
+    // This would need to fetch the user and call disableListingsForFullTreasury with user.id
+    // For now, we'll require the actual user ID to be passed
+    const result = await disableListingsForFullTreasury(userId);
     res.json(result);
   } catch (error) {
-    console.error('Error editing listing:', error);
+    console.error('Error disabling listings:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

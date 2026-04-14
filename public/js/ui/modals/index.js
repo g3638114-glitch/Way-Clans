@@ -1,14 +1,5 @@
 // Import all modal functions
 import {
-  openStorageModal,
-  closeStorageModal,
-  setMaxWood,
-  setMaxStone,
-  setMaxMeat,
-  sellResources,
-} from './storage.js';
-
-import {
   openExchangeModal,
   closeExchangeModal,
   updateExchangeResult,
@@ -36,23 +27,11 @@ import {
 import {
   openWarehouseModal,
   closeWarehouseModal,
-  openWarehouseSellModal,
-  closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
   upgradeWarehouseToLevel,
 } from './warehouse.js';
 
 // Re-export all functions
 export {
-  openStorageModal,
-  closeStorageModal,
-  setMaxWood,
-  setMaxStone,
-  setMaxMeat,
-  sellResources,
   openExchangeModal,
   closeExchangeModal,
   updateExchangeResult,
@@ -68,23 +47,11 @@ export {
   upgradeTreasuryToLevel,
   openWarehouseModal,
   closeWarehouseModal,
-  openWarehouseSellModal,
-  closeWarehouseSellModal,
-  setMaxWarehouseWood,
-  setMaxWarehouseStone,
-  setMaxWarehouseMeat,
-  sellWarehouseResources,
   upgradeWarehouseToLevel,
 };
 
 // Setup modal background click handlers
 export function setupModalHandlers() {
-  document.getElementById('storage-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'storage-modal') {
-      closeStorageModal();
-    }
-  });
-
   document.getElementById('exchange-modal').addEventListener('click', (e) => {
     if (e.target.id === 'exchange-modal') {
       closeExchangeModal();
@@ -115,9 +82,41 @@ export function setupModalHandlers() {
     }
   });
 
-  document.getElementById('warehouse-sell-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'warehouse-sell-modal') {
-      closeWarehouseSellModal();
-    }
-  });
+  // Marketplace resource menu
+  const resourceMenu = document.getElementById('marketplace-resource-menu');
+  if (resourceMenu) {
+    resourceMenu.addEventListener('click', (e) => {
+      if (e.target.id === 'marketplace-resource-menu') {
+        window.closeMarketplaceResourceMenu();
+      }
+    });
+  }
+
+  // Marketplace modals
+  const marketplaceSellModal = document.getElementById('marketplace-sell-modal');
+  if (marketplaceSellModal) {
+    marketplaceSellModal.addEventListener('click', (e) => {
+      if (e.target.id === 'marketplace-sell-modal') {
+        window.closeMarketplaceSellModal();
+      }
+    });
+  }
+
+  const marketplaceBuyModal = document.getElementById('marketplace-buy-modal');
+  if (marketplaceBuyModal) {
+    marketplaceBuyModal.addEventListener('click', (e) => {
+      if (e.target.id === 'marketplace-buy-modal') {
+        window.closeMarketplaceBuyModal();
+      }
+    });
+  }
+
+  const marketplaceEditModal = document.getElementById('marketplace-edit-modal');
+  if (marketplaceEditModal) {
+    marketplaceEditModal.addEventListener('click', (e) => {
+      if (e.target.id === 'marketplace-edit-modal') {
+        window.closeEditListingModal();
+      }
+    });
+  }
 }

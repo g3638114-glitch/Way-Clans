@@ -84,47 +84,70 @@ export async function createListing(telegramId, { resourceType, quantity, priceP
  * Only show listings from sellers who haven't exceeded treasury capacity
  */
 export async function getListings(resourceType) {
-  if (!['wood', 'stone', 'meat'].includes(resourceType)) {
-    throw new Error('Invalid resource type');
+  try {
+    if (!['wood', 'stone', 'meat'].includes(resourceType)) {
+      throw new Error('Invalid resource type');
+    }
+
+    // Get all listings for this resource
+    const { data: listings, error: listingsError } = await supabase
+      .from('market_listings')
+      .select('*')
+      .eq('resource_type', resourceType)
+      .order('price_per_unit', { ascending: true });
+
+    if (listingsError) {
+      console.error('Supabase error getting listings:', listingsError);
+      throw new Error(`Failed to get listings: ${listingsError.message}`);
+    }
+
+    // If no listings, return empty array
+    if (!listings || listings.length === 0) return [];
+
+    // Get seller information for all listings
+    const sellerIds = listings.map(l => l.seller_id);
+
+    const { data: sellers, error: sellersError } = await supabase
+      .from('users')
+      .select('id, telegram_id, first_name, username, gold, treasury_level')
+      .in('id', sellerIds);
+
+    if (sellersError) {
+      console.error('Supabase error getting sellers:', sellersError);
+      throw new Error(`Failed to get seller information: ${sellersError.message}`);
+    }
+
+    // Create a map of sellers by ID for quick lookup
+    const sellerMap = {};
+    if (sellers) {
+      sellers.forEach(seller => {
+        sellerMap[seller.id] = seller;
+      });
+    }
+
+    // Combine listings with seller data and filter by treasury capacity
+    const validListings = listings
+      .map(listing => ({
+        ...listing,
+        users: sellerMap[listing.seller_id],
+      }))
+      .filter((listing) => {
+        const seller = listing.users;
+        if (!seller) return false;
+
+        const treasuryLevel = seller.treasury_level || 1;
+        const capacity = getTreasuryCapacity(treasuryLevel);
+        const totalPrice = listing.quantity * listing.price_per_unit;
+
+        // Check if seller has room in treasury for payment (if they were to sell)
+        return (seller.gold + totalPrice) <= capacity;
+      });
+
+    return validListings;
+  } catch (error) {
+    console.error('Error in getListings:', error);
+    throw error;
   }
-
-  // Get all listings for this resource
-  const { data: listings, error } = await supabase
-    .from('market_listings')
-    .select(`
-      id,
-      quantity,
-      price_per_unit,
-      created_at,
-      seller_id,
-      users!market_listings_seller_id (
-        id,
-        telegram_id,
-        first_name,
-        username,
-        gold,
-        treasury_level
-      )
-    `)
-    .eq('resource_type', resourceType)
-    .order('price_per_unit', { ascending: true });
-
-  if (error) throw new Error('Failed to get listings');
-
-  // Filter out sellers who have exceeded treasury capacity
-  const validListings = listings.filter((listing) => {
-    const seller = listing.users;
-    if (!seller) return false;
-
-    const treasuryLevel = seller.treasury_level || 1;
-    const capacity = getTreasuryCapacity(treasuryLevel);
-    const totalPrice = listing.quantity * listing.price_per_unit;
-
-    // Check if seller has room in treasury for payment (if they were to sell)
-    return (seller.gold + totalPrice) <= capacity;
-  });
-
-  return validListings;
 }
 
 /**

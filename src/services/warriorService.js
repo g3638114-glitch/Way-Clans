@@ -1,64 +1,93 @@
-import pkg from 'pg';
-const { Client } = pkg;
+import { supabase } from '../bot.js';
 
 /**
  * Get all warriors for a user
  */
-export async function getUserWarriors(client, userId) {
-  const result = await client.query(
-    'SELECT * FROM warriors WHERE user_id = $1 ORDER BY type, level, created_at',
-    [userId]
-  );
-  return result.rows;
+export async function getUserWarriors(userId) {
+  const { data, error } = await supabase
+    .from('warriors')
+    .select('*')
+    .eq('user_id', userId)
+    .order('type', { ascending: true })
+    .order('level', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to get warriors: ${error.message}`);
+  }
+
+  return data || [];
 }
 
 /**
  * Get warriors of a specific type for a user
  */
-export async function getUserWarriorsByType(client, userId, type) {
-  const result = await client.query(
-    'SELECT * FROM warriors WHERE user_id = $1 AND type = $2 ORDER BY level, created_at',
-    [userId, type]
-  );
-  return result.rows;
+export async function getUserWarriorsByType(userId, type) {
+  const { data, error } = await supabase
+    .from('warriors')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('type', type)
+    .order('level', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to get warriors: ${error.message}`);
+  }
+
+  return data || [];
 }
 
 /**
  * Count warriors at a specific level and type
  */
-export async function countWarriorsByLevelAndType(client, userId, type, level) {
-  const result = await client.query(
-    'SELECT COUNT(*) as count FROM warriors WHERE user_id = $1 AND type = $2 AND level = $3',
-    [userId, type, level]
-  );
-  return parseInt(result.rows[0].count, 10);
+export async function countWarriorsByLevelAndType(userId, type, level) {
+  const { data, error, count } = await supabase
+    .from('warriors')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('type', type)
+    .eq('level', level);
+
+  if (error) {
+    throw new Error(`Failed to count warriors: ${error.message}`);
+  }
+
+  return count || 0;
 }
 
 /**
  * Hire a new warrior (always at level 1)
  * Returns the hired warrior data
  */
-export async function hireWarrior(client, userId, type, level) {
+export async function hireWarrior(userId, type, level) {
   if (level !== 1) {
     throw new Error('Can only hire warriors at level 1');
   }
 
-  const result = await client.query(
-    `INSERT INTO warriors (user_id, type, level, hired_at)
-     VALUES ($1, $2, $3, $4)
-     RETURNING *`,
-    [userId, type, level, Math.floor(Date.now() / 1000)]
-  );
+  const { data, error } = await supabase
+    .from('warriors')
+    .insert({
+      user_id: userId,
+      type: type,
+      level: level,
+      hired_at: Math.floor(Date.now() / 1000)
+    })
+    .select()
+    .single();
 
-  return result.rows[0];
+  if (error) {
+    throw new Error(`Failed to hire warrior: ${error.message}`);
+  }
+
+  return data;
 }
 
 /**
- * Upgrade warriors from one level to another
- * Upgrades all warriors of a given type from fromLevel to toLevel
- * Returns count of upgraded warriors
+ * Upgrade one warrior from one level to another
+ * Returns the upgraded warrior
  */
-export async function upgradeWarriors(client, userId, type, fromLevel, toLevel) {
+export async function upgradeWarrior(userId, type, fromLevel, toLevel) {
   if (toLevel <= fromLevel) {
     throw new Error('Target level must be greater than current level');
   }
@@ -67,44 +96,61 @@ export async function upgradeWarriors(client, userId, type, fromLevel, toLevel) 
     throw new Error('Invalid level range');
   }
 
-  // Update all warriors of this type at fromLevel to toLevel
-  const result = await client.query(
-    `UPDATE warriors 
-     SET level = $1, updated_at = NOW()
-     WHERE user_id = $2 AND type = $3 AND level = $4
-     RETURNING *`,
-    [toLevel, userId, type, fromLevel]
-  );
+  // Find one warrior at fromLevel
+  const { data: warrior, error: fetchError } = await supabase
+    .from('warriors')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('type', type)
+    .eq('level', fromLevel)
+    .limit(1)
+    .single();
 
-  return {
-    count: result.rows.length,
-    warriors: result.rows
-  };
+  if (fetchError || !warrior) {
+    throw new Error('No warrior at this level to upgrade');
+  }
+
+  // Update that warrior to toLevel
+  const { data, error } = await supabase
+    .from('warriors')
+    .update({
+      level: toLevel,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', warrior.id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to upgrade warrior: ${error.message}`);
+  }
+
+  return data;
 }
 
 /**
  * Get summary of all warriors for a user
  */
-export async function getWarriorsSummary(client, userId) {
-  const result = await client.query(
-    `SELECT type, level, COUNT(*) as count 
-     FROM warriors 
-     WHERE user_id = $1 
-     GROUP BY type, level 
-     ORDER BY type, level`,
-    [userId]
-  );
+export async function getWarriorsSummary(userId) {
+  const { data, error } = await supabase
+    .from('warriors')
+    .select('type, level')
+    .eq('user_id', userId);
+
+  if (error) {
+    throw new Error(`Failed to get warriors summary: ${error.message}`);
+  }
 
   const summary = {
     attacker: {},
     defender: {}
   };
 
-  result.rows.forEach(row => {
-    if (!summary[row.type]) {
-      summary[row.type] = {};
+  (data || []).forEach(warrior => {
+    if (!summary[warrior.type]) {
+      summary[warrior.type] = {};
     }
-    summary[row.type][row.level] = parseInt(row.count, 10);
+    summary[warrior.type][warrior.level] = (summary[warrior.type][warrior.level] || 0) + 1;
   });
 
   return summary;

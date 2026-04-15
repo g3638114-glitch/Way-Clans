@@ -1,11 +1,11 @@
 import express from 'express';
-import { getDatabase } from '../database/init.js';
+import { supabase } from '../bot.js';
 import {
   getUserWarriors,
   getUserWarriorsByType,
   countWarriorsByLevelAndType,
   hireWarrior,
-  upgradeWarriors,
+  upgradeWarrior,
   getWarriorsSummary
 } from '../services/warriorService.js';
 
@@ -61,8 +61,7 @@ router.get('/:userId/warriors', async (req, res) => {
       return res.status(400).json({ error: 'User ID required' });
     }
 
-    const client = await getDatabase();
-    const warriors = await getUserWarriors(client, userId);
+    const warriors = await getUserWarriors(userId);
 
     return res.json({ success: true, data: warriors });
   } catch (error) {
@@ -87,8 +86,7 @@ router.get('/:userId/warriors/:type', async (req, res) => {
       return res.status(400).json({ error: 'Invalid warrior type' });
     }
 
-    const client = await getDatabase();
-    const warriors = await getUserWarriorsByType(client, userId, type);
+    const warriors = await getUserWarriorsByType(userId, type);
 
     return res.json({ success: true, data: warriors });
   } catch (error) {
@@ -118,15 +116,18 @@ router.post('/:userId/warriors/hire', async (req, res) => {
       return res.status(400).json({ error: 'Can only hire warriors at level 1' });
     }
 
-    const client = await getDatabase();
-
     // Get user's current resources
-    const userResult = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
-    if (userResult.rows.length === 0) {
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !userData) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = userResult.rows[0];
+    const user = userData;
     const costs = HIRING_COSTS[type];
 
     // Check if user has enough resources
@@ -144,18 +145,30 @@ router.post('/:userId/warriors/hire', async (req, res) => {
     }
 
     // Deduct resources from user
-    await client.query(
-      `UPDATE users SET gold = gold - $1, wood = wood - $2, stone = stone - $3, meat = meat - $4, updated_at = NOW()
-       WHERE id = $5`,
-      [costs.gold, costs.wood, costs.stone, costs.meat, userId]
-    );
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        gold: user.gold - costs.gold,
+        wood: user.wood - costs.wood,
+        stone: user.stone - costs.stone,
+        meat: user.meat - costs.meat,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+
+    if (updateError) {
+      throw new Error(`Failed to deduct resources: ${updateError.message}`);
+    }
 
     // Create warrior
-    const warrior = await hireWarrior(client, userId, type, level);
+    const warrior = await hireWarrior(userId, type, level);
 
     // Get updated user data
-    const updatedUserResult = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
-    const updatedUser = updatedUserResult.rows[0];
+    const { data: updatedUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
     return res.json({
       success: true,

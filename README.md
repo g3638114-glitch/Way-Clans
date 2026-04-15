@@ -33,14 +33,7 @@ cp .env.example .env
 
 4. **Заполните переменные в `.env`:**
 ```
-TELEGRAM_BOT_TOKEN=8460620669:AAGCfFJXlmeRCN_AbM99Cfhj3UJrPdcIFhM
-TELEGRAM_WEBHOOK_URL=https://way.clans.idlebat.online
-PORT=3000
-NODE_ENV=development
-SUPABASE_URL=https://your_project.supabase.co
-SUPABASE_KEY=your_anon_key
-DATABASE_URL=postgresql://postgres:KhamzatJaradat@db.lqbznbvljsqqnvwjxpmn.supabase.co:5432/postgres
-MINIAPP_URL=https://way.clans.idlebat.online
+
 ```
 
 5. **Запустите локально:**

@@ -173,7 +173,7 @@ export async function upgradeWarrior(userId, warriorId) {
         warrior_levels: updatedWarriorLevels,
         updated_at: new Date(),
       })
-      .eq('id', userId)
+      .eq('id', user.id)
       .select()
       .single();
 
@@ -248,7 +248,7 @@ export async function hireWarrior(userId, warriorId) {
         warrior_levels: updatedWarriorLevels,
         updated_at: new Date(),
       })
-      .eq('id', userId)
+      .eq('id', user.id)
       .select()
       .single();
 

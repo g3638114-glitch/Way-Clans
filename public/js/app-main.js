@@ -6,7 +6,6 @@ import { showPage } from './ui/pages.js';
 import { renderBuildings } from './ui/builders.js';
 import { setupEventListeners } from './events.js';
 import * as market from './game/market.js';
-import { WARRIOR_TYPES } from './game/warriors.js';
 
 // Initialize Telegram WebApp
 const tg = window.Telegram.WebApp;

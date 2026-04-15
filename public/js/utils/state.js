@@ -9,12 +9,6 @@ export const appState = {
   allBuildings: [],
   selectedBuildingType: 'mine',
   currentPage: 'main',
-  warriors: {
-    attackers: [],
-    defenders: [],
-  },
-  selectedWarriorId: null,
-  selectedWarriorType: 'attacker',
 
   // Modal data
   upgradeModalData: {

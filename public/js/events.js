@@ -1,8 +1,7 @@
-import { appState, withOperationLock } from './utils/state.js';
+import { appState } from './utils/state.js';
 import { showPage } from './ui/pages.js';
 import { updateUI } from './ui/dom.js';
 import { apiClient } from './api/client.js';
-import { renderWarriorLevels, initializeWarriorsGlobalFunctions } from './ui/warriors.js';
 import {
   openStorageModal,
   closeStorageModal,
@@ -102,17 +101,7 @@ export function setupEventListeners() {
   document.getElementById('nav-market-back').addEventListener('click', () => showPage('main'));
 
   document.getElementById('nav-barracks').addEventListener('click', () => {
-    showPage('barracks');
-  });
-
-  // Warrior type buttons
-  document.querySelectorAll('.warrior-type-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.warrior-type-btn').forEach(b => b.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      appState.selectedWarriorType = e.currentTarget.dataset.type;
-      renderWarriorLevels();
-    });
+    tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
   });
 
   // Market tabs
@@ -147,9 +136,6 @@ export function setupEventListeners() {
 
   // Setup modal background click handlers
   setupModalHandlers();
-
-  // Initialize warriors global functions
-  initializeWarriorsGlobalFunctions();
 
   // Make functions available globally for onclick handlers
   window.openStorageModal = openStorageModal;

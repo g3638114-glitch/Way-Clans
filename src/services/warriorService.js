@@ -1,4 +1,4 @@
-import { supabase } from '../database/init.js';
+import { supabase } from '../bot.js';
 
 // Warrior configuration (must match frontend)
 const WARRIORS = {

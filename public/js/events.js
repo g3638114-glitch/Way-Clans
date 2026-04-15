@@ -3,6 +3,12 @@ import { showPage } from './ui/pages.js';
 import { updateUI } from './ui/dom.js';
 import { apiClient } from './api/client.js';
 import {
+  showWarriorCard,
+  showMyWarriors,
+  closeWarriorCardModal,
+  performWarriorAction
+} from './ui/warriors.js';
+import {
   openStorageModal,
   closeStorageModal,
   setMaxWood,
@@ -101,7 +107,20 @@ export function setupEventListeners() {
   document.getElementById('nav-market-back').addEventListener('click', () => showPage('main'));
 
   document.getElementById('nav-barracks').addEventListener('click', () => {
-    tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
+    showPage('barracks');
+  });
+
+  // Barracks warrior buttons
+  document.getElementById('btn-attacker').addEventListener('click', () => {
+    showWarriorCard('attacker');
+  });
+
+  document.getElementById('btn-defender').addEventListener('click', () => {
+    showWarriorCard('defender');
+  });
+
+  document.getElementById('btn-my-warriors').addEventListener('click', () => {
+    showMyWarriors();
   });
 
   // Market tabs
@@ -185,4 +204,10 @@ export function setupEventListeners() {
   window.setMaxEditQuantity = market.setMaxEditQuantity;
   window.confirmEditListing = market.confirmEditListing;
   window.updateEditTotal = market.updateEditTotal;
+
+  // Warrior functions
+  window.showWarriorCard = showWarriorCard;
+  window.showMyWarriors = showMyWarriors;
+  window.closeWarriorCardModal = closeWarriorCardModal;
+  window.performWarriorAction = performWarriorAction;
 }

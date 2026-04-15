@@ -156,6 +156,32 @@ const migrations = [
     sql: `ALTER TABLE market_listings DISABLE ROW LEVEL SECURITY;`,
   },
 
+  // === WARRIORS TABLE ===
+  {
+    name: 'Create warriors table',
+    sql: `CREATE TABLE IF NOT EXISTS warriors (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      type TEXT NOT NULL,
+      level INT NOT NULL DEFAULT 1,
+      hired_at INT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );`,
+  },
+  {
+    name: 'Create index on warriors.user_id',
+    sql: `CREATE INDEX IF NOT EXISTS idx_warriors_user_id ON warriors(user_id);`,
+  },
+  {
+    name: 'Create index on warriors.type',
+    sql: `CREATE INDEX IF NOT EXISTS idx_warriors_type ON warriors(type);`,
+  },
+  {
+    name: 'Disable RLS on warriors table',
+    sql: `ALTER TABLE warriors DISABLE ROW LEVEL SECURITY;`,
+  },
+
   // === DISABLE ROW LEVEL SECURITY ===
   {
     name: 'Disable RLS on users table',

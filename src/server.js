@@ -12,6 +12,7 @@ import questsRouter from './routes/quests.js';
 import treasuryRouter from './routes/treasury.js';
 import warehouseRouter from './routes/warehouse.js';
 import marketRouter from './routes/market.js';
+import warriorsRouter from './routes/warriors.js';
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use('/api/user', questsRouter);
 app.use('/api/user', treasuryRouter);
 app.use('/api/user', warehouseRouter);
 app.use('/api/user', marketRouter);
+app.use('/api/user', warriorsRouter);
 
 // Serve MiniApp HTML
 app.get('/', (req, res) => {

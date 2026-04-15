@@ -1,5 +1,5 @@
 import { apiClient } from '../api/client.js';
-import { appState } from '../utils/state.js';
+import { appState, withOperationLock } from '../utils/state.js';
 import { getTreasuryCapacity, getWarehouseCapacity } from './config.js';
 
 let currentSetPriceResource = null;
@@ -114,23 +114,25 @@ export async function confirmSellPrice() {
     return;
   }
 
-  try {
-    const result = await apiClient.createMarketListing(appState.userId, {
-      resourceType,
-      quantity,
-      pricePerUnit,
-    });
+  await withOperationLock('createMarketListing', async () => {
+    try {
+      const result = await apiClient.createMarketListing(appState.userId, {
+        resourceType,
+        quantity,
+        pricePerUnit,
+      });
 
-    alert('Объявление выставлено на рынок!');
-    closeSetPriceModal();
-    document.getElementById('warehouse-sell-modal').style.display = 'none';
+      alert('Объявление выставлено на рынок!');
+      closeSetPriceModal();
+      document.getElementById('warehouse-sell-modal').style.display = 'none';
 
-    // Refresh user data
-    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
-    updateWarehouseSellModal();
-  } catch (error) {
-    alert('Ошибка: ' + (error.message || 'Не удалось выставить объявление'));
-  }
+      // Refresh user data
+      appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
+      updateWarehouseSellModal();
+    } catch (error) {
+      alert('Ошибка: ' + (error.message || 'Не удалось выставить объявление'));
+    }
+  });
 }
 
 /**
@@ -246,29 +248,31 @@ export async function confirmBuyQuantity() {
     return;
   }
 
-  try {
-    await apiClient.buyFromMarketListing(appState.userId, listing.id, quantity);
-    alert(`Вы купили ${quantity} ресурсов!`);
-    closeBuyQuantityModal();
+  await withOperationLock('buyFromMarketListing', async () => {
+    try {
+      await apiClient.buyFromMarketListing(appState.userId, listing.id, quantity);
+      alert(`Вы купили ${quantity} ресурсов!`);
+      closeBuyQuantityModal();
 
-    // Refresh user data
-    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
+      // Refresh user data
+      appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
 
-    // Reload market listings
-    const currentTab = document.querySelector('.market-tab-btn.active');
-    if (currentTab) {
-      loadMarketListings(currentTab.dataset.resource);
+      // Reload market listings
+      const currentTab = document.querySelector('.market-tab-btn.active');
+      if (currentTab) {
+        loadMarketListings(currentTab.dataset.resource);
+      }
+    } catch (error) {
+      // Show different messages for different errors
+      if (error.message.includes('warehouse') || error.message.includes('Warehouse')) {
+        alert('❌ Недостаточно места в складе! Продайте ресурсы, чтобы продолжить.');
+      } else if (error.message.includes('treasury') || error.message.includes('Treasury')) {
+        alert('❌ Казна продавца переполнена. Попробуйте другое объявление.');
+      } else {
+        alert('Ошибка: ' + (error.message || 'Не удалось купить ресурсы'));
+      }
     }
-  } catch (error) {
-    // Show different messages for different errors
-    if (error.message.includes('warehouse') || error.message.includes('Warehouse')) {
-      alert('❌ Недостаточно места в складе! Продайте ресурсы, чтобы продолжить.');
-    } else if (error.message.includes('treasury') || error.message.includes('Treasury')) {
-      alert('❌ Казна продавца переполнена. Попробуйте другое объявление.');
-    } else {
-      alert('Ошибка: ' + (error.message || 'Не удалось купить ресурсы'));
-    }
-  }
+  });
 }
 
 /**
@@ -394,19 +398,21 @@ export async function deleteListing(listingId) {
     return;
   }
 
-  try {
-    await apiClient.deleteMarketListing(appState.userId, listingId);
-    alert('Объявление удалено');
+  await withOperationLock('deleteMarketListing', async () => {
+    try {
+      await apiClient.deleteMarketListing(appState.userId, listingId);
+      alert('Объявление удалено');
 
-    // Refresh user data
-    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
+      // Refresh user data
+      appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
 
-    // Reload my listings
-    loadMyListings();
-    updateWarehouseSellModal();
-  } catch (error) {
-    alert('Ошибка: ' + (error.message || 'Не удалось удалить объявление'));
-  }
+      // Reload my listings
+      loadMyListings();
+      updateWarehouseSellModal();
+    } catch (error) {
+      alert('Ошибка: ' + (error.message || 'Не удалось удалить объявление'));
+    }
+  });
 }
 
 /**
@@ -520,23 +526,25 @@ export async function confirmEditListing() {
     return;
   }
 
-  try {
-    await apiClient.editMarketListing(appState.userId, currentEditListing.id, {
-      quantity,
-      pricePerUnit,
-    });
+  await withOperationLock('editMarketListing', async () => {
+    try {
+      await apiClient.editMarketListing(appState.userId, currentEditListing.id, {
+        quantity,
+        pricePerUnit,
+      });
 
-    alert('✅ Объявление обновлено!');
+      alert('✅ Объявление обновлено!');
 
-    // Refresh user data
-    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
+      // Refresh user data
+      appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
 
-    // Reload my listings
-    loadMyListings();
-    updateWarehouseSellModal();
+      // Reload my listings
+      loadMyListings();
+      updateWarehouseSellModal();
 
-    closeEditListingModal();
-  } catch (error) {
-    alert('Ошибка: ' + (error.message || 'Не удалось обновить объявление'));
-  }
+      closeEditListingModal();
+    } catch (error) {
+      alert('Ошибка: ' + (error.message || 'Не удалось обновить объявление'));
+    }
+  });
 }

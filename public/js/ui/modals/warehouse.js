@@ -1,4 +1,4 @@
-import { appState } from '../../utils/state.js';
+import { appState, withOperationLock } from '../../utils/state.js';
 import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { getMaxWarehouseLevel, getWarehouseCapacity, getWarehouseUpgradeCost } from '../../game/config.js';
@@ -167,47 +167,51 @@ function renderWarehouseUpgradeInfo(currentLevel, warehouse) {
 }
 
 export async function upgradeWarehouseToLevel() {
-  try {
-    const result = await apiClient.upgradeWarehouse(appState.userId);
+  await withOperationLock('upgradeWarehouse', async () => {
+    try {
+      const result = await apiClient.upgradeWarehouse(appState.userId);
 
-    appState.currentUser = result.user;
-    updateUI(appState.currentUser);
+      appState.currentUser = result.user;
+      updateUI(appState.currentUser);
 
-    // Re-render warehouse content
-    renderWarehouseContent();
+      // Re-render warehouse content
+      renderWarehouseContent();
 
-    tg.showAlert(`✅ Склад улучшен до уровня ${result.newLevel}! Новая вместимость: ${result.newCapacity}`);
-  } catch (error) {
-    console.error('Error upgrading warehouse:', error);
-    tg.showAlert(error.message || 'Ошибка при обновлении склада.');
-  }
+      tg.showAlert(`✅ Склад улучшен до уровня ${result.newLevel}! Новая вместимость: ${result.newCapacity}`);
+    } catch (error) {
+      console.error('Error upgrading warehouse:', error);
+      tg.showAlert(error.message || 'Ошибка при обновлении склада.');
+    }
+  });
 }
 
 export async function sellWarehouseResources() {
-  try {
-    const wood = parseInt(document.getElementById('warehouse-wood-input').value) || 0;
-    const stone = parseInt(document.getElementById('warehouse-stone-input').value) || 0;
-    const meat = parseInt(document.getElementById('warehouse-meat-input').value) || 0;
+  await withOperationLock('sellWarehouseResources', async () => {
+    try {
+      const wood = parseInt(document.getElementById('warehouse-wood-input').value) || 0;
+      const stone = parseInt(document.getElementById('warehouse-stone-input').value) || 0;
+      const meat = parseInt(document.getElementById('warehouse-meat-input').value) || 0;
 
-    if (wood === 0 && stone === 0 && meat === 0) {
-      tg.showAlert('Выберите ресурсы для продажи');
-      return;
+      if (wood === 0 && stone === 0 && meat === 0) {
+        tg.showAlert('Выберите ресурсы для продажи');
+        return;
+      }
+
+      const result = await apiClient.sellResources(appState.userId, { wood, stone, meat });
+      appState.currentUser = result.user;
+      updateUI(appState.currentUser);
+      closeWarehouseSellModal();
+      tg.showAlert('✅ Ресурсы успешно проданы!');
+    } catch (error) {
+      console.error('Error selling resources:', error);
+
+      // Handle warehouse full error separately - show as notification, not error
+      if (error.message.includes('Warehouse is full')) {
+        tg.showAlert('🏭 Склад переполнен! Продайте ресурсы, чтобы продолжить сбор.');
+        return;
+      }
+
+      tg.showAlert(error.message || 'Ошибка при продаже ресурсов');
     }
-
-    const result = await apiClient.sellResources(appState.userId, { wood, stone, meat });
-    appState.currentUser = result.user;
-    updateUI(appState.currentUser);
-    closeWarehouseSellModal();
-    tg.showAlert('✅ Ресурсы успешно проданы!');
-  } catch (error) {
-    console.error('Error selling resources:', error);
-
-    // Handle warehouse full error separately - show as notification, not error
-    if (error.message.includes('Warehouse is full')) {
-      tg.showAlert('🏭 Склад переполнен! Продайте ресурсы, чтобы продолжить сбор.');
-      return;
-    }
-
-    tg.showAlert(error.message || 'Ошибка при продаже ресурсов');
-  }
+  });
 }

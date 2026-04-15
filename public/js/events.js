@@ -63,33 +63,35 @@ export function setupEventListeners() {
   document.getElementById('coin-btn').addEventListener('click', async () => {
     const coinBtn = document.getElementById('coin-btn');
 
-    try {
-      // Add animation
-      coinBtn.classList.add('coin-click');
+    await withOperationLock('clickCoin', async () => {
+      try {
+        // Add animation
+        coinBtn.classList.add('coin-click');
 
-      // Send request to add gold
-      const result = await apiClient.clickCoin(appState.userId);
+        // Send request to add gold
+        const result = await apiClient.clickCoin(appState.userId);
 
-      // Update UI with new user data
-      if (result.user) {
-        appState.currentUser = result.user;
-        updateUI(appState.currentUser);
+        // Update UI with new user data
+        if (result.user) {
+          appState.currentUser = result.user;
+          updateUI(appState.currentUser);
+        }
+      } catch (error) {
+        console.error('Error clicking coin:', error);
+
+        // Handle treasury full error separately - show as notification, not error
+        if (error.message.includes('Treasury is full')) {
+          tg.showAlert('🏦 Казна переполнена! Обменяйте Jamcoin на Jabcoins или потратьте его, чтобы продолжить сбор.');
+        } else {
+          tg.showAlert('❌ Ошибка при добавлении Jamcoin');
+        }
+      } finally {
+        // Remove animation class after animation completes
+        setTimeout(() => {
+          coinBtn.classList.remove('coin-click');
+        }, 500);
       }
-    } catch (error) {
-      console.error('Error clicking coin:', error);
-
-      // Handle treasury full error separately - show as notification, not error
-      if (error.message.includes('Treasury is full')) {
-        tg.showAlert('🏦 Казна переполнена! Обменяйте Jamcoin на Jabcoins или потратьте его, чтобы продолжить сбор.');
-      } else {
-        tg.showAlert('❌ Ошибка при добавлении Jamcoin');
-      }
-    } finally {
-      // Remove animation class after animation completes
-      setTimeout(() => {
-        coinBtn.classList.remove('coin-click');
-      }, 500);
-    }
+    });
   });
 
   // Navigation buttons

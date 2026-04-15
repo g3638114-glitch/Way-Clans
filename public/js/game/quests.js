@@ -1,5 +1,5 @@
 import { apiClient } from '../api/client.js';
-import { appState } from '../utils/state.js';
+import { appState, withOperationLock } from '../utils/state.js';
 
 // Load quests for user
 export async function loadQuests() {
@@ -42,26 +42,28 @@ export async function checkQuestProgress(questId) {
 
 // Claim quest reward
 export async function claimQuestReward(questId) {
-  try {
-    const result = await apiClient.claimQuestReward(appState.userId, questId);
+  await withOperationLock(`claimQuestReward_${questId}`, async () => {
+    try {
+      const result = await apiClient.claimQuestReward(appState.userId, questId);
 
-    // Add new buildings to local array
-    if (result.buildings && result.buildings.length > 0) {
-      result.buildings.forEach(building => {
-        appState.allBuildings.push(building);
-      });
+      // Add new buildings to local array
+      if (result.buildings && result.buildings.length > 0) {
+        result.buildings.forEach(building => {
+          appState.allBuildings.push(building);
+        });
+      }
+
+      // Show success message
+      window.tg.showAlert(result.message || `✅ Получено ${result.minesAdded} шахт!`);
+
+      // Reload buildings data to ensure we have fresh data with progress
+      const response = await apiClient.getBuildings(appState.userId);
+      appState.allBuildings = response.buildings || response;
+
+      return result;
+    } catch (error) {
+      console.error('Error claiming reward:', error);
+      window.tg.showAlert(error.message || 'Ошибка при получении награды');
     }
-
-    // Show success message
-    window.tg.showAlert(result.message || `✅ Получено ${result.minesAdded} шахт!`);
-
-    // Reload buildings data to ensure we have fresh data with progress
-    const response = await apiClient.getBuildings(appState.userId);
-    appState.allBuildings = response.buildings || response;
-
-    return result;
-  } catch (error) {
-    console.error('Error claiming reward:', error);
-    window.tg.showAlert(error.message || 'Ошибка при получении награды');
-  }
+  });
 }

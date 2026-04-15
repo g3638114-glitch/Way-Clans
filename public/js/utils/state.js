@@ -18,7 +18,48 @@ export const appState = {
 
   // Production refresh interval
   productionRefreshInterval: null,
+
+  // Operation lock to prevent multiple simultaneous clicks
+  operationsInProgress: new Set(),
 };
+
+/**
+ * Check if an operation is currently in progress
+ */
+export function isOperationInProgress(operationKey) {
+  return appState.operationsInProgress.has(operationKey);
+}
+
+/**
+ * Mark an operation as in progress
+ */
+export function startOperation(operationKey) {
+  appState.operationsInProgress.add(operationKey);
+}
+
+/**
+ * Mark an operation as complete
+ */
+export function endOperation(operationKey) {
+  appState.operationsInProgress.delete(operationKey);
+}
+
+/**
+ * Wrapper to prevent multiple simultaneous executions
+ */
+export async function withOperationLock(operationKey, asyncFn) {
+  if (isOperationInProgress(operationKey)) {
+    console.warn(`⚠️ Operation "${operationKey}" is already in progress`);
+    return;
+  }
+
+  startOperation(operationKey);
+  try {
+    return await asyncFn();
+  } finally {
+    endOperation(operationKey);
+  }
+}
 
 // Initialize user ID from URL or Telegram WebApp
 export async function initializeUserId() {

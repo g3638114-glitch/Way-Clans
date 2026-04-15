@@ -1,5 +1,61 @@
 import { supabase } from '../bot.js';
 
+/**
+ * Get a user by telegram_id, create if doesn't exist
+ */
+async function getOrCreateUser(telegramId, userInfo = null) {
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .single();
+
+  // User exists - return it
+  if (!error) {
+    return user;
+  }
+
+  // User doesn't exist - create new
+  if (error.code === 'PGRST116') {
+    console.log(`📝 Creating new user ${telegramId}`);
+
+    // Use provided Telegram user info or defaults
+    const username = userInfo?.username || `user_${telegramId}`;
+    const firstName = userInfo?.first_name || 'Player';
+
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        telegram_id: telegramId,
+        username: username,
+        first_name: firstName,
+        photo_url: null,
+        gold: 5000,
+        wood: 2500,
+        stone: 2500,
+        meat: 500,
+        jabcoins: 0,
+        warrior_levels: {},
+        warrior_counts: {},
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Error creating user:', insertError);
+      throw new Error('Failed to create user');
+    }
+
+    console.log(`✅ User ${telegramId} created successfully (${firstName}/${username})`);
+
+    return newUser;
+  }
+
+  // Some other error occurred
+  throw new Error('User not found');
+}
+
 // Warrior configuration (must match frontend)
 const WARRIORS = {
   defender: {
@@ -67,16 +123,8 @@ export async function upgradeWarrior(userId, warriorId) {
       throw new Error('Warrior not found');
     }
 
-    // Get user data
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (userError || !user) {
-      throw new Error('User not found');
-    }
+    // Get user data by telegram_id
+    const user = await getOrCreateUser(userId);
 
     // Get current warrior level
     const currentLevel = user.warrior_levels?.[warriorId] || 0;
@@ -155,16 +203,8 @@ export async function hireWarrior(userId, warriorId) {
 
     const cost = warrior.hireCost;
 
-    // Get user data
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (userError || !user) {
-      throw new Error('User not found');
-    }
+    // Get user data by telegram_id
+    const user = await getOrCreateUser(userId);
 
     // Check resources
     if (user.gold < cost.gold) {

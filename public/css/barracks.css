@@ -5,25 +5,27 @@
 /* Barracks Page Container */
 .barracks-buttons-section {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 15px;
+  flex-direction: row;
+  gap: 10px;
+  padding: 12px;
   background: rgba(0, 0, 0, 0.2);
+  justify-content: space-between;
 }
 
 /* Warrior Buttons */
 .btn-warrior {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 15px;
+  gap: 6px;
+  padding: 10px 12px;
+  flex: 1;
   background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
   border: 2px solid rgba(76, 111, 166, 0.4);
   border-radius: 12px;
   color: #fff;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -67,15 +69,17 @@
 }
 
 .warrior-icon {
-  font-size: 32px;
-  display: block;
+  font-size: 20px;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .warrior-name {
-  font-size: 14px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 /* Warrior Card Container */
@@ -93,10 +97,12 @@
   background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
   border: 2px solid rgba(76, 111, 166, 0.4);
   border-radius: 15px;
-  padding: 20px;
+  padding: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(212, 175, 55, 0.02);
   transition: all 0.3s ease;
   animation: slideIn 0.3s ease;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .warrior-card:hover {
@@ -120,14 +126,14 @@
 .warrior-card-header {
   display: flex;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
   border-bottom: 2px solid rgba(212, 175, 55, 0.2);
 }
 
 .warrior-card-icon {
-  font-size: 48px;
+  font-size: 40px;
   flex-shrink: 0;
 }
 
@@ -136,10 +142,10 @@
 }
 
 .warrior-card-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   color: #fff;
-  margin: 0 0 5px 0;
+  margin: 0 0 4px 0;
 }
 
 .warrior-card-description {
@@ -152,19 +158,19 @@
 .warrior-stats {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 .warrior-stat-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px;
+  padding: 10px 12px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   border-left: 4px solid rgba(212, 175, 55, 0.5);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .warrior-stat-label {
@@ -189,7 +195,7 @@
   background: rgba(212, 175, 55, 0.2);
   border: 2px solid #d4af37;
   border-radius: 8px;
-  padding: 8px 15px;
+  padding: 6px 12px;
   text-align: center;
   flex: 1;
 }
@@ -203,7 +209,7 @@
 }
 
 .level-value {
-  font-size: 24px;
+  font-size: 20px;
   color: #ffd966;
   font-weight: bold;
 }
@@ -219,35 +225,35 @@
   background: rgba(76, 175, 80, 0.1);
   border: 2px solid rgba(76, 175, 80, 0.3);
   border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 20px;
+  padding: 10px;
+  margin-bottom: 12px;
 }
 
 .loot-title {
-  font-size: 13px;
+  font-size: 12px;
   color: #81c784;
   text-transform: uppercase;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
 
 .loot-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .loot-item {
   background: rgba(76, 175, 80, 0.2);
   border: 1px solid rgba(76, 175, 80, 0.4);
   border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 5px 8px;
+  font-size: 11px;
   color: #81c784;
   font-weight: 600;
   flex: 1;
-  min-width: 80px;
+  min-width: 70px;
   text-align: center;
 }
 
@@ -256,35 +262,35 @@
   background: rgba(212, 175, 55, 0.1);
   border: 2px solid rgba(212, 175, 55, 0.3);
   border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
+  padding: 12px;
+  margin-bottom: 12px;
 }
 
 .upgrade-cost-title {
-  font-size: 13px;
+  font-size: 12px;
   color: #d4af37;
   text-transform: uppercase;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
 
 .upgrade-cost-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .cost-item {
   background: rgba(212, 175, 55, 0.2);
   border: 1px solid rgba(212, 175, 55, 0.4);
   border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 13px;
+  padding: 6px 10px;
+  font-size: 12px;
   color: #ffd966;
   font-weight: 600;
   flex: 1;
-  min-width: 90px;
+  min-width: 80px;
   text-align: center;
 }
 
@@ -299,35 +305,35 @@
   background: rgba(255, 152, 0, 0.1);
   border: 2px solid rgba(255, 152, 0, 0.3);
   border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
+  padding: 12px;
+  margin-bottom: 12px;
 }
 
 .hire-cost-title {
-  font-size: 13px;
+  font-size: 12px;
   color: #ffb74d;
   text-transform: uppercase;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
 
 .hire-cost-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .hire-cost-item {
   background: rgba(255, 152, 0, 0.2);
   border: 1px solid rgba(255, 152, 0, 0.4);
   border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 13px;
+  padding: 6px 10px;
+  font-size: 12px;
   color: #ffb74d;
   font-weight: 600;
   flex: 1;
-  min-width: 90px;
+  min-width: 80px;
   text-align: center;
 }
 
@@ -341,14 +347,14 @@
 .warrior-card-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .btn-warrior-action {
-  padding: 12px;
+  padding: 10px;
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -464,17 +470,20 @@
 /* Responsive */
 @media (max-width: 480px) {
   .barracks-buttons-section {
-    gap: 10px;
-    padding: 12px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    justify-content: flex-start;
   }
 
   .btn-warrior {
-    padding: 12px;
-    font-size: 13px;
+    padding: 10px 12px;
+    font-size: 12px;
+    flex: 1;
   }
 
   .warrior-icon {
-    font-size: 28px;
+    font-size: 18px;
   }
 
   .warrior-card {

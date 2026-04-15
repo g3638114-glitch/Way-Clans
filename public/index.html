@@ -17,7 +17,6 @@
   <link rel="stylesheet" href="css/quests.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/market.css">
-  <link rel="stylesheet" href="css/warriors.css">
   <!-- Effects & Responsive -->
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/responsive.css">
@@ -142,30 +141,6 @@
         <!-- Market Listings Container -->
         <div class="market-listings-container" id="market-listings-container">
           <!-- Listings will be dynamically inserted here -->
-        </div>
-      </div>
-
-      <!-- Barracks Page -->
-      <div id="barracks-page" class="page">
-        <!-- Warrior Type Selection -->
-        <div class="barracks-warrior-buttons">
-          <button class="btn btn-warrior btn-attacker" id="btn-attacker">
-            <span class="warrior-emoji">⚔️</span>
-            <span class="warrior-name">Атакующий</span>
-          </button>
-          <button class="btn btn-warrior btn-defender" id="btn-defender">
-            <span class="warrior-emoji">🛡️</span>
-            <span class="warrior-name">Защищающий</span>
-          </button>
-          <button class="btn btn-warrior btn-my-warriors" id="btn-my-warriors">
-            <span class="warrior-emoji">👥</span>
-            <span class="warrior-name">Мои воины</span>
-          </button>
-        </div>
-
-        <!-- Warrior Card Container -->
-        <div id="barracks-card-container">
-          <!-- Warrior card will be dynamically inserted here -->
         </div>
       </div>
     </div>
@@ -608,87 +583,6 @@
       <div class="modal-footer">
         <button class="btn btn-primary" onclick="confirmEditListing()">Сохранить</button>
         <button class="btn btn-secondary" onclick="closeEditListingModal()">Отменить</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Warrior Card Modal -->
-  <div class="modal" id="warrior-card-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="warrior-card-title">Атакующий</h2>
-        <button class="close-btn" onclick="closeWarriorCardModal()">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="warrior-card-content">
-          <!-- Level Selection -->
-          <div class="warrior-level-section">
-            <label>Выберите уровень:</label>
-            <div class="level-buttons" id="warrior-level-buttons">
-              <!-- Level buttons will be dynamically inserted here -->
-            </div>
-          </div>
-
-          <!-- Warrior Stats -->
-          <div class="warrior-stats-section">
-            <div class="stat-row">
-              <span class="stat-label">Урон:</span>
-              <span class="stat-value" id="warrior-damage">200</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Здоровье:</span>
-              <span class="stat-value" id="warrior-hp">200</span>
-            </div>
-          </div>
-
-          <!-- Attacker Production (only visible for attackers) -->
-          <div class="warrior-production-section" id="warrior-production-section" style="display: none;">
-            <h3>Добыча в час:</h3>
-            <div class="stat-row">
-              <span class="stat-label">💰 Jamcoin:</span>
-              <span class="stat-value" id="warrior-prod-gold">0</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">🌲 Дерево:</span>
-              <span class="stat-value" id="warrior-prod-wood">0</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">🪨 Камень:</span>
-              <span class="stat-value" id="warrior-prod-stone">0</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">🍖 Мясо:</span>
-              <span class="stat-value" id="warrior-prod-meat">0</span>
-            </div>
-          </div>
-
-          <!-- Upgrade Cost (for levels 2-6) -->
-          <div class="warrior-upgrade-section" id="warrior-upgrade-section" style="display: none;">
-            <h3>Стоимость улучшения:</h3>
-            <div id="warrior-upgrade-costs">
-              <!-- Upgrade costs will be dynamically inserted here -->
-            </div>
-          </div>
-
-          <!-- Hiring Cost (for level 1) -->
-          <div class="warrior-hire-section" id="warrior-hire-section" style="display: none;">
-            <h3>Стоимость найма:</h3>
-            <div id="warrior-hire-costs">
-              <!-- Hire costs will be dynamically inserted here -->
-            </div>
-          </div>
-
-          <!-- Count of Current Warriors -->
-          <div class="warrior-count-section" id="warrior-count-section">
-            <p>У вас есть: <strong id="warrior-current-count">0</strong> воинов уровня <strong id="warrior-current-level">1</strong></p>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" id="warrior-action-btn" onclick="performWarriorAction()">Нанять</button>
-        <button class="btn btn-secondary" onclick="closeWarriorCardModal()">Закрыть</button>
       </div>
     </div>
   </div>

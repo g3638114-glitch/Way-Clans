@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/quests.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/market.css">
+  <link rel="stylesheet" href="css/barracks.css">
   <!-- Effects & Responsive -->
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/responsive.css">
@@ -141,6 +142,30 @@
         <!-- Market Listings Container -->
         <div class="market-listings-container" id="market-listings-container">
           <!-- Listings will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <!-- Barracks Page -->
+      <div id="barracks-page" class="page">
+        <!-- Warrior Type Selection -->
+        <div class="warrior-selection">
+          <button class="warrior-type-btn active" data-type="attacker">
+            <span class="warrior-icon">⚔️</span>
+            <span class="warrior-name">Атакующий</span>
+          </button>
+          <button class="warrior-type-btn" data-type="defender">
+            <span class="warrior-icon">🛡️</span>
+            <span class="warrior-name">Защищающий</span>
+          </button>
+          <button class="warrior-type-btn" data-type="my-warriors">
+            <span class="warrior-icon">👥</span>
+            <span class="warrior-name">Мои воины</span>
+          </button>
+        </div>
+
+        <!-- Warrior Levels Container -->
+        <div class="warrior-levels-container" id="warrior-levels-container">
+          <!-- Warrior level cards will be dynamically inserted here -->
         </div>
       </div>
     </div>
@@ -583,6 +608,82 @@
       <div class="modal-footer">
         <button class="btn btn-primary" onclick="confirmEditListing()">Сохранить</button>
         <button class="btn btn-secondary" onclick="closeEditListingModal()">Отменить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warrior Card Modal -->
+  <div class="modal" id="warrior-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="warrior-modal-title">Атакующий</h2>
+        <button class="close-btn" onclick="closeWarriorModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Warrior Info Section -->
+        <div class="warrior-info-section">
+          <div class="warrior-level-display">
+            <span class="level-label">Уровень</span>
+            <span class="level-value" id="warrior-modal-level">1</span>
+          </div>
+
+          <!-- Warrior Stats -->
+          <div class="warrior-stats-grid">
+            <div class="stat-card">
+              <span class="stat-icon">⚔️</span>
+              <span class="stat-name">Урон</span>
+              <span class="stat-value" id="warrior-modal-damage">200</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">❤️</span>
+              <span class="stat-name">Здоровье</span>
+              <span class="stat-value" id="warrior-modal-hp">200</span>
+            </div>
+          </div>
+
+          <!-- Production Info (for attackers) -->
+          <div class="production-info-section" id="warrior-production-section" style="display: none;">
+            <h3>Производство в час</h3>
+            <div class="production-items-grid">
+              <div class="production-item">
+                <span class="resource-icon">💰</span>
+                <span class="resource-amount" id="warrior-prod-jamcoin">0</span>
+              </div>
+              <div class="production-item">
+                <span class="resource-icon">🌲</span>
+                <span class="resource-amount" id="warrior-prod-wood">0</span>
+              </div>
+              <div class="production-item">
+                <span class="resource-icon">🪨</span>
+                <span class="resource-amount" id="warrior-prod-stone">0</span>
+              </div>
+              <div class="production-item">
+                <span class="resource-icon">🍖</span>
+                <span class="resource-amount" id="warrior-prod-meat">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upgrade Cost Section -->
+        <div class="warrior-upgrade-section" id="warrior-upgrade-section">
+          <h3>Стоимость улучшения до уровня <span id="warrior-next-level">2</span></h3>
+          <div class="cost-display-grid" id="warrior-cost-grid">
+            <!-- Cost items will be dynamically inserted here -->
+          </div>
+        </div>
+
+        <!-- Max Level Section -->
+        <div class="max-level-section" id="warrior-max-level-section" style="display: none;">
+          <div class="max-badge">🏆 МАКСИМАЛЬНЫЙ УРОВЕНЬ</div>
+          <p>Этот воин достиг максимального уровня!</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="warrior-action-btn" onclick="performWarriorAction()">Улучшить</button>
+        <button class="btn btn-secondary" onclick="closeWarriorModal()">Закрыть</button>
       </div>
     </div>
   </div>

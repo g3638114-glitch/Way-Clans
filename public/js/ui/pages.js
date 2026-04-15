@@ -2,7 +2,6 @@ import { appState } from '../utils/state.js';
 import { renderBuildings } from './builders.js';
 import { startProductionRefresh, stopProductionRefresh } from '../game/production.js';
 import { loadMarketListings } from '../game/market.js';
-import { initializeBarracks } from './barracks.js';
 
 // Show specific page
 export function showPage(page) {
@@ -13,7 +12,6 @@ export function showPage(page) {
   document.getElementById('mining-page').classList.remove('active');
   document.getElementById('coin-mining-page').classList.remove('active');
   document.getElementById('market-page').classList.remove('active');
-  document.getElementById('barracks-page').classList.remove('active');
 
   // Update nav items
   const navItems = document.querySelectorAll('.nav-item');
@@ -64,16 +62,5 @@ export function showPage(page) {
     if (marketBackBtn) marketBackBtn.style.display = '';
     // Load market listings
     loadMarketListings('wood');
-  } else if (page === 'barracks') {
-    document.getElementById('barracks-page').classList.add('active');
-    document.getElementById('nav-barracks').classList.add('active');
-    stopProductionRefresh();
-    // Show resources header on barracks page
-    if (resourcesHeader) resourcesHeader.style.display = 'grid';
-    // Show main nav buttons
-    mainNavButtons.forEach(btn => btn.style.display = '');
-    if (marketBackBtn) marketBackBtn.style.display = 'none';
-    // Initialize barracks page
-    initializeBarracks();
   }
 }

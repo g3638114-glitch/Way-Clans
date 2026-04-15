@@ -245,28 +245,4 @@ export const apiClient = {
     }
     return response.json();
   },
-
-  // Upgrade warrior
-  async upgradeWarrior(userId, warriorId) {
-    const response = await fetch(`/api/user/${userId}/warrior/${warriorId}/upgrade`, {
-      method: 'POST',
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to upgrade warrior');
-    }
-    return response.json();
-  },
-
-  // Hire warrior
-  async hireWarrior(userId, warriorId) {
-    const response = await fetch(`/api/user/${userId}/warrior/${warriorId}/hire`, {
-      method: 'POST',
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to hire warrior');
-    }
-    return response.json();
-  },
 };

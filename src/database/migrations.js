@@ -55,14 +55,6 @@ const migrations = [
     name: 'Add warehouse_level column to users if missing',
     sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS warehouse_level INT DEFAULT 1;`,
   },
-  {
-    name: 'Add warrior_levels column to users if missing',
-    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS warrior_levels JSONB DEFAULT '{}'::jsonb;`,
-  },
-  {
-    name: 'Add warrior_counts column to users if missing',
-    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS warrior_counts JSONB DEFAULT '{}'::jsonb;`,
-  },
 
   // === USER_BUILDINGS TABLE ===
   {

@@ -1,8 +1,7 @@
-import { appState, withOperationLock } from './utils/state.js';
+import { appState } from './utils/state.js';
 import { showPage } from './ui/pages.js';
 import { updateUI } from './ui/dom.js';
 import { apiClient } from './api/client.js';
-import { showWarriorCard, showMyWarriors } from './ui/barracks.js';
 import {
   openStorageModal,
   closeStorageModal,
@@ -101,7 +100,9 @@ export function setupEventListeners() {
   document.getElementById('nav-coin-mining').addEventListener('click', () => showPage('coin-mining'));
   document.getElementById('nav-market-back').addEventListener('click', () => showPage('main'));
 
-  document.getElementById('nav-barracks').addEventListener('click', () => showPage('barracks'));
+  document.getElementById('nav-barracks').addEventListener('click', () => {
+    tg.showAlert('🔧 Раздел "Казарма" скоро будет доступна!');
+  });
 
   // Market tabs
   document.querySelectorAll('.market-tab-btn').forEach(btn => {
@@ -184,9 +185,4 @@ export function setupEventListeners() {
   window.setMaxEditQuantity = market.setMaxEditQuantity;
   window.confirmEditListing = market.confirmEditListing;
   window.updateEditTotal = market.updateEditTotal;
-
-  // Barracks functions
-  window.showPage = showPage;
-  window.showWarriorCard = showWarriorCard;
-  window.showMyWarriors = showMyWarriors;
 }

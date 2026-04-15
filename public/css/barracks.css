@@ -1,0 +1,522 @@
+/* ========================================
+   BARRACKS & WARRIOR CARDS
+   ======================================== */
+
+/* Barracks Page Container */
+.barracks-buttons-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Warrior Buttons */
+.btn-warrior {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
+  border: 2px solid rgba(76, 111, 166, 0.4);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-warrior::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: left 0.3s ease;
+}
+
+.btn-warrior:hover::before {
+  left: 100%;
+}
+
+.btn-warrior:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(76, 111, 166, 0.3);
+  border-color: rgba(212, 175, 55, 0.5);
+  background: linear-gradient(135deg, rgba(76, 111, 166, 0.25) 0%, rgba(55, 74, 107, 0.25) 100%);
+}
+
+.btn-warrior:active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.3);
+}
+
+.btn-warrior.active {
+  background: linear-gradient(135deg, #4c6fa6 0%, #356b8d 100%);
+  border-color: #d4af37;
+  box-shadow: 0 8px 20px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.warrior-icon {
+  font-size: 32px;
+  display: block;
+}
+
+.warrior-name {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+/* Warrior Card Container */
+.warrior-card-container {
+  flex: 1;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+}
+
+/* ========== WARRIOR CARD ==========*/
+.warrior-card {
+  background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
+  border: 2px solid rgba(76, 111, 166, 0.4);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(212, 175, 55, 0.02);
+  transition: all 0.3s ease;
+  animation: slideIn 0.3s ease;
+}
+
+.warrior-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(76, 111, 166, 0.3), inset 0 0 15px rgba(212, 175, 55, 0.05);
+  border-color: rgba(212, 175, 55, 0.5);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== WARRIOR CARD HEADER ==========*/
+.warrior-card-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+}
+
+.warrior-card-icon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.warrior-card-info {
+  flex: 1;
+}
+
+.warrior-card-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  margin: 0 0 5px 0;
+}
+
+.warrior-card-description {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* ========== WARRIOR STATS ==========*/
+.warrior-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.warrior-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border-left: 4px solid rgba(212, 175, 55, 0.5);
+  font-size: 14px;
+}
+
+.warrior-stat-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.warrior-stat-value {
+  color: #ffd966;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.warrior-level-display {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.level-badge {
+  background: rgba(212, 175, 55, 0.2);
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  padding: 8px 15px;
+  text-align: center;
+  flex: 1;
+}
+
+.level-label {
+  font-size: 12px;
+  color: #d4af37;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.level-value {
+  font-size: 24px;
+  color: #ffd966;
+  font-weight: bold;
+}
+
+.level-arrow {
+  color: #d4af37;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* ========== WARRIOR LOOT (for Attacker) ==========*/
+.warrior-loot-section {
+  background: rgba(76, 175, 80, 0.1);
+  border: 2px solid rgba(76, 175, 80, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+.loot-title {
+  font-size: 13px;
+  color: #81c784;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.loot-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.loot-item {
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #81c784;
+  font-weight: 600;
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* ========== UPGRADE COST SECTION ==========*/
+.upgrade-cost-section {
+  background: rgba(212, 175, 55, 0.1);
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.upgrade-cost-title {
+  font-size: 13px;
+  color: #d4af37;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.upgrade-cost-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cost-item {
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #ffd966;
+  font-weight: 600;
+  flex: 1;
+  min-width: 90px;
+  text-align: center;
+}
+
+.cost-item.insufficient {
+  background: rgba(211, 47, 47, 0.2);
+  border-color: rgba(211, 47, 47, 0.4);
+  color: #ff6b6b;
+}
+
+/* ========== HIRE COST SECTION ==========*/
+.hire-cost-section {
+  background: rgba(255, 152, 0, 0.1);
+  border: 2px solid rgba(255, 152, 0, 0.3);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.hire-cost-title {
+  font-size: 13px;
+  color: #ffb74d;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.hire-cost-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hire-cost-item {
+  background: rgba(255, 152, 0, 0.2);
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #ffb74d;
+  font-weight: 600;
+  flex: 1;
+  min-width: 90px;
+  text-align: center;
+}
+
+.hire-cost-item.insufficient {
+  background: rgba(211, 47, 47, 0.2);
+  border-color: rgba(211, 47, 47, 0.4);
+  color: #ff6b6b;
+}
+
+/* ========== WARRIOR ACTIONS ==========*/
+.warrior-card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-warrior-action {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-warrior-action:active {
+  transform: scale(0.98);
+}
+
+.btn-warrior-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Upgrade Button */
+.btn-upgrade-warrior {
+  background: linear-gradient(135deg, #5a7cb8 0%, #4c6fa6 100%);
+  color: #fff;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  grid-column: 1 / -1;
+}
+
+.btn-upgrade-warrior:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6b8dc8 0%, #5a7cb8 100%);
+  box-shadow: 0 4px 12px rgba(90, 124, 184, 0.5);
+}
+
+/* Hire Button */
+.btn-hire-warrior {
+  background: linear-gradient(135deg, #ff9800 0%, #e65100 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  grid-column: 1 / -1;
+}
+
+.btn-hire-warrior:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ffb74d 0%, #ff9800 100%);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.5);
+}
+
+/* Maxed Button */
+.btn-maxed-warrior {
+  background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 100%);
+  color: #999;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+  grid-column: 1 / -1;
+}
+
+/* My Warriors Section */
+.my-warriors-container {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.no-warriors-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+}
+
+.warrior-count-item {
+  background: linear-gradient(135deg, rgba(76, 111, 166, 0.15) 0%, rgba(55, 74, 107, 0.15) 100%);
+  border: 2px solid rgba(76, 111, 166, 0.4);
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.warrior-count-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.warrior-count-icon {
+  font-size: 36px;
+}
+
+.warrior-count-details {
+  flex: 1;
+}
+
+.warrior-count-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  margin: 0 0 5px 0;
+}
+
+.warrior-count-level {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.warrior-count-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: #ffd966;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .barracks-buttons-section {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .btn-warrior {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .warrior-icon {
+    font-size: 28px;
+  }
+
+  .warrior-card {
+    padding: 15px;
+  }
+
+  .warrior-card-icon {
+    font-size: 40px;
+  }
+
+  .warrior-card-title {
+    font-size: 18px;
+  }
+
+  .warrior-stat-row {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .warrior-card-actions {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .btn-warrior-action {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .warrior-count-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .warrior-count-info {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .warrior-count-number {
+    font-size: 28px;
+  }
+}

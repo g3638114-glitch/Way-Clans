@@ -18,12 +18,6 @@ export function renderBarracks() {
   const container = document.getElementById('barracks-container');
   if (!container) return;
 
-  // Ensure data exists
-  if (!appState.barracksData) {
-    container.innerHTML = '<p style="text-align: center; padding: 20px;">Загрузка данных...</p>';
-    return;
-  }
-
   const type = appState.selectedBarracksTab || 'attacker';
   container.innerHTML = '';
 
@@ -32,20 +26,15 @@ export function renderBarracks() {
     return;
   }
 
-  const level = type === 'attacker' ? (appState.barracksData.attacker_level || 1) : (appState.barracksData.defender_level || 1);
+  const level = type === 'attacker' ? appState.barracksData.attacker_level : appState.barracksData.defender_level;
   const stats = TROOP_STATS[type][level];
   const hireCost = HIRE_COSTS[type];
   
-  if (!stats) {
-    container.innerHTML = '<p style="text-align: center; padding: 20px;">Ошибка конфигурации войск</p>';
-    return;
-  }
-
   const card = document.createElement('div');
   card.className = 'troop-card';
   
   let lootHtml = '';
-  if (type === 'attacker' && stats.loot) {
+  if (type === 'attacker') {
     lootHtml = `
       <div class="troop-stat-item" style="grid-column: span 2;">
         <span class="troop-stat-label">Добыча (за 1 воина):</span>
@@ -59,21 +48,18 @@ export function renderBarracks() {
   let upgradeBtnHtml = '';
   if (level < 6) {
     const nextLevel = level + 1;
-    const nextStats = TROOP_STATS[type][nextLevel];
-    if (nextStats && nextStats.cost) {
-      const upgradeCost = nextStats.cost;
-      let costText = '';
-      if (upgradeCost.gold) costText += `💰${formatNumber(upgradeCost.gold)} `;
-      if (upgradeCost.jabcoins) costText += `💎${upgradeCost.jabcoins} `;
-      if (upgradeCost.meat) costText += `🍖${formatNumber(upgradeCost.meat)} `;
+    const upgradeCost = TROOP_STATS[type][nextLevel].cost;
+    let costText = '';
+    if (upgradeCost.gold) costText += `💰${formatNumber(upgradeCost.gold)} `;
+    if (upgradeCost.jabcoins) costText += `💎${upgradeCost.jabcoins} `;
+    if (upgradeCost.meat) costText += `🍖${formatNumber(upgradeCost.meat)} `;
 
-      upgradeBtnHtml = `
-        <button class="btn btn-upgrade-troop" onclick="window.upgradeTroopType('${type}')">
-          Улучшить до ур. ${nextLevel}
-          <span class="cost-info-small">${costText}</span>
-        </button>
-      `;
-    }
+    upgradeBtnHtml = `
+      <button class="btn btn-upgrade-troop" onclick="window.upgradeTroopType('${type}')">
+        Улучшить до ур. ${nextLevel}
+        <span class="cost-info-small">${costText}</span>
+      </button>
+    `;
   } else {
     upgradeBtnHtml = `<button class="btn btn-maxed" disabled>Максимальный уровень</button>`;
   }
@@ -110,7 +96,7 @@ function renderMySoldiers(container) {
   const list = document.createElement('div');
   list.className = 'my-soldiers-list';
   
-  const troops = appState.barracksData.troops || [];
+  const troops = appState.barracksData.troops;
   
   if (troops.length === 0) {
     list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">У вас пока нет воинов</p>';

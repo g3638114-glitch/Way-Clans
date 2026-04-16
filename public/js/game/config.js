@@ -71,6 +71,10 @@ export function getBuildingName(type) { return BUILDING_TYPES[type]?.name || 'З
 export function getBuildingIcon(type) { return BUILDING_TYPES[type]?.icon || '🏢'; }
 export function getResourceType(type) { return BUILDING_TYPES[type]?.resource || 'gold'; }
 export function getResourceEmoji(type) { return BUILDING_TYPES[type]?.resourceEmoji || '💰'; }
+export function getResourceIconMarkup(type) {
+  const resourceType = getResourceType(type);
+  return `<span class="resource-chip-icon resource-chip-icon--${resourceType}"></span>`;
+}
 export function getTreasuryCapacity(level) { const validLevel = Math.max(1, Math.min(level, TREASURY_CAPACITY_PER_LEVEL.length)); return TREASURY_CAPACITY_PER_LEVEL[validLevel - 1]; }
 export function getMaxTreasuryLevel() { return TREASURY_CAPACITY_PER_LEVEL.length; }
 export function getTreasuryUpgradeCost(nextLevel) { const cost = TREASURY_UPGRADE_COSTS[nextLevel]; if (!cost) return null; return { jamcoins: cost[0], stone: cost[1], wood: cost[2] }; }

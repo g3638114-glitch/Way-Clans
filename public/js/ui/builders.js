@@ -4,7 +4,7 @@ import {
   getProductionRate,
   getCapacity,
   getBuildingConfig,
-  getResourceEmoji,
+  getResourceIconMarkup,
 } from '../game/config.js';
 import { activateBuilding, collectResources, upgradeBuilding } from '../game/buildings.js';
 
@@ -65,7 +65,7 @@ export function createBuildingCard(building) {
     timeToFillText = formatTimeToFill(hoursNeeded);
   }
 
-  const resourceEmoji = getResourceEmoji(building.building_type);
+  const resourceIcon = getResourceIconMarkup(building.building_type);
 
   // ========== Card Header ==========
   const header = document.createElement('div');
@@ -83,11 +83,11 @@ export function createBuildingCard(building) {
   stats.innerHTML = `
     <div class="stat-row">
       <span class="stat-label">Производство/час:</span>
-      <span class="stat-value">${productionRate}${resourceEmoji}/час</span>
+      <span class="stat-value">${productionRate} ${resourceIcon}<span class="stat-unit">/час</span></span>
     </div>
     <div class="stat-row">
       <span class="stat-label">Вместимость:</span>
-      <span class="stat-value">${currentAccumulated}/${capacity}${resourceEmoji}</span>
+      <span class="stat-value">${currentAccumulated}/${capacity} ${resourceIcon}</span>
     </div>
     ${timeToFillText ? `<div class="stat-row"><span class="stat-time">${timeToFillText}</span></div>` : ''}
   `;
@@ -123,7 +123,7 @@ export function createBuildingCard(building) {
   if (isActivated) {
     const collectBtn = document.createElement('button');
     collectBtn.className = 'btn btn-collect';
-    collectBtn.innerHTML = `<span>Собрать</span> ${currentAccumulated}${resourceEmoji}`;
+    collectBtn.innerHTML = `<span>Собрать</span> ${currentAccumulated} ${resourceIcon}`;
     collectBtn.addEventListener('click', () => {
       collectResources(building.id);
       collectBtn.blur();

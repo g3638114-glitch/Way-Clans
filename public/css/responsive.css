@@ -53,4 +53,16 @@
   .main-action-card {
     min-height: unset;
   }
+
+  .btn-coin {
+    width: 210px;
+    height: 210px;
+    font-size: 104px;
+  }
+
+  .coin-mining-header,
+  .coin-mining-stats {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }

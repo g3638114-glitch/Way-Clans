@@ -100,6 +100,7 @@
   align-items: center;
   min-width: 52px;
   flex: 0 0 52px;
+  gap: 5px;
 }
 
 .fortress-meta {
@@ -257,10 +258,11 @@
 #player-username {
   font-size: 12px;
   color: rgba(255, 214, 102, 0.82);
-  max-width: 100%;
+  max-width: 72px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
 }
 
 .player-id {

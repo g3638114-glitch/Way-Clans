@@ -36,6 +36,9 @@
 #coin-mining-page {
   flex-direction: column;
   justify-content: flex-start;
+  background:
+    radial-gradient(circle at top, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0) 24%),
+    linear-gradient(180deg, #111628 0%, #0b0f1d 100%);
 }
 
 #coin-mining-page .coin-mining-header {

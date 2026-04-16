@@ -118,8 +118,46 @@ export async function performAttack(userId, targetId) {
   const attackerKills = defenderCount > 0 ? Math.min(attackerCount, Math.floor(totalDefenderDamage / TROOP_STATS.attacker[1].health)) : 0;
   const defenderKills = attackerCount > 0 ? Math.min(defenderCount, Math.floor(totalAttackerDamage / TROOP_STATS.defender[1].health)) : defenderCount;
 
-  const attackersRemaining = Math.max(0, attackerCount - attackerKills);
-  const defendersRemaining = Math.max(0, defenderCount - defenderKills);
+  const attackersByLevel = {};
+  for (let l = 1; l <= 6; l++) attackersByLevel[l] = 0;
+  for (const t of attackerTroops) {
+    attackersByLevel[t.level] += t.count;
+  }
+
+  const attackerSortedLevels = attackerTroops
+    .map(t => t.level)
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .sort((a, b) => a - b);
+
+  let remainingKills = attackerKills;
+  for (const level of attackerSortedLevels) {
+    if (remainingKills <= 0) break;
+    const killed = Math.min(attackersByLevel[level], remainingKills);
+    attackersByLevel[level] -= killed;
+    remainingKills -= killed;
+  }
+
+  const defendersByLevel = {};
+  for (let l = 1; l <= 6; l++) defendersByLevel[l] = 0;
+  for (const t of defenderTroops) {
+    defendersByLevel[t.level] += t.count;
+  }
+
+  const defenderSortedLevels = defenderTroops
+    .map(t => t.level)
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .sort((a, b) => a - b);
+
+  remainingKills = defenderKills;
+  for (const level of defenderSortedLevels) {
+    if (remainingKills <= 0) break;
+    const killed = Math.min(defendersByLevel[level], remainingKills);
+    defendersByLevel[level] -= killed;
+    remainingKills -= killed;
+  }
+
+  const attackersRemaining = Object.values(attackersByLevel).reduce((a, b) => a + b, 0);
+  const defendersRemaining = Object.values(defendersByLevel).reduce((a, b) => a + b, 0);
 
   const updates = [];
   const troopDeletes = [];
@@ -127,18 +165,15 @@ export async function performAttack(userId, targetId) {
   if (attackersRemaining > 0 && defendersRemaining === 0) {
     let totalLoot = { gold: 0, wood: 0, stone: 0, meat: 0 };
     
-    const attackerSorted = [...attackerTroops].sort((a, b) => a.level - b.level);
-    let remainingAttackers = attackerCount - attackerKills;
-    
-    for (const t of attackerSorted) {
-      const countToLoot = Math.min(t.count, remainingAttackers);
-      const lootPerUnit = LOOT_PER_LEVEL[t.level];
-      totalLoot.gold += lootPerUnit.gold * countToLoot;
-      totalLoot.wood += lootPerUnit.wood * countToLoot;
-      totalLoot.stone += lootPerUnit.stone * countToLoot;
-      totalLoot.meat += lootPerUnit.meat * countToLoot;
-      remainingAttackers -= countToLoot;
-      if (remainingAttackers <= 0) break;
+    for (let level = 1; level <= 6; level++) {
+      const survivingCount = attackersByLevel[level];
+      if (survivingCount > 0) {
+        const lootPerUnit = LOOT_PER_LEVEL[level];
+        totalLoot.gold += lootPerUnit.gold * survivingCount;
+        totalLoot.wood += lootPerUnit.wood * survivingCount;
+        totalLoot.stone += lootPerUnit.stone * survivingCount;
+        totalLoot.meat += lootPerUnit.meat * survivingCount;
+      }
     }
 
     const actualLoot = {
@@ -172,26 +207,20 @@ export async function performAttack(userId, targetId) {
   }
 
   if (attackerKills > 0) {
-    const attackerSorted = [...attackerTroops].sort((a, b) => a.level - b.level);
-    let remainingKills = attackerKills;
-    
-    for (const t of attackerSorted) {
-      if (remainingKills <= 0) break;
-      const toDelete = Math.min(t.count, remainingKills);
-      troopDeletes.push({ userId: attackerUser.id, troopType: 'attacker', level: t.level, count: toDelete });
-      remainingKills -= toDelete;
+    for (const level of attackerSortedLevels) {
+      const killed = attackerTroops.find(t => t.level === level).count - attackersByLevel[level];
+      if (killed > 0) {
+        troopDeletes.push({ userId: attackerUser.id, troopType: 'attacker', level, count: killed });
+      }
     }
   }
 
   if (defenderKills > 0 && defenderCount > 0) {
-    const defenderSorted = [...defenderTroops].sort((a, b) => a.level - b.level);
-    let remainingKills = defenderKills;
-    
-    for (const t of defenderSorted) {
-      if (remainingKills <= 0) break;
-      const toDelete = Math.min(t.count, remainingKills);
-      troopDeletes.push({ userId: targetUser.id, troopType: 'defender', level: t.level, count: toDelete });
-      remainingKills -= toDelete;
+    for (const level of defenderSortedLevels) {
+      const killed = defenderTroops.find(t => t.level === level).count - defendersByLevel[level];
+      if (killed > 0) {
+        troopDeletes.push({ userId: targetUser.id, troopType: 'defender', level, count: killed });
+      }
     }
   }
 
@@ -230,7 +259,12 @@ export async function performAttack(userId, targetId) {
     }
   }
 
-  const finalLoot = defendersRemaining === 0 ? LOOT_PER_LEVEL[1] : { gold: 0, wood: 0, stone: 0, meat: 0 };
+  const finalLoot = defendersRemaining === 0 ? {
+    gold: totalLoot.gold,
+    wood: totalLoot.wood,
+    stone: totalLoot.stone,
+    meat: totalLoot.meat
+  } : { gold: 0, wood: 0, stone: 0, meat: 0 };
 
   return {
     attackerTroopsCount: attackerCount,
@@ -239,6 +273,7 @@ export async function performAttack(userId, targetId) {
     defendersKilled: defenderKills,
     attackersRemaining,
     defendersRemaining,
+    lootByLevel: defendersRemaining === 0 ? attackersByLevel : {},
     loot: finalLoot,
     won: defendersRemaining === 0
   };

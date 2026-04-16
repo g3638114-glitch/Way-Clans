@@ -52,10 +52,39 @@ async function confirmAttack() {
         message += `💀 Вы убили: ${result.defendersKilled} защитников\n`;
         message += `💀 Погибло ваших: ${result.attackersKilled}\n\n`;
         message += `📦 Добыча:\n`;
-        message += `💰 ${formatNumber(result.loot.gold)} Jamcoin\n`;
-        message += `🌲 ${formatNumber(result.loot.wood)} дерева\n`;
-        message += `🪨 ${formatNumber(result.loot.stone)} камня\n`;
-        message += `🍖 ${formatNumber(result.loot.meat)} мяса`;
+        
+        if (result.lootByLevel) {
+          const lootInfo = {
+            1: { gold: 31, wood: 15, stone: 15, meat: 1 },
+            2: { gold: 62, wood: 30, stone: 30, meat: 2 },
+            3: { gold: 125, wood: 60, stone: 60, meat: 4 },
+            4: { gold: 400, wood: 150, stone: 150, meat: 10 },
+            5: { gold: 800, wood: 300, stone: 300, meat: 20 },
+            6: { gold: 2000, wood: 500, stone: 500, meat: 30 },
+          };
+          
+          let totalLoot = { gold: 0, wood: 0, stone: 0, meat: 0 };
+          
+          for (let level = 1; level <= 6; level++) {
+            const count = result.lootByLevel[level] || 0;
+            if (count > 0) {
+              const perUnit = lootInfo[level];
+              totalLoot.gold += perUnit.gold * count;
+              totalLoot.wood += perUnit.wood * count;
+              totalLoot.stone += perUnit.stone * count;
+              totalLoot.meat += perUnit.meat * count;
+              
+              message += `ур.${level}: ${count} воинов → +${perUnit.gold * count}💰 ${perUnit.wood * count}🌲 ${perUnit.stone * count}🪨 ${perUnit.meat * count}🍖\n`;
+            }
+          }
+          
+          message += `\nИтого: 💰${formatNumber(totalLoot.gold)} 🌲${formatNumber(totalLoot.wood)} 🪨${formatNumber(totalLoot.stone)} 🍖${formatNumber(totalLoot.meat)}`;
+        } else {
+          message += `💰 ${formatNumber(result.loot.gold)} Jamcoin\n`;
+          message += `🌲 ${formatNumber(result.loot.wood)} дерева\n`;
+          message += `🪨 ${formatNumber(result.loot.stone)} камня\n`;
+          message += `🍖 ${formatNumber(result.loot.meat)} мяса`;
+        }
       } else {
         message = `💪 АТАКА ОТРАЖЕНА!\n\n`;
         message += `⚔️ Ваши воины: ${result.attackerTroopsCount}\n`;

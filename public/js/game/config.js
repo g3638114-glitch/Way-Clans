@@ -2,7 +2,9 @@
  * Building & Troop Configuration System
  */
 
-// ... existing BUILDING_TYPES, TREASURY_CONFIG, WAREHOUSE_CONFIG ...
+// ============================================================================
+// BUILDING CONFIGURATION
+// ============================================================================
 export const BUILDING_TYPES = {
   mine: { name: 'Шахта', icon: '⛏', resource: 'gold', resourceEmoji: '💰' },
   quarry: { name: 'Каменоломня', icon: '🪨', resource: 'stone', resourceEmoji: '🪨' },
@@ -37,7 +39,9 @@ export const UPGRADE_COSTS = {
   farm: { 1: [200], 2: [500], 3: [1200], 4: [2500], 5: [5500] },
 };
 
-// === TROOP CONFIGURATION ===
+// ============================================================================
+// TROOP CONFIGURATION
+// ============================================================================
 export const TROOP_STATS = {
   defender: {
     1: { damage: 100, health: 200 },
@@ -62,7 +66,9 @@ export const HIRE_COSTS = {
   defender: { gold: 1000, wood: 500, stone: 500, meat: 100 }
 };
 
-// ... existing helper functions ...
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
 export function getBuildingConfig(buildingType) { return BUILDING_TYPES[buildingType] || BUILDING_TYPES.mine; }
 export function getProductionRate(buildingType, level) { const rates = PRODUCTION_PER_LEVEL[buildingType] || PRODUCTION_PER_LEVEL.mine; return rates[level - 1] || rates[rates.length - 1]; }
 export function getCapacity(buildingType, level) { const capacities = CAPACITY_PER_LEVEL[buildingType] || CAPACITY_PER_LEVEL.mine; return capacities[level - 1] || capacities[capacities.length - 1]; }

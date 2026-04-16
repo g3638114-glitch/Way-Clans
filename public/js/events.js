@@ -17,62 +17,36 @@ import { renderBarracks } from './game/barracks.js';
 import { openAttackMenu, closeAttackModal } from './game/attack.js';
 
 export function setupEventListeners() {
-  // Main page buttons
-  const storageBtn = document.getElementById('storage-btn');
-  if (storageBtn) storageBtn.addEventListener('click', openWarehouseModal);
+  document.getElementById('storage-btn').addEventListener('click', openWarehouseModal);
+  document.getElementById('exchange-btn').addEventListener('click', openExchangeModal);
+  document.getElementById('gold-input').addEventListener('input', updateExchangeResult);
+  document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
+  document.getElementById('market-btn').addEventListener('click', () => showPage('market'));
+  document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
   
-  const exchangeBtn = document.getElementById('exchange-btn');
-  if (exchangeBtn) exchangeBtn.addEventListener('click', openExchangeModal);
-  
-  const goldInput = document.getElementById('gold-input');
-  if (goldInput) goldInput.addEventListener('input', updateExchangeResult);
-  
-  const treasuryBtn = document.getElementById('treasury-btn');
-  if (treasuryBtn) treasuryBtn.addEventListener('click', openTreasuryModal);
-  
-  const marketBtn = document.getElementById('market-btn');
-  if (marketBtn) marketBtn.addEventListener('click', () => showPage('market'));
-  
-  const questsBtn = document.getElementById('quests-btn');
-  if (questsBtn) questsBtn.addEventListener('click', openQuestsModal);
-  
-  const attackBtn = document.getElementById('attack-btn');
-  if (attackBtn) attackBtn.addEventListener('click', openAttackMenu);
+  // Attack button
+  document.getElementById('attack-btn').addEventListener('click', openAttackMenu);
 
-  // Coin button
-  const coinBtn = document.getElementById('coin-btn');
-  if (coinBtn) {
-    coinBtn.addEventListener('click', async () => {
-      try {
-        coinBtn.classList.add('coin-click');
-        const result = await apiClient.clickCoin(appState.userId);
-        if (result.user) { appState.currentUser = result.user; updateUI(appState.currentUser); }
-      } catch (error) {
-        if (error.message.includes('Treasury is full')) { tg.showAlert('🏦 Казна переполнена!'); }
-        else { tg.showAlert('❌ Ошибка'); }
-      } finally {
-        setTimeout(() => coinBtn.classList.remove('coin-click'), 500);
-      }
-    });
-  }
+  document.getElementById('coin-btn').addEventListener('click', async () => {
+    const coinBtn = document.getElementById('coin-btn');
+    try {
+      coinBtn.classList.add('coin-click');
+      const result = await apiClient.clickCoin(appState.userId);
+      if (result.user) { appState.currentUser = result.user; updateUI(appState.currentUser); }
+    } catch (error) {
+      if (error.message.includes('Treasury is full')) { tg.showAlert('🏦 Казна переполнена!'); }
+      else { tg.showAlert('❌ Ошибка'); }
+    } finally {
+      setTimeout(() => coinBtn.classList.remove('coin-click'), 500);
+    }
+  });
 
-  // Navigation
-  const navMain = document.getElementById('nav-main');
-  if (navMain) navMain.addEventListener('click', () => showPage('main'));
-  
-  const navMining = document.getElementById('nav-mining');
-  if (navMining) navMining.addEventListener('click', () => showPage('mining'));
-  
-  const navCoinMining = document.getElementById('nav-coin-mining');
-  if (navCoinMining) navCoinMining.addEventListener('click', () => showPage('coin-mining'));
-  
-  const navBarracks = document.getElementById('nav-barracks');
-  if (navBarracks) navBarracks.addEventListener('click', () => showPage('barracks'));
-  
-  const navMarketBack = document.getElementById('nav-market-back');
-  if (navMarketBack) navMarketBack.addEventListener('click', () => showPage('main'));
+  document.getElementById('nav-main').addEventListener('click', () => showPage('main'));
+  document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));
+  document.getElementById('nav-coin-mining').addEventListener('click', () => showPage('coin-mining'));
+  document.getElementById('nav-barracks').addEventListener('click', () => showPage('barracks'));
+  document.getElementById('nav-market-back').addEventListener('click', () => showPage('main'));
 
-  // Market tabs
   document.querySelectorAll('.market-tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.market-tab-btn').forEach(b => b.classList.remove('active'));
@@ -91,7 +65,6 @@ export function setupEventListeners() {
     });
   });
 
-  // Mining tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -103,7 +76,6 @@ export function setupEventListeners() {
 
   setupModalHandlers();
 
-  // Global window functions
   window.closeAttackModal = closeAttackModal;
   window.openStorageModal = openStorageModal;
   window.closeStorageModal = closeStorageModal;

@@ -9,14 +9,6 @@ export const appState = {
   allBuildings: [],
   selectedBuildingType: 'mine',
   currentPage: 'main',
-  
-  // Barracks data
-  barracksData: {
-    attacker_level: 1,
-    defender_level: 1,
-    troops: []
-  },
-  selectedBarracksTab: 'attacker',
 
   // Modal data
   upgradeModalData: {

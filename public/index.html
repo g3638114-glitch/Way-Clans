@@ -34,10 +34,6 @@
         <div class="main-page-shell">
           <section class="player-card fortress-card">
             <div class="fortress-card-glow"></div>
-            <div class="player-header fortress-header">
-              <h2 id="player-name">Player</h2>
-            </div>
-
             <div class="player-info fortress-layout">
               <div class="player-avatar fortress-avatar-block">
                 <div class="avatar-placeholder" id="avatar-image">🧑</div>
@@ -45,23 +41,21 @@
               </div>
 
               <div class="fortress-meta">
+                <div class="player-header fortress-header">
+                  <h2 id="player-name">Player</h2>
+                </div>
                 <div class="player-id fortress-id">ID: <span id="player-id">0</span></div>
               </div>
             </div>
           </section>
 
-          <section class="main-hub-panel">
-            <div class="main-hub-header">
-              <p class="hub-kicker">Управление базой</p>
-              <h3>Выберите следующее действие</h3>
-            </div>
-
-            <div class="main-action-grid">
+          <section class="main-hub-panel main-hub-panel-compact">
+            <div class="main-action-grid main-action-grid-compact">
               <button class="btn btn-storage main-action-card" id="storage-btn">
                 <span class="main-action-icon">📦</span>
                 <span class="main-action-text">
                   <span class="main-action-title">Склад</span>
-                  <span class="main-action-subtitle">Ресурсы и хранение</span>
+                  <span class="main-action-subtitle">Хранение</span>
                 </span>
               </button>
 
@@ -69,7 +63,7 @@
                 <span class="main-action-icon">💱</span>
                 <span class="main-action-text">
                   <span class="main-action-title">Обмен</span>
-                  <span class="main-action-subtitle">Конвертация валюты</span>
+                  <span class="main-action-subtitle">Валюта</span>
                 </span>
               </button>
 
@@ -77,7 +71,7 @@
                 <span class="main-action-icon">🏰</span>
                 <span class="main-action-text">
                   <span class="main-action-title">Казна</span>
-                  <span class="main-action-subtitle">Вместимость Jamcoin</span>
+                  <span class="main-action-subtitle">Jamcoin</span>
                 </span>
               </button>
 
@@ -85,28 +79,26 @@
                 <span class="main-action-icon">🛍</span>
                 <span class="main-action-text">
                   <span class="main-action-title">Рынок</span>
-                  <span class="main-action-subtitle">Торговля ресурсами</span>
+                  <span class="main-action-subtitle">Торговля</span>
+                </span>
+              </button>
+
+              <button class="btn btn-quests main-action-card" id="quests-btn">
+                <span class="main-action-icon">📋</span>
+                <span class="main-action-text">
+                  <span class="main-action-title">Задания</span>
+                  <span class="main-action-subtitle">Награды</span>
+                </span>
+              </button>
+
+              <button class="btn btn-attack main-action-card main-action-card-attack" id="attack-btn">
+                <span class="main-action-icon">⚔️</span>
+                <span class="main-action-text">
+                  <span class="main-action-title">Атаковать</span>
+                  <span class="main-action-subtitle">Бой</span>
                 </span>
               </button>
             </div>
-          </section>
-
-          <section class="main-battle-panel">
-            <button class="btn btn-quests main-banner-action" id="quests-btn">
-              <span class="main-banner-icon">📋</span>
-              <span class="main-banner-copy">
-                <span class="main-banner-title">Задания</span>
-                <span class="main-banner-subtitle">Забирайте награды и прогресс</span>
-              </span>
-            </button>
-
-            <button class="btn btn-attack main-banner-action main-banner-action-attack" id="attack-btn">
-              <span class="main-banner-icon">⚔️</span>
-              <span class="main-banner-copy">
-                <span class="main-banner-title">Атаковать</span>
-                <span class="main-banner-subtitle">Найти противника и забрать добычу</span>
-              </span>
-            </button>
           </section>
         </div>
       </div>

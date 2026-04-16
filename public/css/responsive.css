@@ -55,9 +55,12 @@
   }
 
   .btn-coin {
-    width: 320px;
-    height: 320px;
     font-size: 0;
+  }
+
+  .coin-face-icon {
+    width: 280px;
+    height: 280px;
   }
 
   .coin-mining-header,

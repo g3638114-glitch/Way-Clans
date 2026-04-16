@@ -456,8 +456,8 @@
 }
 
 .btn-coin {
-  width: 280px;
-  height: 280px;
+  width: 420px;
+  height: 420px;
   padding: 0;
   border-radius: 0 !important;
   font-size: 0;
@@ -478,6 +478,11 @@
   outline: none;
 }
 
+.btn-coin::before {
+  content: none !important;
+  display: none !important;
+}
+
 .btn-coin:focus,
 .btn-coin:focus-visible {
   outline: none !important;
@@ -485,11 +490,11 @@
 }
 
 .btn-coin:hover {
-  transform: translateY(-2px) scale(1.02);
+  transform: none;
 }
 
 .btn-coin:active {
-  transform: translateY(-1px) scale(0.98);
+  transform: none;
   box-shadow: none;
 }
 

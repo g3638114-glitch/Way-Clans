@@ -52,21 +52,21 @@ export async function getRandomTarget(userId) {
 export async function performAttack(userId, targetId) {
   const now = new Date();
 
-  const { data: attackerUser, error: attackerError } = await supabase
-    .from('users')
-    .select('id, telegram_id, gold, wood, stone, meat')
-    .eq('telegram_id', userId)
-    .single();
+  const [attackerResponse, targetResponse] = await Promise.all([
+    supabase
+      .from('users')
+      .select('id, telegram_id, gold, wood, stone, meat')
+      .eq('telegram_id', userId)
+      .single(),
+    supabase
+      .from('users')
+      .select('id, gold, wood, stone, meat, shield_until')
+      .eq('id', targetId)
+      .single(),
+  ]);
 
-  if (attackerError || !attackerUser) {
-    throw new Error('Ошибка при загрузке данных атакующего');
-  }
-
-  const { data: targetUser, error: targetError } = await supabase
-    .from('users')
-    .select('id, gold, wood, stone, meat, shield_until')
-    .eq('id', targetId)
-    .single();
+  const { data: attackerUser, error: attackerError } = attackerResponse;
+  const { data: targetUser, error: targetError } = targetResponse;
 
   if (targetError || !targetUser) {
     throw new Error('Цель не найдена');
@@ -78,7 +78,7 @@ export async function performAttack(userId, targetId) {
 
   const { data: allTroops } = await supabase
     .from('user_troops')
-    .select('user_id, troop_type, level, count')
+    .select('id, user_id, troop_type, level, count')
     .in('user_id', [attackerUser.id, targetUser.id])
     .gt('count', 0);
 
@@ -159,12 +159,10 @@ export async function performAttack(userId, targetId) {
   const attackersRemaining = Object.values(attackersByLevel).reduce((a, b) => a + b, 0);
   const defendersRemaining = Object.values(defendersByLevel).reduce((a, b) => a + b, 0);
 
-  const updates = [];
-  const troopDeletes = [];
+  const troopMutations = [];
+  let totalLoot = { gold: 0, wood: 0, stone: 0, meat: 0 };
 
   if (attackersRemaining > 0 && defendersRemaining === 0) {
-    let totalLoot = { gold: 0, wood: 0, stone: 0, meat: 0 };
-    
     for (let level = 1; level <= 6; level++) {
       const survivingCount = attackersByLevel[level];
       if (survivingCount > 0) {
@@ -183,80 +181,61 @@ export async function performAttack(userId, targetId) {
       meat: Math.min(totalLoot.meat, targetUser.meat),
     };
 
-    updates.push({
-      id: attackerUser.id,
-      gold: attackerUser.gold + actualLoot.gold,
-      wood: attackerUser.wood + actualLoot.wood,
-      stone: attackerUser.stone + actualLoot.stone,
-      meat: attackerUser.meat + actualLoot.meat
-    });
+    totalLoot = actualLoot;
 
-    updates.push({
-      id: targetUser.id,
-      gold: Math.max(0, targetUser.gold - actualLoot.gold),
-      wood: Math.max(0, targetUser.wood - actualLoot.wood),
-      stone: Math.max(0, targetUser.stone - actualLoot.stone),
-      meat: Math.max(0, targetUser.meat - actualLoot.meat),
-      shield_until: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString()
-    });
+    await Promise.all([
+      supabase.from('users').update({
+        gold: attackerUser.gold + actualLoot.gold,
+        wood: attackerUser.wood + actualLoot.wood,
+        stone: attackerUser.stone + actualLoot.stone,
+        meat: attackerUser.meat + actualLoot.meat,
+      }).eq('id', attackerUser.id),
+      supabase.from('users').update({
+        gold: Math.max(0, targetUser.gold - actualLoot.gold),
+        wood: Math.max(0, targetUser.wood - actualLoot.wood),
+        stone: Math.max(0, targetUser.stone - actualLoot.stone),
+        meat: Math.max(0, targetUser.meat - actualLoot.meat),
+        shield_until: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString(),
+      }).eq('id', targetUser.id),
+    ]);
   } else {
-    updates.push({
-      id: targetUser.id,
+    await supabase.from('users').update({
       shield_until: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString()
-    });
+    }).eq('id', targetUser.id);
   }
 
   if (attackerKills > 0) {
     for (const level of attackerSortedLevels) {
-      const killed = attackerTroops.find(t => t.level === level).count - attackersByLevel[level];
+      const troop = attackerTroops.find(t => t.level === level);
+      const killed = troop.count - attackersByLevel[level];
       if (killed > 0) {
-        troopDeletes.push({ userId: attackerUser.id, troopType: 'attacker', level, count: killed });
+        const newCount = troop.count - killed;
+        troopMutations.push(
+          newCount <= 0
+            ? supabase.from('user_troops').delete().eq('id', troop.id)
+            : supabase.from('user_troops').update({ count: newCount }).eq('id', troop.id)
+        );
       }
     }
   }
 
   if (defenderKills > 0 && defenderCount > 0) {
     for (const level of defenderSortedLevels) {
-      const killed = defenderTroops.find(t => t.level === level).count - defendersByLevel[level];
+      const troop = defenderTroops.find(t => t.level === level);
+      const killed = troop.count - defendersByLevel[level];
       if (killed > 0) {
-        troopDeletes.push({ userId: targetUser.id, troopType: 'defender', level, count: killed });
+        const newCount = troop.count - killed;
+        troopMutations.push(
+          newCount <= 0
+            ? supabase.from('user_troops').delete().eq('id', troop.id)
+            : supabase.from('user_troops').update({ count: newCount }).eq('id', troop.id)
+        );
       }
     }
   }
 
-  if (updates.length > 0) {
-    for (const u of updates) {
-      const { shield_until, ...resourceUpdates } = u;
-      const updateObj = { ...resourceUpdates };
-      if (shield_until) updateObj.shield_until = shield_until;
-      
-      await supabase.from('users').update(updateObj).eq('id', u.id);
-    }
-  }
-
-  for (const td of troopDeletes) {
-    const { data: existing } = await supabase
-      .from('user_troops')
-      .select('count')
-      .eq('user_id', td.userId)
-      .eq('troop_type', td.troopType)
-      .eq('level', td.level)
-      .single();
-
-    if (existing) {
-      const newCount = existing.count - td.count;
-      if (newCount <= 0) {
-        await supabase.from('user_troops').delete()
-          .eq('user_id', td.userId)
-          .eq('troop_type', td.troopType)
-          .eq('level', td.level);
-      } else {
-        await supabase.from('user_troops').update({ count: newCount })
-          .eq('user_id', td.userId)
-          .eq('troop_type', td.troopType)
-          .eq('level', td.level);
-      }
-    }
+  if (troopMutations.length > 0) {
+    await Promise.all(troopMutations);
   }
 
   const finalLoot = defendersRemaining === 0 ? {

@@ -99,7 +99,14 @@ export async function createListing(telegramId, { resourceType, quantity, priceP
     .update({ [resourceType]: newQuantity })
     .eq('id', user.id);
 
-  return { success: true, listing };
+  return {
+    success: true,
+    listing,
+    user: {
+      ...user,
+      [resourceType]: newQuantity,
+    },
+  };
 }
 
 /**
@@ -256,37 +263,29 @@ export async function buyFromListing(buyerTelegramId, listingId, quantity) {
 
   // Perform transaction
   // 1. Deduct gold from buyer
-  await supabase
-    .from('users')
-    .update({ gold: buyer.gold - totalPrice })
-    .eq('id', buyer.id);
-
-  // 2. Add resource to buyer
   const buyerResourceField = listing.resource_type;
-  await supabase
-    .from('users')
-    .update({ [buyerResourceField]: (buyer[buyerResourceField] || 0) + quantity })
-    .eq('id', buyer.id);
+  const buyerUpdates = {
+    gold: buyer.gold - totalPrice,
+    [buyerResourceField]: (buyer[buyerResourceField] || 0) + quantity,
+  };
 
-  // 3. Add gold to seller
-  await supabase
-    .from('users')
-    .update({ gold: newSellerGold })
-    .eq('id', listing.seller_id);
-
-  // 4. Update listing quantity
   const newQuantity = listing.quantity - quantity;
-  if (newQuantity === 0) {
-    // Delete listing if quantity reaches 0
-    await supabase.from('market_listings').delete().eq('id', listingId);
-  } else {
-    await supabase
-      .from('market_listings')
-      .update({ quantity: newQuantity })
-      .eq('id', listingId);
-  }
+  await Promise.all([
+    supabase.from('users').update(buyerUpdates).eq('id', buyer.id),
+    supabase.from('users').update({ gold: newSellerGold }).eq('id', listing.seller_id),
+    newQuantity === 0
+      ? supabase.from('market_listings').delete().eq('id', listingId)
+      : supabase.from('market_listings').update({ quantity: newQuantity }).eq('id', listingId),
+  ]);
 
-  return { success: true, message: `Purchased ${quantity} ${listing.resource_type}` };
+  return {
+    success: true,
+    message: `Purchased ${quantity} ${listing.resource_type}`,
+    user: {
+      ...buyer,
+      ...buyerUpdates,
+    },
+  };
 }
 
 /**
@@ -320,7 +319,14 @@ export async function deleteListing(telegramId, listingId) {
   // Delete listing
   await supabase.from('market_listings').delete().eq('id', listingId);
 
-  return { success: true, message: 'Listing deleted and resources returned' };
+  return {
+    success: true,
+    message: 'Listing deleted and resources returned',
+    user: {
+      ...user,
+      [resourceField]: (user[resourceField] || 0) + listing.quantity,
+    },
+  };
 }
 
 /**
@@ -352,23 +358,27 @@ export async function editListing(telegramId, listingId, { quantity, pricePerUni
   const quantityDiff = quantity - listing.quantity;
 
   // If increasing quantity, check if user has enough resources
+  let updatedUser = user;
+
   if (quantityDiff > 0) {
     const userResources = user[listing.resource_type] || 0;
     if (userResources < quantityDiff) {
       throw new Error('Not enough resources to increase listing quantity');
     }
 
-    // Deduct additional resources
+    const nextAmount = userResources - quantityDiff;
     await supabase
       .from('users')
-      .update({ [listing.resource_type]: userResources - quantityDiff })
+      .update({ [listing.resource_type]: nextAmount })
       .eq('id', user.id);
+    updatedUser = { ...user, [listing.resource_type]: nextAmount };
   } else if (quantityDiff < 0) {
-    // If decreasing quantity, return resources to user
+    const nextAmount = (user[listing.resource_type] || 0) - quantityDiff;
     await supabase
       .from('users')
-      .update({ [listing.resource_type]: (user[listing.resource_type] || 0) - quantityDiff })
+      .update({ [listing.resource_type]: nextAmount })
       .eq('id', user.id);
+    updatedUser = { ...user, [listing.resource_type]: nextAmount };
   }
 
   // Update listing
@@ -381,5 +391,5 @@ export async function editListing(telegramId, listingId, { quantity, pricePerUni
 
   if (updateError) throw new Error('Failed to update listing');
 
-  return { success: true, listing: updatedListing };
+  return { success: true, listing: updatedListing, user: updatedUser };
 }

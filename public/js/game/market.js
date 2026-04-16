@@ -1,12 +1,19 @@
 import { apiClient } from '../api/client.js';
 import { appState, withOperationLock } from '../utils/state.js';
 import { getTreasuryCapacity, getWarehouseCapacity } from './config.js';
+import { updateUI } from '../ui/dom.js';
 
 let currentSetPriceResource = null;
 let currentBuyListing = null;
 let currentBuyMaxQuantity = 0;
 let currentEditListing = null;
 let currentEditMaxQuantity = 0;
+
+function applyReturnedUser(user) {
+  if (!user) return;
+  appState.currentUser = { ...appState.currentUser, ...user };
+  updateUI(appState.currentUser);
+}
 
 /**
  * Open set price modal for selling resources
@@ -116,20 +123,18 @@ export async function confirmSellPrice() {
 
   await withOperationLock('createMarketListing', async () => {
     try {
-      const result = await apiClient.createMarketListing(appState.userId, {
-        resourceType,
-        quantity,
-        pricePerUnit,
-      });
+        const result = await apiClient.createMarketListing(appState.userId, {
+          resourceType,
+          quantity,
+          pricePerUnit,
+        });
 
-      alert('Объявление выставлено на рынок!');
-      closeSetPriceModal();
-      document.getElementById('warehouse-sell-modal').style.display = 'none';
-
-      // Refresh user data
-      appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
-      updateWarehouseSellModal();
-    } catch (error) {
+        applyReturnedUser(result.user);
+        alert('Объявление выставлено на рынок!');
+        closeSetPriceModal();
+        document.getElementById('warehouse-sell-modal').style.display = 'none';
+        updateWarehouseSellModal();
+      } catch (error) {
       alert('Ошибка: ' + (error.message || 'Не удалось выставить объявление'));
     }
   });
@@ -250,15 +255,13 @@ export async function confirmBuyQuantity() {
 
   await withOperationLock('buyFromMarketListing', async () => {
     try {
-      await apiClient.buyFromMarketListing(appState.userId, listing.id, quantity);
-      alert(`Вы купили ${quantity} ресурсов!`);
-      closeBuyQuantityModal();
+        const result = await apiClient.buyFromMarketListing(appState.userId, listing.id, quantity);
+        applyReturnedUser(result.user);
+        alert(`Вы купили ${quantity} ресурсов!`);
+        closeBuyQuantityModal();
 
-      // Refresh user data
-      appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
-
-      // Reload market listings
-      const currentTab = document.querySelector('.market-tab-btn.active');
+        // Reload market listings
+        const currentTab = document.querySelector('.market-tab-btn.active');
       if (currentTab) {
         loadMarketListings(currentTab.dataset.resource);
       }
@@ -400,14 +403,12 @@ export async function deleteListing(listingId) {
 
   await withOperationLock('deleteMarketListing', async () => {
     try {
-      await apiClient.deleteMarketListing(appState.userId, listingId);
-      alert('Объявление удалено');
+        const result = await apiClient.deleteMarketListing(appState.userId, listingId);
+        applyReturnedUser(result.user);
+        alert('Объявление удалено');
 
-      // Refresh user data
-      appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
-
-      // Reload my listings
-      loadMyListings();
+        // Reload my listings
+        loadMyListings();
       updateWarehouseSellModal();
     } catch (error) {
       alert('Ошибка: ' + (error.message || 'Не удалось удалить объявление'));
@@ -528,18 +529,16 @@ export async function confirmEditListing() {
 
   await withOperationLock('editMarketListing', async () => {
     try {
-      await apiClient.editMarketListing(appState.userId, currentEditListing.id, {
-        quantity,
-        pricePerUnit,
-      });
+        const result = await apiClient.editMarketListing(appState.userId, currentEditListing.id, {
+          quantity,
+          pricePerUnit,
+        });
 
-      alert('✅ Объявление обновлено!');
+        applyReturnedUser(result.user);
+        alert('✅ Объявление обновлено!');
 
-      // Refresh user data
-      appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
-
-      // Reload my listings
-      loadMyListings();
+        // Reload my listings
+        loadMyListings();
       updateWarehouseSellModal();
 
       closeEditListingModal();

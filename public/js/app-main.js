@@ -27,25 +27,20 @@ async function loadUserData() {
 
     // If user doesn't have a profile photo, try to fetch it from Telegram
     if (!appState.currentUser.photo_url) {
-      console.log('📸 User has no photo, fetching from Telegram...');
-      try {
-        const response = await fetch(`/api/user/${appState.userId}/fetch-photo`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user && data.user.photo_url) {
+      fetch(`/api/user/${appState.userId}/fetch-photo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then((response) => response.ok ? response.json() : null)
+        .then((data) => {
+          if (data?.user?.photo_url) {
             appState.currentUser = data.user;
             updateUI(appState.currentUser);
-            console.log('✅ Profile photo fetched and updated');
           }
-        }
-      } catch (error) {
-        console.warn('⚠️ Error fetching profile photo:', error);
-        // Continue anyway, the app will work fine without the photo
-      }
+        })
+        .catch((error) => {
+          console.warn('⚠️ Error fetching profile photo:', error);
+        });
     }
   } catch (error) {
     console.error('Error loading user data:', error);

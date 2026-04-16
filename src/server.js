@@ -12,6 +12,7 @@ import questsRouter from './routes/quests.js';
 import treasuryRouter from './routes/treasury.js';
 import warehouseRouter from './routes/warehouse.js';
 import marketRouter from './routes/market.js';
+import warriorsRouter from './routes/warriors.js';
 
 dotenv.config();
 
@@ -19,22 +20,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
 app.use(express.static(join(__dirname, '../public')));
 
 // API Routes
-// Order matters: more specific routes first, then general routes
 app.use('/webhook', webhookRouter);
-app.use('/api/user', userRouter);  // Includes /api/user/auth/verify (specific) and /api/user/:userId (dynamic)
+app.use('/api/user', userRouter);
 app.use('/api/user', buildingsRouter);
 app.use('/api/user', resourcesRouter);
 app.use('/api/user', questsRouter);
 app.use('/api/user', treasuryRouter);
 app.use('/api/user', warehouseRouter);
 app.use('/api/user', marketRouter);
+app.use('/api/user', warriorsRouter);
 
 // Serve MiniApp HTML
 app.get('/', (req, res) => {

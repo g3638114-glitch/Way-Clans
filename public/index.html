@@ -95,31 +95,329 @@
     </nav>
   </div>
 
-  <!-- Modals -->
-  <div class="modal" id="storage-modal">...</div>
-  <div class="modal" id="exchange-modal">...</div>
-  <div class="modal" id="upgrade-modal">...</div>
-  <div class="modal" id="quests-modal">...</div>
-  <div class="modal" id="treasury-modal">...</div>
-  <div class="modal" id="warehouse-modal">...</div>
-  <div class="modal" id="warehouse-sell-modal">...</div>
-  <div class="modal" id="set-price-modal">...</div>
-  <div class="modal" id="buy-quantity-modal">...</div>
-  <div class="modal" id="edit-listing-modal">...</div>
+  <!-- Storage Modal -->
+  <div class="modal" id="storage-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📦 Склад</h2>
+        <button class="close-btn" onclick="window.closeStorageModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🌲 Дерево: <span id="storage-wood">0</span></span>
+            <div class="input-controls">
+              <input type="number" id="wood-input" placeholder="0">
+              <button class="max-btn" onclick="window.setMaxWood()">MAX</button>
+            </div>
+          </div>
+        </div>
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🪨 Камень: <span id="storage-stone">0</span></span>
+            <div class="input-controls">
+              <input type="number" id="stone-input" placeholder="0">
+              <button class="max-btn" onclick="window.setMaxStone()">MAX</button>
+            </div>
+          </div>
+        </div>
+        <div class="resource-input-group">
+          <div class="resource-row">
+            <span>🍖 Мясо: <span id="storage-meat">0</span></span>
+            <div class="input-controls">
+              <input type="number" id="meat-input" placeholder="0">
+              <button class="max-btn" onclick="window.setMaxMeat()">MAX</button>
+            </div>
+          </div>
+        </div>
+        <p class="storage-hint">Продайте ресурсы за Jamcoin 💰</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="window.sellResources()">Продать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exchange Modal -->
+  <div class="modal" id="exchange-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>💱 Обмен</h2>
+        <button class="close-btn" onclick="window.closeExchangeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="exchange-section">
+          <p>Ваш баланс: <span id="exchange-gold">💰 0</span></p>
+          <div class="exchange-input">
+            <input type="number" id="gold-input" placeholder="Введите сумму Jamcoin">
+          </div>
+          <div class="exchange-result" id="exchange-result">💎 0</div>
+          <div class="exchange-rate">
+            <p>Курс: 1,000,000 💰 = 1 💎</p>
+            <p class="minimum">Минимум: 1,000,000 Jamcoin</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="window.exchangeGold()">Обменять</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgrade Modal -->
+  <div class="modal" id="upgrade-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⬆️ Улучшение</h2>
+        <button class="close-btn" onclick="window.closeUpgradeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="upgrade-building-info">
+          <div class="upgrade-building-name" id="upgrade-building-name">Здание</div>
+          <div class="upgrade-stats-row">
+            <div class="upgrade-stat-item">
+              <span class="stat-label">Уровень</span>
+              <span class="stat-value" id="upgrade-current-level">1</span>
+            </div>
+            <div class="upgrade-stat-item arrow-separator">→</div>
+            <div class="upgrade-stat-item">
+              <span class="stat-label">Уровень</span>
+              <span class="stat-value" id="upgrade-new-level">2</span>
+            </div>
+          </div>
+          <div class="upgrade-production-info">
+            <div class="production-row">
+              <span>Производство</span>
+              <div class="production-values">
+                <span class="current" id="upgrade-current-production">0/час</span>
+                <span class="arrow">→</span>
+                <span class="new" id="upgrade-new-production">0/час</span>
+              </div>
+            </div>
+          </div>
+          <div class="upgrade-cost-section">
+            <h3>Стоимость улучшения</h3>
+            <div class="cost-display">
+              <span class="cost-value" id="upgrade-cost-value">0</span>
+              <span class="cost-icon">💰</span>
+            </div>
+            <p class="player-gold-info"></p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="upgrade-confirm-btn" onclick="window.confirmUpgrade()">Улучшить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quests Modal -->
+  <div class="modal" id="quests-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📋 Задания</h2>
+        <button class="close-btn" onclick="window.closeQuestsModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="quests-list">
+        <!-- Quests will be rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Treasury Modal -->
+  <div class="modal" id="treasury-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏰 Казна</h2>
+        <button class="close-btn" onclick="window.closeTreasuryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="treasury-info-main">
+          <div class="treasury-level-display">
+            <h3>Уровень <span id="treasury-current-level">1</span> / <span id="treasury-max-level">6</span></h3>
+            <p class="capacity-info">Вместимость: <span id="treasury-capacity-current">0</span> / <span id="treasury-capacity-total">0</span> 💰</p>
+          </div>
+          <div class="treasury-progress-bar">
+            <div class="progress-fill" id="treasury-progress-fill"></div>
+          </div>
+        </div>
+        <div id="treasury-upgrade-section"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="treasury-upgrade-btn" onclick="window.upgradeTreasuryToLevel()">Улучшить Казну</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warehouse Modal -->
+  <div class="modal" id="warehouse-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏭 Склад</h2>
+        <button class="close-btn" onclick="window.closeWarehouseModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="warehouse-info-main">
+          <div class="warehouse-level-display">
+            <h3>Уровень <span id="warehouse-current-level">1</span> / <span id="warehouse-max-level">6</span></h3>
+            <p class="capacity-info">Вместимость каждого ресурса: <span id="warehouse-capacity-total">0</span></p>
+          </div>
+          <div class="warehouse-resources-section">
+            <div class="warehouse-resource-item">
+              <div class="resource-header">
+                <span class="resource-name">🌲 Дерево</span>
+                <span class="resource-amount"><span id="warehouse-wood-current">0</span> / <span id="warehouse-wood-total">0</span></span>
+              </div>
+              <div class="warehouse-progress-bar"><div class="progress-fill" id="warehouse-wood-fill"></div></div>
+            </div>
+            <div class="warehouse-resource-item">
+              <div class="resource-header">
+                <span class="resource-name">🪨 Камень</span>
+                <span class="resource-amount"><span id="warehouse-stone-current">0</span> / <span id="warehouse-stone-total">0</span></span>
+              </div>
+              <div class="warehouse-progress-bar"><div class="progress-fill" id="warehouse-stone-fill"></div></div>
+            </div>
+            <div class="warehouse-resource-item">
+              <div class="resource-header">
+                <span class="resource-name">🍖 Мясо</span>
+                <span class="resource-amount"><span id="warehouse-meat-current">0</span> / <span id="warehouse-meat-total">0</span></span>
+              </div>
+              <div class="warehouse-progress-bar"><div class="progress-fill" id="warehouse-meat-fill"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-primary" onclick="window.openWarehouseSellModal()">Выставить на рынок</button>
+        </div>
+        <div id="warehouse-upgrade-section" style="margin-top: 20px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="warehouse-upgrade-btn" onclick="window.upgradeWarehouseToLevel()">Улучшить Склад</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warehouse Sell Modal -->
+  <div class="modal" id="warehouse-sell-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🛍 Выставить на рынок</h2>
+        <button class="close-btn" onclick="window.closeWarehouseSellModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="market-sell-buttons">
+          <button class="btn-resource" onclick="window.market.openSetPriceModal('wood')">
+            🌲 Дерево: <span id="warehouse-sell-wood-amount">0</span>
+          </button>
+          <button class="btn-resource" onclick="window.market.openSetPriceModal('stone')">
+            🪨 Камень: <span id="warehouse-sell-stone-amount">0</span>
+          </button>
+          <button class="btn-resource" onclick="window.market.openSetPriceModal('meat')">
+            🍖 Мясо: <span id="warehouse-sell-meat-amount">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Set Price Modal -->
+  <div class="modal" id="set-price-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="price-resource-name">Ресурс</h2>
+        <button class="close-btn" onclick="window.market.closeSetPriceModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="resource-input-group">
+          <label>Количество (Доступно: <span id="price-available">0</span>)</label>
+          <div class="input-controls">
+            <input type="number" id="price-quantity" placeholder="0" oninput="window.market.updatePriceTotal()">
+            <button class="max-btn" onclick="window.market.setMaxPriceQuantity()">MAX</button>
+          </div>
+        </div>
+        <div class="resource-input-group" style="margin-top: 15px;">
+          <label>Цена за единицу (💰 Jamcoin)</label>
+          <input type="number" id="price-per-unit" value="1" oninput="window.market.updatePriceTotal()">
+        </div>
+        <div class="exchange-result" style="margin-top: 15px;">
+          Итого: <span id="price-total">0</span> 💰
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="window.market.confirmSellPrice()">Выставить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buy Quantity Modal -->
+  <div class="modal" id="buy-quantity-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="buy-resource-name">Купить ресурс</h2>
+        <button class="close-btn" onclick="window.market.closeBuyQuantityModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Цена за ед.: <span id="buy-price-per-unit">0</span> 💰</p>
+        <div class="resource-input-group">
+          <label>Количество (Доступно: <span id="buy-available">0</span>)</label>
+          <div class="input-controls">
+            <input type="number" id="buy-quantity" placeholder="0" oninput="window.market.updateBuyTotal()">
+            <button class="max-btn" onclick="window.market.setMaxBuyQuantity()">MAX</button>
+          </div>
+        </div>
+        <div class="exchange-result" style="margin-top: 15px;">
+          К оплате: <span id="buy-total">0</span> 💰
+        </div>
+        <p style="font-size: 12px; text-align: center; color: #999;">Ваши Jamcoins: <span id="buy-player-gold">0</span> 💰</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="window.market.confirmBuyQuantity()">Купить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Listing Modal -->
+  <div class="modal" id="edit-listing-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="edit-resource-name">Редактировать</h2>
+        <button class="close-btn" onclick="window.market.closeEditListingModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="resource-input-group">
+          <label>Количество</label>
+          <div class="input-controls">
+            <input type="number" id="edit-quantity" placeholder="0" oninput="window.market.updateEditTotal()">
+            <button class="max-btn" onclick="window.market.setMaxEditQuantity()">MAX</button>
+          </div>
+        </div>
+        <div class="resource-input-group" style="margin-top: 15px;">
+          <label>Цена за единицу (💰 Jamcoin)</label>
+          <input type="number" id="edit-price-per-unit" oninput="window.market.updateEditTotal()">
+        </div>
+        <div class="exchange-result" style="margin-top: 15px;">
+          Итого: <span id="edit-total">0</span> 💰
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="window.market.confirmEditListing()">Сохранить</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Attack Modal -->
   <div class="modal" id="attack-modal">
     <div class="modal-content">
       <div class="modal-header">
         <h2>⚔️ Атака</h2>
-        <button class="close-btn" onclick="closeAttackModal()">&times;</button>
+        <button class="close-btn" onclick="window.closeAttackModal()">&times;</button>
       </div>
       <div class="modal-body" id="attack-modal-body">
         <!-- Target info will be here -->
       </div>
       <div class="modal-footer">
         <button class="btn btn-attack" id="confirm-attack-btn">В БОЙ!</button>
-        <button class="btn btn-secondary" onclick="closeAttackModal()">Отмена</button>
+        <button class="btn btn-secondary" onclick="window.openAttackMenu()">Искать другого</button>
       </div>
     </div>
   </div>

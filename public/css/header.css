@@ -70,11 +70,11 @@
   position: relative;
   overflow: hidden;
   margin: 0;
-  padding: 20px;
+  padding: 16px;
   background:
     linear-gradient(145deg, rgba(27, 39, 74, 0.98) 0%, rgba(18, 23, 46, 0.95) 100%);
   border: 1px solid rgba(255, 214, 102, 0.35);
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -91,92 +91,46 @@
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 18px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
   text-align: left;
 }
 
-.fortress-overline {
-  margin: 0 0 6px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 214, 102, 0.72);
-}
-
-.fortress-rank {
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 214, 102, 0.28);
-  background: rgba(255, 214, 102, 0.1);
-  color: #ffd666;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
+.fortress-header h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.1;
 }
 
 .fortress-layout {
   position: relative;
   z-index: 1;
   align-items: stretch;
+  gap: 12px;
 }
 
 .fortress-avatar-block {
-  align-items: flex-start;
-  min-width: 92px;
+  align-items: center;
+  min-width: 76px;
+  flex: 0 0 76px;
 }
 
 .fortress-meta {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .fortress-id {
   margin: 0;
-  padding: 12px 14px;
-  border-radius: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
   border: 1px solid rgba(98, 126, 196, 0.26);
   background: rgba(9, 13, 27, 0.55);
   text-align: left;
-}
-
-.fortress-status-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.fortress-status-card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(34, 46, 84, 0.82) 0%, rgba(16, 21, 40, 0.9) 100%);
-  border: 1px solid rgba(105, 131, 197, 0.2);
-}
-
-.fortress-status-accent {
-  border-color: rgba(255, 214, 102, 0.22);
-  background: linear-gradient(180deg, rgba(67, 53, 18, 0.46) 0%, rgba(24, 22, 15, 0.92) 100%);
-}
-
-.fortress-status-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.fortress-status-value {
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
 }
 
 .main-hub-panel,
@@ -330,13 +284,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
 }
 
 .avatar-placeholder {
-  width: 60px;
-  height: 60px;
+  width: 54px;
+  height: 54px;
   background: rgba(212, 175, 55, 0.15);
   background-size: cover;
   background-position: center;
@@ -345,7 +299,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 20px;
   overflow: hidden;
   flex-shrink: 0;
   font-weight: bold;
@@ -373,17 +327,17 @@
 }
 
 #player-username {
-  font-size: 14px;
+  font-size: 12px;
   color: #d4af37;
 }
 
 .player-id {
   flex: 1;
-  padding: 10px;
+  padding: 8px 10px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 10px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* Action Buttons Group */

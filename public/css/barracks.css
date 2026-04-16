@@ -183,3 +183,108 @@
   margin-bottom: 10px;
   color: #ff6b6b;
 }
+
+/* Hire Troops Modal Styles */
+.troop-hire-info {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.troop-type-header {
+  font-size: 18px;
+  font-weight: bold;
+  color: #d4af37;
+  margin-bottom: 15px;
+  text-align: center;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  padding-bottom: 10px;
+}
+
+.troop-hire-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.stat-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+.stat-name {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+.stat-value {
+  color: #d4af37;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.cost-per-unit {
+  background: rgba(76, 111, 166, 0.2);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.cost-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  margin: 0 0 8px 0;
+}
+
+.cost-display {
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.available-resources {
+  background: rgba(76, 111, 166, 0.15);
+  padding: 10px;
+  border-radius: 8px;
+  border-left: 3px solid #4caf50;
+}
+
+.available-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  margin: 0;
+}
+
+.hire-troops-cost {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.hire-troops-cost p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  margin: 0 0 8px 0;
+}
+
+.cost-items-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.cost-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  border-radius: 6px;
+  text-align: center;
+  color: #d4af37;
+  font-weight: bold;
+  font-size: 13px;
+}

@@ -130,11 +130,11 @@ export const apiClient = {
     return response.json();
   },
 
-  async hireTroop(userId, type) {
+  async hireTroop(userId, type, quantity = 1) {
     const response = await fetch(`/api/user/${userId}/troops/hire`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type })
+      body: JSON.stringify({ type, quantity })
     });
     if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to hire troop'); }
     return response.json();

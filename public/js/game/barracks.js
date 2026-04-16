@@ -137,19 +137,131 @@ function renderMySoldiers(container) {
   container.appendChild(list);
 }
 
-window.hireTroop = async (type) => {
+// Store the current hiring context
+let currentHiringContext = {
+  type: null,
+  level: null,
+  cost: null,
+  maxPossible: 0
+};
+
+window.openHireTroopsModal = (type) => {
+  const level = type === 'attacker' ? appState.barracksData.attacker_level : appState.barracksData.defender_level;
+  const hireCost = HIRE_COSTS[type];
+
+  currentHiringContext = { type, level, cost: hireCost, maxPossible: 0 };
+
+  // Calculate max possible troops to hire
+  const goldPossible = Math.floor(appState.currentUser.gold / hireCost.gold);
+  const woodPossible = Math.floor(appState.currentUser.wood / hireCost.wood);
+  const stonePossible = Math.floor(appState.currentUser.stone / hireCost.stone);
+  const meatPossible = Math.floor(appState.currentUser.meat / hireCost.meat);
+
+  currentHiringContext.maxPossible = Math.min(goldPossible, woodPossible, stonePossible, meatPossible, 1000);
+
+  // Set modal title
+  document.getElementById('hire-troops-title').textContent =
+    type === 'attacker' ? '⚔️ Нанять атакующих' : '🛡 Нанять защищающих';
+
+  // Display troop info
+  const stats = TROOP_STATS[type][level];
+  let infoHtml = `
+    <div class="troop-hire-info">
+      <div class="troop-type-header">${type === 'attacker' ? '⚔️ Атакующий' : '🛡 Защищающий'} (ур. ${level})</div>
+      <div class="troop-hire-stats">
+        <div class="stat-line"><span class="stat-name">Урон:</span><span class="stat-value">${formatNumber(stats.damage)}</span></div>
+        <div class="stat-line"><span class="stat-name">Здоровье:</span><span class="stat-value">${formatNumber(stats.health)}</span></div>
+  `;
+
+  if (type === 'attacker') {
+    infoHtml += `
+        <div class="stat-line"><span class="stat-name">Добыча за 1:</span><span class="stat-value">💰${stats.loot.gold} 🌲${stats.loot.wood} 🪨${stats.loot.stone} 🍖${stats.loot.meat}</span></div>
+    `;
+  }
+
+  infoHtml += `
+      </div>
+      <div class="cost-per-unit">
+        <p class="cost-label">Стоимость за 1 воина:</p>
+        <div class="cost-display">💰${hireCost.gold} 🌲${hireCost.wood} 🪨${hireCost.stone} 🍖${hireCost.meat}</div>
+      </div>
+      <div class="available-resources">
+        <p class="available-label">Доступно воинов: <strong>${currentHiringContext.maxPossible}</strong></p>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('hire-troops-info').innerHTML = infoHtml;
+
+  // Set initial quantity
+  document.getElementById('hire-troops-quantity').value = '1';
+  document.getElementById('hire-troops-quantity').max = currentHiringContext.maxPossible;
+
+  // Update cost display
+  window.updateHireTroopsCost();
+
+  // Show modal
+  document.getElementById('hire-troops-modal').classList.add('active');
+};
+
+window.closeHireTroopsModal = () => {
+  document.getElementById('hire-troops-modal').classList.remove('active');
+  currentHiringContext = { type: null, level: null, cost: null, maxPossible: 0 };
+};
+
+window.updateHireTroopsCost = () => {
+  const quantity = parseInt(document.getElementById('hire-troops-quantity').value) || 1;
+  const cost = currentHiringContext.cost;
+
+  const totalCost = {
+    gold: cost.gold * quantity,
+    wood: cost.wood * quantity,
+    stone: cost.stone * quantity,
+    meat: cost.meat * quantity
+  };
+
+  const costDisplay = document.getElementById('hire-troops-cost-display');
+  costDisplay.innerHTML = `
+    <div class="cost-items-row">
+      <div class="cost-item">💰${formatNumber(totalCost.gold)}</div>
+      <div class="cost-item">🌲${formatNumber(totalCost.wood)}</div>
+      <div class="cost-item">🪨${formatNumber(totalCost.stone)}</div>
+      <div class="cost-item">🍖${formatNumber(totalCost.meat)}</div>
+    </div>
+  `;
+};
+
+window.setMaxHireTroopsQuantity = () => {
+  document.getElementById('hire-troops-quantity').value = currentHiringContext.maxPossible;
+  window.updateHireTroopsCost();
+};
+
+window.confirmHireTroops = async () => {
+  const quantity = parseInt(document.getElementById('hire-troops-quantity').value) || 1;
+
+  if (quantity <= 0 || quantity > currentHiringContext.maxPossible) {
+    tg.showAlert('❌ Неверное количество воинов');
+    return;
+  }
+
   await withOperationLock('hireTroop', async () => {
     try {
-      const result = await apiClient.hireTroop(appState.userId, type);
+      const result = await apiClient.hireTroop(appState.userId, currentHiringContext.type, quantity);
       appState.currentUser = result.user;
       appState.barracksData.troops = result.troops;
       updateUI(appState.currentUser);
       renderBarracks();
-      tg.showAlert('✅ Воин успешно нанят!');
+      window.closeHireTroopsModal();
+      tg.showAlert(`✅ ${quantity} воин(ов) успешно нанят(ы)!`);
     } catch (error) {
       tg.showAlert(error.message);
     }
   });
+};
+
+// Keep the old hireTroop for backwards compatibility (just opens the modal with quantity 1)
+window.hireTroop = (type) => {
+  window.openHireTroopsModal(type);
 };
 
 window.upgradeTroopType = async (type) => {

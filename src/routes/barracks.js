@@ -14,7 +14,7 @@ router.get('/:userId/troops', async (req, res) => {
 
 router.post('/:userId/troops/hire', async (req, res) => {
   try {
-    const result = await hireTroop(req.params.userId, req.body.type);
+    const result = await hireTroop(req.params.userId, req.body.type, req.body.quantity || 1);
     res.json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });

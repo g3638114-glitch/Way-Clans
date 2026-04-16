@@ -25,9 +25,13 @@ export function closeWarehouseSellModal() {
 
 
 function updateWarehouseSellDisplay() {
-  document.getElementById('warehouse-sell-wood-amount').textContent = appState.currentUser.wood;
-  document.getElementById('warehouse-sell-stone-amount').textContent = appState.currentUser.stone;
-  document.getElementById('warehouse-sell-meat-amount').textContent = appState.currentUser.meat;
+  const woodEl = document.getElementById('warehouse-sell-wood-amount');
+  const stoneEl = document.getElementById('warehouse-sell-stone-amount');
+  const meatEl = document.getElementById('warehouse-sell-meat-amount');
+
+  if (woodEl) woodEl.textContent = appState.currentUser.wood;
+  if (stoneEl) stoneEl.textContent = appState.currentUser.stone;
+  if (meatEl) meatEl.textContent = appState.currentUser.meat;
 }
 
 export function setMaxWarehouseWood() {
@@ -53,44 +57,64 @@ async function renderWarehouseContent() {
     const isMaxed = currentLevel === maxLevel;
 
     // Update header info
-    document.getElementById('warehouse-current-level').textContent = currentLevel;
-    document.getElementById('warehouse-max-level').textContent = maxLevel;
-    document.getElementById('warehouse-capacity-current').textContent = capacity;
-    document.getElementById('warehouse-capacity-total').textContent = capacity;
+    const headerLevel = document.getElementById('warehouse-current-level');
+    const maxLevelEl = document.getElementById('warehouse-max-level');
+    const capacityCurrent = document.getElementById('warehouse-capacity-current');
+    const capacityTotal = document.getElementById('warehouse-capacity-total');
+
+    if (headerLevel) headerLevel.textContent = currentLevel;
+    if (maxLevelEl) maxLevelEl.textContent = maxLevel;
+    if (capacityCurrent) capacityCurrent.textContent = capacity;
+    if (capacityTotal) capacityTotal.textContent = capacity;
 
     // Update resource displays
-    document.getElementById('warehouse-wood-current').textContent = warehouse.currentWood;
-    document.getElementById('warehouse-wood-total').textContent = capacity;
-    document.getElementById('warehouse-wood-fill').style.width = `${warehouse.progress.wood}%`;
+    const woodCurrent = document.getElementById('warehouse-wood-current');
+    const woodTotal = document.getElementById('warehouse-wood-total');
+    const woodFill = document.getElementById('warehouse-wood-fill');
 
-    document.getElementById('warehouse-stone-current').textContent = warehouse.currentStone;
-    document.getElementById('warehouse-stone-total').textContent = capacity;
-    document.getElementById('warehouse-stone-fill').style.width = `${warehouse.progress.stone}%`;
+    if (woodCurrent) woodCurrent.textContent = warehouse.currentWood;
+    if (woodTotal) woodTotal.textContent = capacity;
+    if (woodFill) woodFill.style.width = `${warehouse.progress.wood}%`;
 
-    document.getElementById('warehouse-meat-current').textContent = warehouse.currentMeat;
-    document.getElementById('warehouse-meat-total').textContent = capacity;
-    document.getElementById('warehouse-meat-fill').style.width = `${warehouse.progress.meat}%`;
+    const stoneCurrent = document.getElementById('warehouse-stone-current');
+    const stoneTotal = document.getElementById('warehouse-stone-total');
+    const stoneFill = document.getElementById('warehouse-stone-fill');
+
+    if (stoneCurrent) stoneCurrent.textContent = warehouse.currentStone;
+    if (stoneTotal) stoneTotal.textContent = capacity;
+    if (stoneFill) stoneFill.style.width = `${warehouse.progress.stone}%`;
+
+    const meatCurrent = document.getElementById('warehouse-meat-current');
+    const meatTotal = document.getElementById('warehouse-meat-total');
+    const meatFill = document.getElementById('warehouse-meat-fill');
+
+    if (meatCurrent) meatCurrent.textContent = warehouse.currentMeat;
+    if (meatTotal) meatTotal.textContent = capacity;
+    if (meatFill) meatFill.style.width = `${warehouse.progress.meat}%`;
 
     // Render upgrade section
-    if (!isMaxed) {
+    const upgradeSectionEl = document.getElementById('warehouse-upgrade-section');
+    if (upgradeSectionEl && !isMaxed) {
       const upgradeHtml = renderWarehouseUpgradeInfo(currentLevel, warehouse);
-      document.getElementById('warehouse-upgrade-section').innerHTML = upgradeHtml;
+      upgradeSectionEl.innerHTML = upgradeHtml;
 
       // Show upgrade button and manage its state
       const upgradeBtn = document.getElementById('warehouse-upgrade-btn');
-      const nextLevel = currentLevel + 1;
-      const costData = getWarehouseUpgradeCost(nextLevel);
+      if (upgradeBtn) {
+        const nextLevel = currentLevel + 1;
+        const costData = getWarehouseUpgradeCost(nextLevel);
 
-      const hasJamcoins = (appState.currentUser.gold || 0) >= costData.jamcoins;
-      const hasStone = (appState.currentUser.stone || 0) >= costData.stone;
-      const hasWood = (appState.currentUser.wood || 0) >= costData.wood;
-      const canUpgrade = hasJamcoins && hasStone && hasWood;
+        const hasJamcoins = (appState.currentUser.gold || 0) >= costData.jamcoins;
+        const hasStone = (appState.currentUser.stone || 0) >= costData.stone;
+        const hasWood = (appState.currentUser.wood || 0) >= costData.wood;
+        const canUpgrade = hasJamcoins && hasStone && hasWood;
 
-      upgradeBtn.style.display = 'block';
-      upgradeBtn.disabled = !canUpgrade;
-      upgradeBtn.className = canUpgrade ? 'btn btn-primary' : 'btn btn-primary disabled';
-    } else {
-      document.getElementById('warehouse-upgrade-section').innerHTML = `
+        upgradeBtn.style.display = 'block';
+        upgradeBtn.disabled = !canUpgrade;
+        upgradeBtn.className = canUpgrade ? 'btn btn-primary' : 'btn btn-primary disabled';
+      }
+    } else if (upgradeSectionEl) {
+      upgradeSectionEl.innerHTML = `
         <div class="max-level-reached">
           <div class="max-badge">🌟 Максимальный уровень</div>
           <p>Ваш Склад достигнул максимального уровня ${maxLevel}</p>
@@ -99,7 +123,7 @@ async function renderWarehouseContent() {
 
       // Hide upgrade button
       const upgradeBtn = document.getElementById('warehouse-upgrade-btn');
-      upgradeBtn.style.display = 'none';
+      if (upgradeBtn) upgradeBtn.style.display = 'none';
     }
 
   } catch (error) {

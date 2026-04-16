@@ -7,30 +7,38 @@ export async function getUserTroops(userId) {
   return { attacker_level: user.attacker_level, defender_level: user.defender_level, troops: troops || [] };
 }
 
-export async function hireTroop(userId, type) {
+export async function hireTroop(userId, type, quantity = 1) {
   const { data: user } = await supabase.from('users').select('*').eq('telegram_id', userId).single();
   const level = type === 'attacker' ? user.attacker_level : user.defender_level;
   const cost = HIRE_COSTS[type];
 
-  if (user.gold < cost.gold || user.wood < cost.wood || user.stone < cost.stone || user.meat < cost.meat) {
+  // Calculate total cost for all units
+  const totalCost = {
+    gold: cost.gold * quantity,
+    wood: cost.wood * quantity,
+    stone: cost.stone * quantity,
+    meat: cost.meat * quantity
+  };
+
+  if (user.gold < totalCost.gold || user.wood < totalCost.wood || user.stone < totalCost.stone || user.meat < totalCost.meat) {
     throw new Error('Недостаточно ресурсов для найма');
   }
 
   // Deduct resources
   await supabase.from('users').update({
-    gold: user.gold - cost.gold,
-    wood: user.wood - cost.wood,
-    stone: user.stone - cost.stone,
-    meat: user.meat - cost.meat
+    gold: user.gold - totalCost.gold,
+    wood: user.wood - totalCost.wood,
+    stone: user.stone - totalCost.stone,
+    meat: user.meat - totalCost.meat
   }).eq('id', user.id);
 
-  // Add troop
+  // Add troops
   const { data: existing } = await supabase.from('user_troops').select('*').eq('user_id', user.id).eq('troop_type', type).eq('level', level).single();
 
   if (existing) {
-    await supabase.from('user_troops').update({ count: parseInt(existing.count) + 1 }).eq('id', existing.id);
+    await supabase.from('user_troops').update({ count: parseInt(existing.count) + quantity }).eq('id', existing.id);
   } else {
-    await supabase.from('user_troops').insert({ user_id: user.id, troop_type: type, level, count: 1 });
+    await supabase.from('user_troops').insert({ user_id: user.id, troop_type: type, level, count: quantity });
   }
 
   const { data: updatedUser } = await supabase.from('users').select('*').eq('id', user.id).single();

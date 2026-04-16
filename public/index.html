@@ -422,6 +422,35 @@
     </div>
   </div>
 
+  <!-- Hire Troops Quantity Modal -->
+  <div class="modal" id="hire-troops-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="hire-troops-title">Нанять воинов</h2>
+        <button class="close-btn" onclick="window.closeHireTroopsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="hire-troops-info" id="hire-troops-info">
+          <!-- Troop info will be displayed here -->
+        </div>
+        <div class="resource-input-group" style="margin-top: 20px;">
+          <label>Количество воинов</label>
+          <div class="input-controls">
+            <input type="number" id="hire-troops-quantity" placeholder="1" min="1" value="1" oninput="window.updateHireTroopsCost()">
+            <button class="max-btn" onclick="window.setMaxHireTroopsQuantity()">MAX</button>
+          </div>
+        </div>
+        <div class="hire-troops-cost" style="margin-top: 15px;">
+          <p>Стоимость:</p>
+          <div id="hire-troops-cost-display"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="confirm-hire-troops-btn" onclick="window.confirmHireTroops()">Нанять</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>

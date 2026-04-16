@@ -49,152 +49,181 @@ export async function getRandomTarget(userId) {
   };
 }
 
-export async function getAttackerTroops(userId) {
-  const { data: user } = await supabase.from('users').select('id').eq('telegram_id', userId).single();
-  
-  const { data: attackers } = await supabase
-    .from('user_troops')
-    .select('level, count')
-    .eq('user_id', user.id)
-    .eq('troop_type', 'attacker')
-    .gt('count', 0);
-
-  return attackers || [];
-}
-
 export async function performAttack(userId, targetId) {
-  const { data: attackerUser } = await supabase.from('users').select('*').eq('telegram_id', userId).single();
-  const { data: targetUser } = await supabase.from('users').select('*').eq('id', targetId).single();
+  const now = new Date();
 
-  if (!targetUser) {
+  const { data: usersData, error: usersError } = await supabase
+    .from('users')
+    .select('id, telegram_id, gold, wood, stone, meat, shield_until')
+    .in('id', [targetId])
+    .in('telegram_id', [userId]);
+
+  if (usersError || !usersData || usersData.length < 2) {
+    throw new Error('Ошибка при загрузке данных');
+  }
+
+  const attackerUser = usersData.find(u => u.telegram_id === userId);
+  const targetUser = usersData.find(u => u.id === targetId);
+
+  if (!attackerUser || !targetUser) {
     throw new Error('Цель не найдена');
   }
 
-  const now = new Date();
   if (targetUser.shield_until && new Date(targetUser.shield_until) > now) {
     throw new Error('Игрок под защитой');
   }
 
-  const { data: attackerTroops } = await supabase
+  const { data: allTroops } = await supabase
     .from('user_troops')
-    .select('level, count')
-    .eq('user_id', attackerUser.id)
-    .eq('troop_type', 'attacker')
+    .select('user_id, troop_type, level, count')
+    .in('user_id', [attackerUser.id, targetUser.id])
     .gt('count', 0);
 
-  const { data: defenderTroops } = await supabase
-    .from('user_troops')
-    .select('level, count')
-    .eq('user_id', targetUser.id)
-    .eq('troop_type', 'defender')
-    .gt('count', 0);
+  const attackerTroops = allTroops.filter(t => t.user_id === attackerUser.id && t.troop_type === 'attacker');
+  const defenderTroops = allTroops.filter(t => t.user_id === targetUser.id && t.troop_type === 'defender');
 
   if (!attackerTroops || attackerTroops.length === 0) {
     throw new Error('У вас нет атакующих воинов');
   }
 
-  const allAttackers = [];
-  for (const t of attackerTroops) {
-    for (let i = 0; i < t.count; i++) {
-      allAttackers.push({ level: t.level, type: 'attacker' });
-    }
-  }
-
-  const allDefenders = [];
-  for (const t of defenderTroops) {
-    for (let i = 0; i < t.count; i++) {
-      allDefenders.push({ level: t.level, type: 'defender' });
-    }
-  }
-
-  allAttackers.sort((a, b) => a.level - b.level);
-  allDefenders.sort((a, b) => a.level - b.level);
-
-  const attackerCount = allAttackers.length;
-  const defenderCount = allDefenders.length;
-
   let totalAttackerDamage = 0;
-  for (const a of allAttackers) {
-    totalAttackerDamage += TROOP_STATS.attacker[a.level].damage;
+  for (const t of attackerTroops) {
+    const damage = TROOP_STATS.attacker[t.level].damage;
+    totalAttackerDamage += damage * t.count;
   }
 
   let totalDefenderDamage = 0;
-  for (const d of allDefenders) {
-    totalDefenderDamage += TROOP_STATS.defender[d.level].damage;
+  for (const t of defenderTroops) {
+    const damage = TROOP_STATS.defender[t.level].damage;
+    totalDefenderDamage += damage * t.count;
   }
 
-  const attackerHealthPerUnit = {};
-  for (let l = 1; l <= 6; l++) {
-    attackerHealthPerUnit[l] = TROOP_STATS.attacker[l].health;
-  }
-  const defenderHealthPerUnit = {};
-  for (let l = 1; l <= 6; l++) {
-    defenderHealthPerUnit[l] = TROOP_STATS.defender[l].health;
+  let attackerCount = 0;
+  for (const t of attackerTroops) {
+    attackerCount += t.count;
   }
 
-  const attackerAlive = [...allAttackers];
-  const defenderAlive = [...allDefenders];
-
-  const totalAttackerHealth = attackerAlive.reduce((sum, a) => sum + attackerHealthPerUnit[a.level], 0);
-  const totalDefenderHealth = defenderAlive.reduce((sum, d) => sum + defenderHealthPerUnit[d.level], 0);
-
-  const attackerKills = Math.min(attackerCount, Math.floor(attackerCount * TROOP_STATS.attacker[1].damage / TROOP_STATS.defender[1].health));
-  const defenderKills = Math.min(defenderCount, Math.floor(defenderCount * TROOP_STATS.defender[1].damage / TROOP_STATS.attacker[1].health));
-
-  if (attackerKills > 0) {
-    attackerAlive.splice(0, attackerKills);
-  }
-  if (defenderKills > 0) {
-    defenderAlive.splice(0, defenderKills);
+  let defenderCount = 0;
+  for (const t of defenderTroops) {
+    defenderCount += t.count;
   }
 
-  const attackersRemaining = attackerAlive.length;
-  const defendersRemaining = defenderAlive.length;
+  const attackerKills = defenderCount > 0 ? Math.min(attackerCount, Math.floor(totalDefenderDamage / TROOP_STATS.attacker[1].health)) : 0;
+  const defenderKills = attackerCount > 0 ? Math.min(defenderCount, Math.floor(totalAttackerDamage / TROOP_STATS.defender[1].health)) : defenderCount;
 
-  let loot = { gold: 0, wood: 0, stone: 0, meat: 0 };
-  
+  const attackersRemaining = Math.max(0, attackerCount - attackerKills);
+  const defendersRemaining = Math.max(0, defenderCount - defenderKills);
+
+  const updates = [];
+  const troopDeletes = [];
+
   if (attackersRemaining > 0 && defendersRemaining === 0) {
-    for (const a of attackerAlive) {
-      const levelLoot = LOOT_PER_LEVEL[a.level];
-      loot.gold += levelLoot.gold;
-      loot.wood += levelLoot.wood;
-      loot.stone += levelLoot.stone;
-      loot.meat += levelLoot.meat;
+    let totalLoot = { gold: 0, wood: 0, stone: 0, meat: 0 };
+    
+    const attackerSorted = [...attackerTroops].sort((a, b) => a.level - b.level);
+    let remainingAttackers = attackerCount - attackerKills;
+    
+    for (const t of attackerSorted) {
+      const countToLoot = Math.min(t.count, remainingAttackers);
+      const lootPerUnit = LOOT_PER_LEVEL[t.level];
+      totalLoot.gold += lootPerUnit.gold * countToLoot;
+      totalLoot.wood += lootPerUnit.wood * countToLoot;
+      totalLoot.stone += lootPerUnit.stone * countToLoot;
+      totalLoot.meat += lootPerUnit.meat * countToLoot;
+      remainingAttackers -= countToLoot;
+      if (remainingAttackers <= 0) break;
     }
 
     const actualLoot = {
-      gold: Math.min(loot.gold, targetUser.gold),
-      wood: Math.min(loot.wood, targetUser.wood),
-      stone: Math.min(loot.stone, targetUser.stone),
-      meat: Math.min(loot.meat, targetUser.meat),
+      gold: Math.min(totalLoot.gold, targetUser.gold),
+      wood: Math.min(totalLoot.wood, targetUser.wood),
+      stone: Math.min(totalLoot.stone, targetUser.stone),
+      meat: Math.min(totalLoot.meat, targetUser.meat),
     };
 
-    await supabase.from('users').update({
+    updates.push({
+      id: attackerUser.id,
       gold: attackerUser.gold + actualLoot.gold,
       wood: attackerUser.wood + actualLoot.wood,
       stone: attackerUser.stone + actualLoot.stone,
       meat: attackerUser.meat + actualLoot.meat
-    }).eq('id', attackerUser.id);
+    });
 
-    await supabase.from('users').update({
-      gold: targetUser.gold - actualLoot.gold,
-      wood: targetUser.wood - actualLoot.wood,
-      stone: targetUser.stone - actualLoot.stone,
-      meat: targetUser.meat - actualLoot.meat,
+    updates.push({
+      id: targetUser.id,
+      gold: Math.max(0, targetUser.gold - actualLoot.gold),
+      wood: Math.max(0, targetUser.wood - actualLoot.wood),
+      stone: Math.max(0, targetUser.stone - actualLoot.stone),
+      meat: Math.max(0, targetUser.meat - actualLoot.meat),
       shield_until: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString()
-    }).eq('id', targetUser.id);
+    });
   } else {
-    await supabase.from('users').update({
+    updates.push({
+      id: targetUser.id,
       shield_until: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString()
-    }).eq('id', targetUser.id);
+    });
   }
 
-  for (const a of allAttackers.slice(0, attackerKills)) {
-    await decrementTroopCount(attackerUser.id, 'attacker', a.level);
+  if (attackerKills > 0) {
+    const attackerSorted = [...attackerTroops].sort((a, b) => a.level - b.level);
+    let remainingKills = attackerKills;
+    
+    for (const t of attackerSorted) {
+      if (remainingKills <= 0) break;
+      const toDelete = Math.min(t.count, remainingKills);
+      troopDeletes.push({ userId: attackerUser.id, troopType: 'attacker', level: t.level, count: toDelete });
+      remainingKills -= toDelete;
+    }
   }
-  for (const d of allDefenders.slice(0, defenderKills)) {
-    await decrementTroopCount(targetUser.id, 'defender', d.level);
+
+  if (defenderKills > 0 && defenderCount > 0) {
+    const defenderSorted = [...defenderTroops].sort((a, b) => a.level - b.level);
+    let remainingKills = defenderKills;
+    
+    for (const t of defenderSorted) {
+      if (remainingKills <= 0) break;
+      const toDelete = Math.min(t.count, remainingKills);
+      troopDeletes.push({ userId: targetUser.id, troopType: 'defender', level: t.level, count: toDelete });
+      remainingKills -= toDelete;
+    }
   }
+
+  if (updates.length > 0) {
+    for (const u of updates) {
+      const { shield_until, ...resourceUpdates } = u;
+      const updateObj = { ...resourceUpdates };
+      if (shield_until) updateObj.shield_until = shield_until;
+      
+      await supabase.from('users').update(updateObj).eq('id', u.id);
+    }
+  }
+
+  for (const td of troopDeletes) {
+    const { data: existing } = await supabase
+      .from('user_troops')
+      .select('count')
+      .eq('user_id', td.userId)
+      .eq('troop_type', td.troopType)
+      .eq('level', td.level)
+      .single();
+
+    if (existing) {
+      const newCount = existing.count - td.count;
+      if (newCount <= 0) {
+        await supabase.from('user_troops').delete()
+          .eq('user_id', td.userId)
+          .eq('troop_type', td.troopType)
+          .eq('level', td.level);
+      } else {
+        await supabase.from('user_troops').update({ count: newCount })
+          .eq('user_id', td.userId)
+          .eq('troop_type', td.troopType)
+          .eq('level', td.level);
+      }
+    }
+  }
+
+  const finalLoot = defendersRemaining === 0 ? LOOT_PER_LEVEL[1] : { gold: 0, wood: 0, stone: 0, meat: 0 };
 
   return {
     attackerTroopsCount: attackerCount,
@@ -203,25 +232,7 @@ export async function performAttack(userId, targetId) {
     defendersKilled: defenderKills,
     attackersRemaining,
     defendersRemaining,
-    loot,
+    loot: finalLoot,
     won: defendersRemaining === 0
   };
-}
-
-async function decrementTroopCount(userId, troopType, level) {
-  const { data: troop } = await supabase
-    .from('user_troops')
-    .select('count')
-    .eq('user_id', userId)
-    .eq('troop_type', troopType)
-    .eq('level', level)
-    .single();
-
-  if (troop && troop.count > 0) {
-    if (troop.count === 1) {
-      await supabase.from('user_troops').delete().eq('user_id', userId).eq('troop_type', troopType).eq('level', level);
-    } else {
-      await supabase.from('user_troops').update({ count: troop.count - 1 }).eq('user_id', userId).eq('troop_type', troopType).eq('level', level);
-    }
-  }
 }

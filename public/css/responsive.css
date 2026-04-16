@@ -31,4 +31,29 @@
   .cost-items-row {
     grid-template-columns: 1fr;
   }
+
+  .main-page-shell {
+    gap: 14px;
+    padding: 0 12px;
+  }
+
+  .fortress-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fortress-layout {
+    flex-direction: column;
+  }
+
+  .fortress-status-row,
+  .main-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main-action-card,
+  .main-banner-action,
+  .main-banner-action-attack {
+    min-height: unset;
+  }
 }

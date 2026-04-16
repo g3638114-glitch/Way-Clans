@@ -192,6 +192,16 @@
   transform: scale(0.95);
 }
 
+.main-action-card:hover,
+.main-banner-action:hover {
+  transform: translateY(-2px);
+}
+
+.main-action-card:active,
+.main-banner-action:active {
+  transform: scale(0.98);
+}
+
 /* Building Buttons */
 .building-btn {
   padding: 10px;

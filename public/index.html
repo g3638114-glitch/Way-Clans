@@ -31,23 +31,98 @@
 
     <div class="pages-container">
       <div id="main-page" class="page active">
-        <div class="player-card">
-          <div class="player-header"><h2 id="player-name">Player</h2></div>
-          <div class="player-info">
-            <div class="player-avatar"><div class="avatar-placeholder" id="avatar-image">🧑</div><span id="player-username">@user</span></div>
-            <div class="player-id">ID: <span id="player-id">0</span></div>
-          </div>
+        <div class="main-page-shell">
+          <section class="player-card fortress-card">
+            <div class="fortress-card-glow"></div>
+            <div class="player-header fortress-header">
+              <div>
+                <p class="fortress-overline">Цитадель клана</p>
+                <h2 id="player-name">Player</h2>
+              </div>
+              <div class="fortress-rank">Вождь</div>
+            </div>
+
+            <div class="player-info fortress-layout">
+              <div class="player-avatar fortress-avatar-block">
+                <div class="avatar-placeholder" id="avatar-image">🧑</div>
+                <span id="player-username">@user</span>
+              </div>
+
+              <div class="fortress-meta">
+                <div class="player-id fortress-id">ID: <span id="player-id">0</span></div>
+                <div class="fortress-status-row">
+                  <div class="fortress-status-card">
+                    <span class="fortress-status-label">Статус</span>
+                    <span class="fortress-status-value">Готов к бою</span>
+                  </div>
+                  <div class="fortress-status-card fortress-status-accent">
+                    <span class="fortress-status-label">Лобби</span>
+                    <span class="fortress-status-value">Главная база</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="main-hub-panel">
+            <div class="main-hub-header">
+              <p class="hub-kicker">Управление базой</p>
+              <h3>Выберите следующее действие</h3>
+            </div>
+
+            <div class="main-action-grid">
+              <button class="btn btn-storage main-action-card" id="storage-btn">
+                <span class="main-action-icon">📦</span>
+                <span class="main-action-text">
+                  <span class="main-action-title">Склад</span>
+                  <span class="main-action-subtitle">Ресурсы и хранение</span>
+                </span>
+              </button>
+
+              <button class="btn btn-exchange main-action-card" id="exchange-btn">
+                <span class="main-action-icon">💱</span>
+                <span class="main-action-text">
+                  <span class="main-action-title">Обмен</span>
+                  <span class="main-action-subtitle">Конвертация валюты</span>
+                </span>
+              </button>
+
+              <button class="btn btn-treasury main-action-card" id="treasury-btn">
+                <span class="main-action-icon">🏰</span>
+                <span class="main-action-text">
+                  <span class="main-action-title">Казна</span>
+                  <span class="main-action-subtitle">Вместимость Jamcoin</span>
+                </span>
+              </button>
+
+              <button class="btn btn-market main-action-card" id="market-btn">
+                <span class="main-action-icon">🛍</span>
+                <span class="main-action-text">
+                  <span class="main-action-title">Рынок</span>
+                  <span class="main-action-subtitle">Торговля ресурсами</span>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <section class="main-battle-panel">
+            <button class="btn btn-quests main-banner-action" id="quests-btn">
+              <span class="main-banner-icon">📋</span>
+              <span class="main-banner-copy">
+                <span class="main-banner-title">Задания</span>
+                <span class="main-banner-subtitle">Забирайте награды и прогресс</span>
+              </span>
+            </button>
+
+            <button class="btn btn-attack main-banner-action main-banner-action-attack" id="attack-btn">
+              <span class="main-banner-icon">⚔️</span>
+              <span class="main-banner-copy">
+                <span class="main-banner-title">Атаковать</span>
+                <span class="main-banner-subtitle">Найти противника и забрать добычу</span>
+              </span>
+            </button>
+          </section>
         </div>
-        <div class="action-buttons action-buttons-grid">
-          <button class="btn btn-storage" id="storage-btn">📦 Склад</button>
-          <button class="btn btn-exchange" id="exchange-btn">💱 Обмен</button>
-        </div>
-        <div class="action-buttons action-buttons-grid">
-          <button class="btn btn-treasury" id="treasury-btn">🏰 Казна</button>
-          <button class="btn btn-market" id="market-btn">🛍 Рынок</button>
-        </div>
-        <div class="action-buttons"><button class="btn btn-quests" id="quests-btn">📋 Задания</button></div>
-        <div class="action-buttons"><button class="btn btn-attack" id="attack-btn">⚔️ Атаковать</button></div>
       </div>
 
       <div id="mining-page" class="page">

@@ -7,9 +7,11 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 15px 12px;
+  background:
+    linear-gradient(180deg, rgba(14, 18, 35, 0.98) 0%, rgba(23, 29, 55, 0.92) 100%);
+  border-bottom: 1px solid rgba(255, 214, 102, 0.18);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.04), 0 10px 24px rgba(0, 0, 0, 0.28);
   flex-shrink: 0;
   z-index: 10;
 }
@@ -19,10 +21,11 @@
   flex-direction: column;
   align-items: center;
   gap: 5px;
-  padding: 8px;
-  background: rgba(76, 111, 166, 0.15);
-  border-radius: 12px;
-  border: 1px solid rgba(76, 111, 166, 0.4);
+  padding: 10px 6px 9px;
+  background: linear-gradient(180deg, rgba(58, 74, 118, 0.34) 0%, rgba(27, 34, 63, 0.8) 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(108, 140, 213, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 18px rgba(0, 0, 0, 0.18);
 }
 
 .resource-icon {
@@ -46,6 +49,263 @@
   border: 2px solid rgba(212, 175, 55, 0.4);
   border-radius: 15px;
   box-shadow: 0 4px 15px rgba(76, 111, 166, 0.15), inset 0 0 20px rgba(212, 175, 55, 0.03);
+}
+
+#main-page {
+  padding: 16px 0 26px;
+  background:
+    radial-gradient(circle at top center, rgba(255, 203, 87, 0.18) 0%, rgba(255, 203, 87, 0) 28%),
+    radial-gradient(circle at 20% 20%, rgba(81, 125, 255, 0.14) 0%, rgba(81, 125, 255, 0) 32%),
+    linear-gradient(180deg, #10152d 0%, #0b0f1f 55%, #070a15 100%);
+}
+
+.main-page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 15px;
+}
+
+.fortress-card {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 20px;
+  background:
+    linear-gradient(145deg, rgba(27, 39, 74, 0.98) 0%, rgba(18, 23, 46, 0.95) 100%);
+  border: 1px solid rgba(255, 214, 102, 0.35);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.fortress-card-glow {
+  position: absolute;
+  inset: -40% auto auto 55%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(255, 214, 102, 0.25) 0%, rgba(255, 214, 102, 0) 72%);
+  pointer-events: none;
+}
+
+.fortress-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.fortress-overline {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 214, 102, 0.72);
+}
+
+.fortress-rank {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 214, 102, 0.28);
+  background: rgba(255, 214, 102, 0.1);
+  color: #ffd666;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fortress-layout {
+  position: relative;
+  z-index: 1;
+  align-items: stretch;
+}
+
+.fortress-avatar-block {
+  align-items: flex-start;
+  min-width: 92px;
+}
+
+.fortress-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fortress-id {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(98, 126, 196, 0.26);
+  background: rgba(9, 13, 27, 0.55);
+  text-align: left;
+}
+
+.fortress-status-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.fortress-status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(34, 46, 84, 0.82) 0%, rgba(16, 21, 40, 0.9) 100%);
+  border: 1px solid rgba(105, 131, 197, 0.2);
+}
+
+.fortress-status-accent {
+  border-color: rgba(255, 214, 102, 0.22);
+  background: linear-gradient(180deg, rgba(67, 53, 18, 0.46) 0%, rgba(24, 22, 15, 0.92) 100%);
+}
+
+.fortress-status-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.fortress-status-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.main-hub-panel,
+.main-battle-panel {
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(17, 22, 44, 0.94) 0%, rgba(10, 14, 29, 0.98) 100%);
+  border: 1px solid rgba(94, 116, 184, 0.18);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+}
+
+.main-hub-header {
+  margin-bottom: 14px;
+}
+
+.hub-kicker {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(143, 171, 255, 0.72);
+}
+
+.main-hub-header h3 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.main-action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.main-action-card {
+  min-height: 108px;
+  padding: 14px;
+  border-radius: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px;
+  text-transform: none;
+  letter-spacing: normal;
+  text-align: left;
+}
+
+.main-action-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 20px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.main-action-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.main-action-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.main-action-subtitle {
+  font-size: 12px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.main-battle-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.main-banner-action {
+  min-height: 92px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-transform: none;
+  letter-spacing: normal;
+  text-align: left;
+}
+
+.main-banner-action-attack {
+  min-height: 108px;
+  box-shadow: 0 12px 24px rgba(211, 47, 47, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.main-banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.main-banner-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.main-banner-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.main-banner-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 24px;
+  flex-shrink: 0;
 }
 
 .player-header {

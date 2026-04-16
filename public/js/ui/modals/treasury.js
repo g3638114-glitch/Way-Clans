@@ -1,4 +1,4 @@
-import { appState } from '../../utils/state.js';
+import { appState, withOperationLock } from '../../utils/state.js';
 import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { getMaxTreasuryLevel, getTreasuryCapacity, getTreasuryUpgradeCost } from '../../game/config.js';
@@ -127,18 +127,19 @@ function renderUpgradeInfo(currentLevel, currentJamcoins) {
 
 
 export async function upgradeTreasuryToLevel() {
-  try {
-    const result = await apiClient.upgradeTreasury(appState.userId);
+  await withOperationLock('upgradeTreasury', async () => {
+    try {
+      const result = await apiClient.upgradeTreasury(appState.userId);
 
-    appState.currentUser = result.user;
-    updateUI(appState.currentUser);
+      appState.currentUser = result.user;
+      updateUI(appState.currentUser);
 
-    // Re-render treasury content
-    renderTreasuryContent();
+      renderTreasuryContent();
 
-    tg.showAlert(`✅ Казна улучшена до уровня ${result.newLevel}! Новая вместимость: ${result.newCapacity}`);
-  } catch (error) {
-    console.error('Error upgrading treasury:', error);
-    tg.showAlert(error.message || 'Ошибка при обновлении казначейства.');
-  }
+      tg.showAlert(`✅ Казна улучшена до уровня ${result.newLevel}! Новая вместимость: ${result.newCapacity}`);
+    } catch (error) {
+      console.error('Error upgrading treasury:', error);
+      tg.showAlert(error.message || 'Ошибка при обновлении казначейства.');
+    }
+  });
 }

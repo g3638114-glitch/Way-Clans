@@ -1,4 +1,4 @@
-import { appState } from './utils/state.js';
+import { appState, withOperationLock } from './utils/state.js';
 import { showPage } from './ui/pages.js';
 import { updateUI } from './ui/dom.js';
 import { apiClient } from './api/client.js';
@@ -28,17 +28,21 @@ export function setupEventListeners() {
   document.getElementById('attack-btn').addEventListener('click', openAttackMenu);
 
   document.getElementById('coin-btn').addEventListener('click', async () => {
-    const coinBtn = document.getElementById('coin-btn');
-    try {
-      coinBtn.classList.add('coin-click');
-      const result = await apiClient.clickCoin(appState.userId);
-      if (result.user) { appState.currentUser = result.user; updateUI(appState.currentUser); }
-    } catch (error) {
-      if (error.message.includes('Treasury is full')) { tg.showAlert('🏦 Казна переполнена!'); }
-      else { tg.showAlert('❌ Ошибка'); }
-    } finally {
-      setTimeout(() => coinBtn.classList.remove('coin-click'), 500);
-    }
+    await withOperationLock('coinClick', async () => {
+      const coinBtn = document.getElementById('coin-btn');
+      coinBtn.disabled = true;
+      try {
+        coinBtn.classList.add('coin-click');
+        const result = await apiClient.clickCoin(appState.userId);
+        if (result.user) { appState.currentUser = result.user; updateUI(appState.currentUser); }
+      } catch (error) {
+        if (error.message.includes('Лимит казны')) { tg.showAlert(error.message); }
+        else { tg.showAlert(error.message || '❌ Ошибка'); }
+      } finally {
+        setTimeout(() => coinBtn.classList.remove('coin-click'), 500);
+        coinBtn.disabled = false;
+      }
+    });
   });
 
   document.getElementById('nav-main').addEventListener('click', () => showPage('main'));

@@ -65,9 +65,8 @@ export async function collectResources(buildingId) {
       // Remove focus from button to reset its appearance
       document.activeElement.blur();
 
-      // Handle treasury full error separately - show as notification, not error
-      if (error.message.includes('Treasury is full')) {
-        window.tg.showAlert('🏦 Казна переполнена! Обменяйте Jamcoin на Jabcoins или потратьте его, чтобы продолжить сбор.');
+      if (error.message.includes('Лимит казны') || error.message.includes('Лимит склада')) {
+        window.tg.showAlert(error.message);
         return;
       }
 

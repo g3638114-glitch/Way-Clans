@@ -1,4 +1,4 @@
-import { appState } from '../../utils/state.js';
+import { appState, withOperationLock } from '../../utils/state.js';
 import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 
@@ -20,21 +20,23 @@ export function updateExchangeResult() {
 }
 
 export async function exchangeGold() {
-  try {
-    const goldAmount = parseInt(document.getElementById('gold-input').value);
+  await withOperationLock('exchangeGold', async () => {
+    try {
+      const goldAmount = parseInt(document.getElementById('gold-input').value);
 
-    if (!goldAmount || goldAmount < 1000000) {
-      tg.showAlert('Минимум для обмена: 1,000,000 Jamcoin');
-      return;
+      if (!goldAmount || goldAmount < 1000000) {
+        tg.showAlert('Минимум для обмена: 1,000,000 Jamcoin');
+        return;
+      }
+
+      const result = await apiClient.exchangeGold(appState.userId, goldAmount);
+      appState.currentUser = result.user;
+      updateUI(appState.currentUser);
+      closeExchangeModal();
+      tg.showAlert(`✅ Обмен пройден успешно! Получено ${result.jabcoinsGained} 💎`);
+    } catch (error) {
+      console.error('Error exchanging Jamcoin:', error);
+      tg.showAlert(error.message || 'Ошибка при обмене');
     }
-
-    const result = await apiClient.exchangeGold(appState.userId, goldAmount);
-    appState.currentUser = result.user;
-    updateUI(appState.currentUser);
-    closeExchangeModal();
-    tg.showAlert(`✅ Обмен пройден успешно! Получено ${result.jabcoinsGained} 💎`);
-  } catch (error) {
-    console.error('Error exchanging Jamcoin:', error);
-    tg.showAlert(error.message || 'Ошибка при обмене');
-  }
+  });
 }

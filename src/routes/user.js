@@ -61,6 +61,24 @@ async function getOrCreateUser(telegramId, userInfo = null) {
 
   // User exists - return it
   if (!error) {
+    if (userInfo) {
+      const updates = {};
+      if (userInfo.username && userInfo.username !== user.username) updates.username = userInfo.username;
+      if (userInfo.first_name && userInfo.first_name !== user.first_name) updates.first_name = userInfo.first_name;
+      if (userInfo.photo_url && userInfo.photo_url !== user.photo_url) updates.photo_url = userInfo.photo_url;
+
+      if (Object.keys(updates).length > 0) {
+        const { data: updatedUser } = await supabase
+          .from('users')
+          .update(updates)
+          .eq('id', user.id)
+          .select('*')
+          .single();
+
+        return updatedUser || { ...user, ...updates };
+      }
+    }
+
     return user;
   }
 
@@ -78,7 +96,7 @@ async function getOrCreateUser(telegramId, userInfo = null) {
         telegram_id: telegramId,
         username: username,
         first_name: firstName,
-        photo_url: null,
+        photo_url: userInfo?.photo_url || null,
         gold: 5000,
         wood: 2500,
         stone: 2500,

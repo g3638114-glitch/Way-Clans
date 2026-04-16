@@ -1,4 +1,4 @@
-import { appState } from '../../utils/state.js';
+import { appState, withOperationLock } from '../../utils/state.js';
 import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { renderBuildings } from '../builders.js';
@@ -109,26 +109,26 @@ export function closeUpgradeModal() {
 export async function confirmUpgrade() {
   if (!appState.upgradeModalData.buildingId) return;
 
-  try {
-    const result = await apiClient.upgradeBuilding(appState.userId, appState.upgradeModalData.buildingId);
-    appState.currentUser = result.user;
-    updateUI(appState.currentUser);
+  await withOperationLock(`upgradeModal_${appState.upgradeModalData.buildingId}`, async () => {
+    try {
+      const nextLevel = appState.upgradeModalData.currentLevel + 1;
+      const result = await apiClient.upgradeBuilding(appState.userId, appState.upgradeModalData.buildingId);
+      appState.currentUser = result.user;
+      updateUI(appState.currentUser);
 
-    // Update building in local array
-    const buildingIndex = appState.allBuildings.findIndex(
-      (b) => b.id === appState.upgradeModalData.buildingId
-    );
-    if (buildingIndex !== -1) {
-      appState.allBuildings[buildingIndex] = result.building;
+      const buildingIndex = appState.allBuildings.findIndex(
+        (b) => b.id === appState.upgradeModalData.buildingId
+      );
+      if (buildingIndex !== -1) {
+        appState.allBuildings[buildingIndex] = result.building;
+      }
+
+      closeUpgradeModal();
+      renderBuildings();
+      window.tg.showAlert(`✅ Здание улучшено! Новый уровень: ${nextLevel}`);
+    } catch (error) {
+      console.error('Error upgrading building:', error);
+      window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
     }
-
-    closeUpgradeModal();
-    renderBuildings();
-    window.tg.showAlert(
-      `✅ Здание улучшено! Новый уровень: ${appState.upgradeModalData.currentLevel + 1}`
-    );
-  } catch (error) {
-    console.error('Error upgrading building:', error);
-    window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
-  }
+  });
 }

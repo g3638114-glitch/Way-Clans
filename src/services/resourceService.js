@@ -133,7 +133,7 @@ export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
   const newGoldAmount = (user.gold || 0) + goldEarned;
 
   if (newGoldAmount > capacity) {
-    throw new Error(`Казна переполнена! Продать невозможно. За продажу вы получаете: ${goldEarned} Jamcoin💰. Вместимость: ${capacity}, Ваш баланс: ${user.gold || 0}💰`);
+    throw new Error(`Лимит казны достигнут. Продажа невозможна: вы получите ${goldEarned} Jamcoin, а в казне уже ${user.gold || 0} из ${capacity}. Освободите место и попробуйте снова.`);
   }
 
   // Update user resources
@@ -195,7 +195,7 @@ export async function addGold(userId, goldAmount) {
   const newGoldAmount = (user.gold || 0) + goldAmount;
 
   if (newGoldAmount > capacity) {
-    throw new Error(`Казна переполнена! Вместимость: ${capacity}, Ваш баланс: ${user.gold || 0}`);
+    throw new Error(`Лимит казны достигнут. Вы не можете получить ещё ${goldAmount} Jamcoin. Вместимость казны: ${capacity}, сейчас: ${user.gold || 0}. Обменяйте или потратьте Jamcoin и попробуйте снова.`);
   }
 
   const { data: updatedUser, error: updateError } = await supabase

@@ -2,16 +2,6 @@ import pkg from 'pg';
 
 const { Client } = pkg;
 
-/**
- * Migration system for Supabase PostgreSQL database
- * Ensures all tables and columns exist without losing data
- * Safe to run on every application startup
- */
-
-/**
- * Define all migrations as idempotent SQL statements
- * These will check if columns exist before adding them
- */
 const migrations = [
   // === USERS TABLE ===
   {
@@ -32,28 +22,34 @@ const migrations = [
     );`,
   },
   {
-    name: 'Create index on users.telegram_id',
-    sql: `CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id);`,
+    name: 'Add troop levels to users',
+    sql: `ALTER TABLE users 
+          ADD COLUMN IF NOT EXISTS attacker_level INT DEFAULT 1,
+          ADD COLUMN IF NOT EXISTS defender_level INT DEFAULT 1;`,
   },
   {
-    name: 'Add referral_count column to users if missing',
-    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_count INT DEFAULT 0;`,
+    name: 'Add other missing columns to users',
+    sql: `ALTER TABLE users 
+          ADD COLUMN IF NOT EXISTS referral_count INT DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS photo_url TEXT,
+          ADD COLUMN IF NOT EXISTS jamcoins_from_clicks BIGINT DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS treasury_level INT DEFAULT 1,
+          ADD COLUMN IF NOT EXISTS warehouse_level INT DEFAULT 1;`,
   },
+
+  // === USER_TROOPS TABLE ===
   {
-    name: 'Add photo_url column to users if missing',
-    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS photo_url TEXT;`,
-  },
-  {
-    name: 'Add jamcoins_from_clicks column to users if missing',
-    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS jamcoins_from_clicks BIGINT DEFAULT 0;`,
-  },
-  {
-    name: 'Add treasury_level column to users if missing',
-    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS treasury_level INT DEFAULT 1;`,
-  },
-  {
-    name: 'Add warehouse_level column to users if missing',
-    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS warehouse_level INT DEFAULT 1;`,
+    name: 'Create user_troops table',
+    sql: `CREATE TABLE IF NOT EXISTS user_troops (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      troop_type TEXT NOT NULL, -- 'attacker' or 'defender'
+      level INT NOT NULL,
+      count BIGINT DEFAULT 0,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      UNIQUE(user_id, troop_type, level)
+    );`,
   },
 
   // === USER_BUILDINGS TABLE ===
@@ -73,38 +69,6 @@ const migrations = [
       UNIQUE(user_id, building_type, building_number)
     );`,
   },
-  {
-    name: 'Create index on user_buildings.user_id',
-    sql: `CREATE INDEX IF NOT EXISTS idx_buildings_user_id ON user_buildings(user_id);`,
-  },
-  {
-    name: 'Create index on user_buildings.building_type',
-    sql: `CREATE INDEX IF NOT EXISTS idx_buildings_type ON user_buildings(building_type);`,
-  },
-  {
-    name: 'Add level column to user_buildings if missing',
-    sql: `ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS level INT DEFAULT 1;`,
-  },
-  {
-    name: 'Add collected_amount column to user_buildings if missing',
-    sql: `ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS collected_amount BIGINT DEFAULT 0;`,
-  },
-  {
-    name: 'Add production_rate column to user_buildings if missing',
-    sql: `ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS production_rate BIGINT DEFAULT 100;`,
-  },
-  {
-    name: 'Add last_activated column to user_buildings if missing',
-    sql: `ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS last_activated TIMESTAMP WITH TIME ZONE;`,
-  },
-  {
-    name: 'Add created_at column to user_buildings if missing',
-    sql: `ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`,
-  },
-  {
-    name: 'Add updated_at column to user_buildings if missing',
-    sql: `ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`,
-  },
 
   // === COMPLETED_QUESTS TABLE ===
   {
@@ -116,18 +80,6 @@ const migrations = [
       completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
       UNIQUE(user_id, quest_id)
     );`,
-  },
-  {
-    name: 'Create index on completed_quests.user_id',
-    sql: `CREATE INDEX IF NOT EXISTS idx_completed_quests_user_id ON completed_quests(user_id);`,
-  },
-  {
-    name: 'Add quest_id column to completed_quests if missing',
-    sql: `ALTER TABLE completed_quests ADD COLUMN IF NOT EXISTS quest_id TEXT;`,
-  },
-  {
-    name: 'Add completed_at column to completed_quests if missing',
-    sql: `ALTER TABLE completed_quests ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`,
   },
 
   // === MARKET_LISTINGS TABLE ===
@@ -143,38 +95,18 @@ const migrations = [
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );`,
   },
-  {
-    name: 'Create index on market_listings.seller_id',
-    sql: `CREATE INDEX IF NOT EXISTS idx_market_listings_seller_id ON market_listings(seller_id);`,
-  },
-  {
-    name: 'Create index on market_listings.resource_type',
-    sql: `CREATE INDEX IF NOT EXISTS idx_market_listings_resource_type ON market_listings(resource_type);`,
-  },
-  {
-    name: 'Disable RLS on market_listings table',
-    sql: `ALTER TABLE market_listings DISABLE ROW LEVEL SECURITY;`,
-  },
 
   // === DISABLE ROW LEVEL SECURITY ===
   {
-    name: 'Disable RLS on users table',
-    sql: `ALTER TABLE users DISABLE ROW LEVEL SECURITY;`,
-  },
-  {
-    name: 'Disable RLS on user_buildings table',
-    sql: `ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;`,
-  },
-  {
-    name: 'Disable RLS on completed_quests table',
-    sql: `ALTER TABLE completed_quests DISABLE ROW LEVEL SECURITY;`,
+    name: 'Disable RLS on all tables',
+    sql: `ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+          ALTER TABLE user_buildings DISABLE ROW LEVEL SECURITY;
+          ALTER TABLE completed_quests DISABLE ROW LEVEL SECURITY;
+          ALTER TABLE market_listings DISABLE ROW LEVEL SECURITY;
+          ALTER TABLE user_troops DISABLE ROW LEVEL SECURITY;`,
   },
 ];
 
-/**
- * Execute all migrations in order
- * Each migration is idempotent and safe to run multiple times
- */
 async function executeMigrations(client) {
   const successfulMigrations = [];
   const failedMigrations = [];
@@ -185,8 +117,6 @@ async function executeMigrations(client) {
       successfulMigrations.push(migration.name);
       console.log(`✅ ${migration.name}`);
     } catch (error) {
-      // Log warnings but don't fail - some operations are expected to fail
-      // (e.g., adding a column that already exists in an old DB)
       failedMigrations.push({
         name: migration.name,
         error: error.message,
@@ -202,10 +132,6 @@ async function executeMigrations(client) {
   };
 }
 
-/**
- * Run all database migrations
- * Ensures all tables and columns exist without losing existing data
- */
 export async function runMigrations() {
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
@@ -222,10 +148,6 @@ export async function runMigrations() {
     console.log(
       `\n✅ Migrations completed! (${result.successful} successful, ${result.failed} warnings)`
     );
-
-    if (result.failed > 0) {
-      console.log('\n⚠️  Some operations were skipped (this is normal for existing databases)');
-    }
 
     return {
       success: true,

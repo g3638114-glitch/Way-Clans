@@ -1,5 +1,4 @@
 export const apiClient = {
-  // ... существующие методы ...
   async getUser(userId, userInfo = null) {
     const headers = { 'Content-Type': 'application/json' };
     const body = userInfo ? JSON.stringify({ userInfo }) : undefined;
@@ -185,7 +184,6 @@ export const apiClient = {
     return response.json();
   },
 
-  // Barracks Methods
   async getBarracks(userId) {
     const response = await fetch(`/api/user/${userId}/barracks`);
     if (!response.ok) throw new Error('Failed to load barracks');

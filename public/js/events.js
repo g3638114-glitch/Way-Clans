@@ -35,17 +35,19 @@ import { renderBuildings } from './ui/builders.js';
 import * as market from './game/market.js';
 import { setBarracksTab } from './ui/modals/barracks.js';
 
-// Register all event listeners
 export function setupEventListeners() {
-  // ... существующие слушатели ...
+  // Main Page Buttons
   document.getElementById('storage-btn').addEventListener('click', openWarehouseModal);
   document.getElementById('exchange-btn').addEventListener('click', openExchangeModal);
-  document.getElementById('gold-input').addEventListener('input', updateExchangeResult);
   document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
   document.getElementById('market-btn').addEventListener('click', () => showPage('market'));
   document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
   document.getElementById('attack-btn').addEventListener('click', () => tg.showAlert('🔧 Функция "Атаковать" скоро будет доступна!'));
 
+  // Modal Inputs & Buttons
+  document.getElementById('gold-input').addEventListener('input', updateExchangeResult);
+  
+  // Coin Click
   document.getElementById('coin-btn').addEventListener('click', async () => {
     const coinBtn = document.getElementById('coin-btn');
     await withOperationLock('clickCoin', async () => {
@@ -75,6 +77,16 @@ export function setupEventListeners() {
   document.getElementById('nav-barracks').addEventListener('click', () => showPage('barracks'));
   document.getElementById('nav-market-back').addEventListener('click', () => showPage('main'));
 
+  // Mining Tabs
+  document.querySelectorAll('#mining-page .tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('#mining-page .tab-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      appState.selectedBuildingType = e.target.dataset.type;
+      renderBuildings();
+    });
+  });
+
   // Barracks Tabs
   document.querySelectorAll('[data-barracks-tab]').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -84,6 +96,14 @@ export function setupEventListeners() {
     });
   });
 
-  // ... остальные слушатели ...
+  // Market Tabs
+  document.querySelectorAll('.market-tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.market-tab-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      import('./game/market.js').then(m => m.loadMarketListings(e.target.dataset.resource));
+    });
+  });
+
   setupModalHandlers();
 }

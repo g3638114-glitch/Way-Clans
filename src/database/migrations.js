@@ -34,7 +34,8 @@ const migrations = [
           ADD COLUMN IF NOT EXISTS photo_url TEXT,
           ADD COLUMN IF NOT EXISTS jamcoins_from_clicks BIGINT DEFAULT 0,
           ADD COLUMN IF NOT EXISTS treasury_level INT DEFAULT 1,
-          ADD COLUMN IF NOT EXISTS warehouse_level INT DEFAULT 1;`,
+          ADD COLUMN IF NOT EXISTS warehouse_level INT DEFAULT 1,
+          ADD COLUMN IF NOT EXISTS shield_until TIMESTAMP WITH TIME ZONE;`,
   },
 
   // === USER_TROOPS TABLE ===

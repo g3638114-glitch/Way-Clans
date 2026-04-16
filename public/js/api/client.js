@@ -155,5 +155,15 @@ export const apiClient = {
     const response = await fetch(`/api/user/${userId}/attack/target`);
     if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to find target'); }
     return response.json();
+  },
+
+  async performAttack(userId, targetId) {
+    const response = await fetch(`/api/user/${userId}/attack`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetId })
+    });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to perform attack'); }
+    return response.json();
   }
 };

@@ -2,10 +2,13 @@ import { appState, withOperationLock } from '../utils/state.js';
 import { apiClient } from '../api/client.js';
 import { formatNumber } from '../utils/formatters.js';
 
+let currentTargetId = null;
+
 export async function openAttackMenu() {
   await withOperationLock('findTarget', async () => {
     try {
       const data = await apiClient.getAttackTarget(appState.userId);
+      currentTargetId = data.targetId;
       renderAttackTarget(data);
       document.getElementById('attack-modal').classList.add('active');
     } catch (error) {
@@ -16,6 +19,59 @@ export async function openAttackMenu() {
 
 export function closeAttackModal() {
   document.getElementById('attack-modal').classList.remove('active');
+  currentTargetId = null;
+}
+
+async function searchNewTarget() {
+  await withOperationLock('findTarget', async () => {
+    try {
+      const data = await apiClient.getAttackTarget(appState.userId);
+      currentTargetId = data.targetId;
+      renderAttackTarget(data);
+    } catch (error) {
+      tg.showAlert(error.message);
+    }
+  });
+}
+
+async function confirmAttack() {
+  if (!currentTargetId) {
+    tg.showAlert('Ошибка: цель не выбрана');
+    return;
+  }
+
+  await withOperationLock('performAttack', async () => {
+    try {
+      const result = await apiClient.performAttack(appState.userId, currentTargetId);
+      
+      let message = '';
+      if (result.won) {
+        message = `🎉 ПОБЕДА!\n\n`;
+        message += `⚔️ Ваши воины: ${result.attackerTroopsCount}\n`;
+        message += `🛡 Враг: ${result.defenderTroopsCount}\n\n`;
+        message += `💀 Вы убили: ${result.defendersKilled} защитников\n`;
+        message += `💀 Погибло ваших: ${result.attackersKilled}\n\n`;
+        message += `📦 Добыча:\n`;
+        message += `💰 ${formatNumber(result.loot.gold)} Jamcoin\n`;
+        message += `🌲 ${formatNumber(result.loot.wood)} дерева\n`;
+        message += `🪨 ${formatNumber(result.loot.stone)} камня\n`;
+        message += `🍖 ${formatNumber(result.loot.meat)} мяса`;
+      } else {
+        message = `💪 АТАКА ОТРАЖЕНА!\n\n`;
+        message += `⚔️ Ваши воины: ${result.attackerTroopsCount}\n`;
+        message += `🛡 Враг: ${result.defenderTroopsCount}\n\n`;
+        message += `💀 Вы убили: ${result.defendersKilled} защитников\n`;
+        message += `💀 Погибло ваших: ${result.attackersKilled}`;
+      }
+      
+      tg.showAlert(message);
+      closeAttackModal();
+      
+      window.updateResources && window.updateResources();
+    } catch (error) {
+      tg.showAlert(error.message);
+    }
+  });
 }
 
 function renderAttackTarget(data) {
@@ -62,7 +118,9 @@ function renderAttackTarget(data) {
     </div>
   `;
 
-  document.getElementById('confirm-attack-btn').onclick = () => {
-    tg.showAlert('🔧 Механика боя будет добавлена в следующем обновлении!');
-  };
+  document.getElementById('confirm-attack-btn').onclick = confirmAttack;
+  document.getElementById('search-target-btn').onclick = searchNewTarget;
 }
+
+window.closeAttackModal = closeAttackModal;
+window.openAttackMenu = openAttackMenu;

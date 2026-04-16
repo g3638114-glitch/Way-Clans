@@ -52,20 +52,23 @@ export async function getRandomTarget(userId) {
 export async function performAttack(userId, targetId) {
   const now = new Date();
 
-  const { data: usersData, error: usersError } = await supabase
+  const { data: attackerUser, error: attackerError } = await supabase
     .from('users')
-    .select('id, telegram_id, gold, wood, stone, meat, shield_until')
-    .in('id', [targetId])
-    .in('telegram_id', [userId]);
+    .select('id, telegram_id, gold, wood, stone, meat')
+    .eq('telegram_id', userId)
+    .single();
 
-  if (usersError || !usersData || usersData.length < 2) {
-    throw new Error('Ошибка при загрузке данных');
+  if (attackerError || !attackerUser) {
+    throw new Error('Ошибка при загрузке данных атакующего');
   }
 
-  const attackerUser = usersData.find(u => u.telegram_id === userId);
-  const targetUser = usersData.find(u => u.id === targetId);
+  const { data: targetUser, error: targetError } = await supabase
+    .from('users')
+    .select('id, gold, wood, stone, meat, shield_until')
+    .eq('id', targetId)
+    .single();
 
-  if (!attackerUser || !targetUser) {
+  if (targetError || !targetUser) {
     throw new Error('Цель не найдена');
   }
 
@@ -78,6 +81,10 @@ export async function performAttack(userId, targetId) {
     .select('user_id, troop_type, level, count')
     .in('user_id', [attackerUser.id, targetUser.id])
     .gt('count', 0);
+
+  if (!allTroops) {
+    throw new Error('Ошибка при загрузке войск');
+  }
 
   const attackerTroops = allTroops.filter(t => t.user_id === attackerUser.id && t.troop_type === 'attacker');
   const defenderTroops = allTroops.filter(t => t.user_id === targetUser.id && t.troop_type === 'defender');

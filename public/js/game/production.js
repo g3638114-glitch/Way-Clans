@@ -1,5 +1,6 @@
 import { appState } from '../utils/state.js';
 import { getProductionRate, getCapacity, getResourceEmoji } from './config.js';
+import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 /**
  * Calculate accumulated resources for a building
@@ -43,7 +44,14 @@ function updateBuildingCardValues(building) {
   const progress = calculateBuildingProgress(building);
   const capacity = getCapacity(building.building_type, level);
   const progressPercent = (progress.accumulated / capacity) * 100;
-  const resourceEmoji = getResourceEmoji(building.building_type);
+  const resourceType = building.building_type === 'mine'
+    ? 'gold'
+    : building.building_type === 'quarry'
+      ? 'stone'
+      : building.building_type === 'lumber_mill'
+        ? 'wood'
+        : 'meat';
+  const resourceIcon = getResourceIconHtml(resourceType, 'resource-inline-icon', resourceType);
 
   // ===== Update capacity stat row =====
   const statRows = card.querySelectorAll('.stat-row');
@@ -51,7 +59,7 @@ function updateBuildingCardValues(building) {
     // Second stat row is capacity
     const capacityStatValue = statRows[1].querySelector('.stat-value');
     if (capacityStatValue) {
-      capacityStatValue.textContent = `${progress.accumulated}/${capacity}${resourceEmoji}`;
+      capacityStatValue.innerHTML = `${progress.accumulated}/${capacity}${resourceIcon}`;
     }
   }
 
@@ -101,7 +109,7 @@ function updateBuildingCardValues(building) {
       if (!collectBtn) {
         const newCollectBtn = document.createElement('button');
         newCollectBtn.className = 'btn btn-collect';
-        newCollectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceEmoji}`;
+        newCollectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`;
         newCollectBtn.addEventListener('click', () => {
           window.collectResources(building.id);
           newCollectBtn.blur();
@@ -109,7 +117,7 @@ function updateBuildingCardValues(building) {
         actionsContainer.insertBefore(newCollectBtn, actionsContainer.firstChild);
       } else {
         // Update collect button text with current accumulated amount
-        collectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceEmoji}`;
+        collectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`;
       }
     } else {
       // Should not have collect button

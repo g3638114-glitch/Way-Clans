@@ -3,6 +3,7 @@ import { apiClient } from '../api/client.js';
 import { updateUI } from '../ui/dom.js';
 import { TROOP_STATS, HIRE_COSTS } from './config.js';
 import { formatNumber } from '../utils/formatters.js';
+import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 export async function loadBarracksData() {
   try {
@@ -37,9 +38,9 @@ export function renderBarracks() {
   if (type === 'attacker') {
     lootHtml = `
       <div class="troop-stat-item" style="grid-column: span 2;">
-        <span class="troop-stat-label">Добыча (за 1 воина):</span>
-        <span class="troop-stat-value" style="font-size: 12px;">
-          💰${stats.loot.gold} 🌲${stats.loot.wood} 🪨${stats.loot.stone} 🍖${stats.loot.meat}
+          <span class="troop-stat-label">Добыча (за 1 воина):</span>
+          <span class="troop-stat-value" style="font-size: 12px;">
+          ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${stats.loot.gold} ${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${stats.loot.wood} ${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}${stats.loot.stone} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${stats.loot.meat}
         </span>
       </div>
     `;
@@ -50,9 +51,9 @@ export function renderBarracks() {
     const nextLevel = level + 1;
     const upgradeCost = TROOP_STATS[type][nextLevel].cost;
     let costText = '';
-    if (upgradeCost.gold) costText += `💰${formatNumber(upgradeCost.gold)} `;
-    if (upgradeCost.jabcoins) costText += `💎${upgradeCost.jabcoins} `;
-    if (upgradeCost.meat) costText += `🍖${formatNumber(upgradeCost.meat)} `;
+    if (upgradeCost.gold) costText += `${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${formatNumber(upgradeCost.gold)} `;
+    if (upgradeCost.jabcoins) costText += `${getResourceIconHtml('jabcoin', 'resource-inline-icon', 'Jabcoin')}${upgradeCost.jabcoins} `;
+    if (upgradeCost.meat) costText += `${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${formatNumber(upgradeCost.meat)} `;
 
     upgradeBtnHtml = `
       <button class="btn btn-upgrade-troop" onclick="window.upgradeTroopType('${type}')">
@@ -83,7 +84,7 @@ export function renderBarracks() {
     <div class="troop-actions">
       <button class="btn btn-hire" onclick="window.hireTroop('${type}')">
         Нанять (ур. ${level})
-        <span class="cost-info-small">💰${hireCost.gold} 🌲${hireCost.wood} 🪨${hireCost.stone} 🍖${hireCost.meat}</span>
+        <span class="cost-info-small">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${hireCost.gold} ${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${hireCost.wood} ${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}${hireCost.stone} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${hireCost.meat}</span>
       </button>
       ${upgradeBtnHtml}
     </div>
@@ -175,7 +176,7 @@ window.openHireTroopsModal = (type) => {
 
   if (type === 'attacker') {
     infoHtml += `
-        <div class="stat-line"><span class="stat-name">Добыча за 1:</span><span class="stat-value">💰${stats.loot.gold} 🌲${stats.loot.wood} 🪨${stats.loot.stone} 🍖${stats.loot.meat}</span></div>
+        <div class="stat-line"><span class="stat-name">Добыча за 1:</span><span class="stat-value">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${stats.loot.gold} ${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${stats.loot.wood} ${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}${stats.loot.stone} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${stats.loot.meat}</span></div>
     `;
   }
 
@@ -183,7 +184,7 @@ window.openHireTroopsModal = (type) => {
       </div>
       <div class="cost-per-unit">
         <p class="cost-label">Стоимость за 1 воина:</p>
-        <div class="cost-display">💰${hireCost.gold} 🌲${hireCost.wood} 🪨${hireCost.stone} 🍖${hireCost.meat}</div>
+        <div class="cost-display">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${hireCost.gold} ${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${hireCost.wood} ${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}${hireCost.stone} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${hireCost.meat}</div>
       </div>
       <div class="available-resources">
         <p class="available-label">Доступно воинов: <strong>${currentHiringContext.maxPossible}</strong></p>
@@ -223,10 +224,10 @@ window.updateHireTroopsCost = () => {
   const costDisplay = document.getElementById('hire-troops-cost-display');
   costDisplay.innerHTML = `
     <div class="cost-items-row">
-      <div class="cost-item">💰${formatNumber(totalCost.gold)}</div>
-      <div class="cost-item">🌲${formatNumber(totalCost.wood)}</div>
-      <div class="cost-item">🪨${formatNumber(totalCost.stone)}</div>
-      <div class="cost-item">🍖${formatNumber(totalCost.meat)}</div>
+      <div class="cost-item">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${formatNumber(totalCost.gold)}</div>
+      <div class="cost-item">${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${formatNumber(totalCost.wood)}</div>
+      <div class="cost-item">${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}${formatNumber(totalCost.stone)}</div>
+      <div class="cost-item">${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${formatNumber(totalCost.meat)}</div>
     </div>
   `;
 };

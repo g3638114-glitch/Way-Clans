@@ -1,6 +1,7 @@
 import { appState, withOperationLock } from '../utils/state.js';
 import { apiClient } from '../api/client.js';
 import { formatNumber } from '../utils/formatters.js';
+import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 let currentTargetId = null;
 
@@ -125,19 +126,19 @@ function renderAttackTarget(data) {
       <div class="target-resources">
         <div class="troop-stat-item">
           <span class="troop-stat-label">Jamcoin</span>
-          <span class="troop-stat-value">💰${formatNumber(target.gold)}</span>
+          <span class="troop-stat-value">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${formatNumber(target.gold)}</span>
         </div>
         <div class="troop-stat-item">
           <span class="troop-stat-label">Дерево</span>
-          <span class="troop-stat-value">🌲${formatNumber(target.wood)}</span>
+          <span class="troop-stat-value">${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${formatNumber(target.wood)}</span>
         </div>
         <div class="troop-stat-item">
           <span class="troop-stat-label">Камень</span>
-          <span class="troop-stat-value">🪨${formatNumber(target.stone)}</span>
+          <span class="troop-stat-value">${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}${formatNumber(target.stone)}</span>
         </div>
         <div class="troop-stat-item">
           <span class="troop-stat-label">Мясо</span>
-          <span class="troop-stat-value">🍖${formatNumber(target.meat)}</span>
+          <span class="troop-stat-value">${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${formatNumber(target.meat)}</span>
         </div>
       </div>
       <div class="target-defenders">

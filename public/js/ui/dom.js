@@ -1,4 +1,5 @@
 import { formatNumberShort, formatNumber } from '../utils/formatters.js';
+import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 /**
  * Generate initials or fallback emoji for avatar
@@ -97,7 +98,7 @@ export function updateUI(currentUser) {
 
   // Update exchange modal
   const exchangeGoldEl = document.getElementById('exchange-gold');
-  if (exchangeGoldEl) exchangeGoldEl.textContent = `💰 ${goldText}`;
+  if (exchangeGoldEl) exchangeGoldEl.innerHTML = `${getResourceIconHtml('gold', 'resource-inline-icon-lg', 'Jamcoin')} ${goldText}`;
 
   // Reset input fields
   document.getElementById('wood-input').max = currentUser.wood;

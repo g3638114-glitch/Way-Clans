@@ -67,3 +67,47 @@ button::-moz-focus-inner {
   border: 0 !important;
   outline: none !important;
 }
+
+.resource-icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+.resource-inline-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  vertical-align: -3px;
+}
+
+.resource-inline-icon-lg {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  vertical-align: -4px;
+}
+
+.resource-tab-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
+.resource-label-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  vertical-align: -4px;
+  margin-right: 6px;
+}
+
+.coin-face-icon {
+  width: 58%;
+  height: 58%;
+  object-fit: contain;
+  pointer-events: none;
+}

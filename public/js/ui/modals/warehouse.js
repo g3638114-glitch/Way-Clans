@@ -3,6 +3,7 @@ import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { getMaxWarehouseLevel, getWarehouseCapacity, getWarehouseUpgradeCost } from '../../game/config.js';
 import { updateWarehouseSellModal } from '../../game/market.js';
+import { getResourceIconHtml } from '../../utils/resourceIcons.js';
 
 export function openWarehouseModal() {
   renderWarehouseContent();
@@ -174,15 +175,15 @@ function renderWarehouseUpgradeInfo(currentLevel, warehouse) {
         <div class="cost-items-row">
           <div class="cost-item-upgrade ${hasJamcoins ? 'sufficient' : 'insufficient'}">
             <span class="cost-value">${costData.jamcoins}</span>
-            <span class="cost-icon">💰</span>
+            <span class="cost-icon">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</span>
           </div>
           <div class="cost-item-upgrade ${hasStone ? 'sufficient' : 'insufficient'}">
             <span class="cost-value">${costData.stone}</span>
-            <span class="cost-icon">🪨</span>
+            <span class="cost-icon">${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}</span>
           </div>
           <div class="cost-item-upgrade ${hasWood ? 'sufficient' : 'insufficient'}">
             <span class="cost-value">${costData.wood}</span>
-            <span class="cost-icon">🌲</span>
+            <span class="cost-icon">${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}</span>
           </div>
         </div>
       </div>

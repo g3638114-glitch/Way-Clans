@@ -1,6 +1,7 @@
 import { appState, withOperationLock } from '../../utils/state.js';
 import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
+import { getResourceIconHtml } from '../../utils/resourceIcons.js';
 
 export function openExchangeModal() {
   document.getElementById('exchange-modal').classList.add('active');
@@ -16,7 +17,7 @@ export function closeExchangeModal() {
 export function updateExchangeResult() {
   const goldAmount = parseInt(document.getElementById('gold-input').value) || 0;
   const jabcoinsResult = Math.floor(goldAmount / 1000000);
-  document.getElementById('exchange-result').textContent = `💎 ${jabcoinsResult}`;
+  document.getElementById('exchange-result').innerHTML = `${getResourceIconHtml('jabcoin', 'resource-inline-icon-lg', 'Jabcoin')} ${jabcoinsResult}`;
 }
 
 export async function exchangeGold() {

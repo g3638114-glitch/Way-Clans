@@ -2,6 +2,7 @@ import { appState, withOperationLock } from '../../utils/state.js';
 import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { getMaxTreasuryLevel, getTreasuryCapacity, getTreasuryUpgradeCost } from '../../game/config.js';
+import { getResourceIconHtml } from '../../utils/resourceIcons.js';
 
 export function openTreasuryModal() {
   renderTreasuryContent();
@@ -97,9 +98,9 @@ function renderUpgradeInfo(currentLevel, currentJamcoins) {
         <div class="production-row">
           <span>Вместимость</span>
           <div class="production-values">
-            <span class="current">${currentCapacity} 💰</span>
+            <span class="current">${currentCapacity} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</span>
             <span class="arrow">→</span>
-            <span class="new">${nextCapacity} 💰</span>
+            <span class="new">${nextCapacity} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</span>
           </div>
         </div>
       </div>
@@ -109,15 +110,15 @@ function renderUpgradeInfo(currentLevel, currentJamcoins) {
         <div class="cost-items-row">
           <div class="cost-item-upgrade ${hasJamcoins ? 'sufficient' : 'insufficient'}">
             <span class="cost-value">${costData.jamcoins}</span>
-            <span class="cost-icon">💰</span>
+            <span class="cost-icon">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</span>
           </div>
           <div class="cost-item-upgrade ${hasStone ? 'sufficient' : 'insufficient'}">
             <span class="cost-value">${costData.stone}</span>
-            <span class="cost-icon">🪨</span>
+            <span class="cost-icon">${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}</span>
           </div>
           <div class="cost-item-upgrade ${hasWood ? 'sufficient' : 'insufficient'}">
             <span class="cost-value">${costData.wood}</span>
-            <span class="cost-icon">🌲</span>
+            <span class="cost-icon">${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}</span>
           </div>
         </div>
       </div>

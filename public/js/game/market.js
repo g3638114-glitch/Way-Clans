@@ -2,6 +2,7 @@ import { apiClient } from '../api/client.js';
 import { appState, withOperationLock } from '../utils/state.js';
 import { getTreasuryCapacity, getWarehouseCapacity } from './config.js';
 import { updateUI } from '../ui/dom.js';
+import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 let currentSetPriceResource = null;
 let currentBuyListing = null;
@@ -27,17 +28,11 @@ export function openSetPriceModal(resourceType) {
     meat: 'Мясо',
   };
 
-  const resourceIcons = {
-    wood: '🌲',
-    stone: '🪨',
-    meat: '🍖',
-  };
-
   // Get available quantity from current user
   const available = appState.currentUser[resourceType] || 0;
 
   // Update modal
-  document.getElementById('price-resource-name').textContent = `${resourceIcons[resourceType]} ${resourceNames[resourceType]}`;
+  document.getElementById('price-resource-name').innerHTML = `${getResourceIconHtml(resourceType, 'resource-inline-icon-lg', resourceNames[resourceType])} ${resourceNames[resourceType]}`;
   document.getElementById('price-available').textContent = available;
   document.getElementById('price-per-unit').value = '1';
   document.getElementById('price-quantity').value = '';
@@ -152,12 +147,6 @@ export function openBuyQuantityModal(listing) {
     meat: 'Мясо',
   };
 
-  const resourceIcons = {
-    wood: '🌲',
-    stone: '🪨',
-    meat: '🍖',
-  };
-
   // Check warehouse capacity for this specific resource
   const warehouseCapacity = getWarehouseCapacity(appState.currentUser.warehouse_level || 1);
   const currentResourceAmount = appState.currentUser[listing.resource_type] || 0;
@@ -165,7 +154,7 @@ export function openBuyQuantityModal(listing) {
   currentBuyMaxQuantity = Math.min(listing.quantity, Math.max(0, availableSpace));
 
   // Update modal
-  document.getElementById('buy-resource-name').textContent = `${resourceIcons[listing.resource_type]} ${resourceNames[listing.resource_type]}`;
+  document.getElementById('buy-resource-name').innerHTML = `${getResourceIconHtml(listing.resource_type, 'resource-inline-icon-lg', resourceNames[listing.resource_type])} ${resourceNames[listing.resource_type]}`;
   document.getElementById('buy-price-per-unit').textContent = listing.price_per_unit.toLocaleString();
   document.getElementById('buy-available').textContent = listing.quantity;
   document.getElementById('buy-quantity').value = '';
@@ -316,7 +305,7 @@ export async function loadMarketListings(resourceType) {
             <strong>${seller.first_name} (@${seller.username})</strong>
           </div>
           <div class="listing-price">
-            <span>${listing.price_per_unit.toLocaleString()} 💰/шт</span>
+            <span>${listing.price_per_unit.toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}/шт</span>
           </div>
         </div>
         <div class="listing-body">
@@ -352,27 +341,21 @@ export async function loadMyListings() {
     }
 
     listings.forEach((listing) => {
-      const resourceIcons = {
-        wood: '🌲',
-        stone: '🪨',
-        meat: '🍖',
-      };
-
       const listingDiv = document.createElement('div');
       listingDiv.className = 'market-listing-item my-listing';
       listingDiv.innerHTML = `
         <div class="listing-header">
           <div class="resource-info">
-            <strong>${resourceIcons[listing.resource_type]} ${listing.resource_type.toUpperCase()}</strong>
+            <strong>${getResourceIconHtml(listing.resource_type, 'resource-inline-icon-lg', listing.resource_type)} ${listing.resource_type.toUpperCase()}</strong>
           </div>
           <div class="listing-price">
-            <span>${listing.price_per_unit.toLocaleString()} 💰/шт</span>
+            <span>${listing.price_per_unit.toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}/шт</span>
           </div>
         </div>
         <div class="listing-body">
           <div class="listing-quantity">
             <p>Количество: <strong>${listing.quantity.toLocaleString()}</strong></p>
-            <p>Итого: ${(listing.quantity * listing.price_per_unit).toLocaleString()} 💰</p>
+            <p>Итого: ${(listing.quantity * listing.price_per_unit).toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</p>
           </div>
           <div class="listing-actions">
             <button class="btn btn-secondary btn-sm" onclick="window.market.openEditListingModal('${listing.id}', '${listing.resource_type}', ${listing.quantity}, ${listing.price_per_unit})">
@@ -442,14 +425,8 @@ export function openEditListingModal(listingId, resourceType, quantity, pricePer
     meat: 'Мясо',
   };
 
-  const resourceIcons = {
-    wood: '🌲',
-    stone: '🪨',
-    meat: '🍖',
-  };
-
   // Update modal
-  document.getElementById('edit-resource-name').textContent = `${resourceIcons[resourceType]} ${resourceNames[resourceType]}`;
+  document.getElementById('edit-resource-name').innerHTML = `${getResourceIconHtml(resourceType, 'resource-inline-icon-lg', resourceNames[resourceType])} ${resourceNames[resourceType]}`;
   document.getElementById('edit-price-per-unit').value = pricePerUnit;
   document.getElementById('edit-quantity').value = quantity;
   document.getElementById('edit-quantity').max = currentEditMaxQuantity;

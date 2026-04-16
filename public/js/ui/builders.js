@@ -7,6 +7,7 @@ import {
   getResourceEmoji,
 } from '../game/config.js';
 import { activateBuilding, collectResources, upgradeBuilding } from '../game/buildings.js';
+import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 // Make functions available globally for onclick handlers
 window.activateBuilding = activateBuilding;
@@ -65,7 +66,8 @@ export function createBuildingCard(building) {
     timeToFillText = formatTimeToFill(hoursNeeded);
   }
 
-  const resourceEmoji = getResourceEmoji(building.building_type);
+  const resourceType = config.resource;
+  const resourceIcon = getResourceIconHtml(resourceType, 'resource-inline-icon', config.name);
 
   // ========== Card Header ==========
   const header = document.createElement('div');
@@ -83,11 +85,11 @@ export function createBuildingCard(building) {
   stats.innerHTML = `
     <div class="stat-row">
       <span class="stat-label">Производство/час:</span>
-      <span class="stat-value">${productionRate}${resourceEmoji}/час</span>
+      <span class="stat-value">${productionRate}${resourceIcon}/час</span>
     </div>
     <div class="stat-row">
       <span class="stat-label">Вместимость:</span>
-      <span class="stat-value">${currentAccumulated}/${capacity}${resourceEmoji}</span>
+      <span class="stat-value">${currentAccumulated}/${capacity}${resourceIcon}</span>
     </div>
     ${timeToFillText ? `<div class="stat-row"><span class="stat-time">${timeToFillText}</span></div>` : ''}
   `;
@@ -123,7 +125,7 @@ export function createBuildingCard(building) {
   if (isActivated) {
     const collectBtn = document.createElement('button');
     collectBtn.className = 'btn btn-collect';
-    collectBtn.innerHTML = `<span>Собрать</span> ${currentAccumulated}${resourceEmoji}`;
+    collectBtn.innerHTML = `<span>Собрать</span> ${currentAccumulated}${resourceIcon}`;
     collectBtn.addEventListener('click', () => {
       collectResources(building.id);
       collectBtn.blur();

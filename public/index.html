@@ -22,11 +22,11 @@
 <body>
   <div class="app-container">
     <div class="resources-header">
-      <div class="resource-item"><span class="resource-icon">💰</span><span class="resource-value" id="gold-value">0</span></div>
-      <div class="resource-item"><span class="resource-icon">🌲</span><span class="resource-value" id="wood-value">0</span></div>
-      <div class="resource-item"><span class="resource-icon">🪨</span><span class="resource-value" id="stone-value">0</span></div>
-      <div class="resource-item"><span class="resource-icon">🍖</span><span class="resource-value" id="meat-value">0</span></div>
-      <div class="resource-item"><span class="resource-icon">💎</span><span class="resource-value" id="jabcoins-value">0</span></div>
+      <div class="resource-item"><span class="resource-icon"><img class="resource-icon-img" src="/resources/Jamcoin.png" alt="Jamcoin"></span><span class="resource-value" id="gold-value">0</span></div>
+      <div class="resource-item"><span class="resource-icon"><img class="resource-icon-img" src="/resources/Tree.png" alt="Дерево"></span><span class="resource-value" id="wood-value">0</span></div>
+      <div class="resource-item"><span class="resource-icon"><img class="resource-icon-img" src="/resources/Stone.png" alt="Камень"></span><span class="resource-value" id="stone-value">0</span></div>
+      <div class="resource-item"><span class="resource-icon"><img class="resource-icon-img" src="/resources/Meat.png" alt="Мясо"></span><span class="resource-value" id="meat-value">0</span></div>
+      <div class="resource-item"><span class="resource-icon"><img class="resource-icon-img" src="/resources/Jabcoin.png" alt="Jabcoin"></span><span class="resource-value" id="jabcoins-value">0</span></div>
     </div>
 
     <div class="pages-container">
@@ -114,15 +114,15 @@
 
       <div id="coin-mining-page" class="page">
         <div class="coin-mining-header"><div class="jamcoin-earned"><p class="earned-label">Заработано Jamcoin:</p><p class="earned-amount" id="jamcoin-earned-display">0</p></div></div>
-        <div class="coin-button-container"><div class="coin-wrapper"><button class="btn btn-coin" id="coin-btn">💰</button><p class="coin-label">1 клик - 100 Jamcoin</p></div></div>
+        <div class="coin-button-container"><div class="coin-wrapper"><button class="btn btn-coin" id="coin-btn"><img class="coin-face-icon" src="/resources/Jamcoin.png" alt="Jamcoin"></button><p class="coin-label">1 клик - 100 Jamcoin</p></div></div>
         <div class="coin-mining-stats"><div class="clicks-earned"><p class="clicks-label">Jamcoin от кликов:</p><p class="clicks-amount" id="jamcoins-from-clicks-display">0</p></div></div>
       </div>
 
       <div id="market-page" class="page">
         <div class="market-tabs">
-          <button class="market-tab-btn active" data-resource="wood">🌲 Дерево</button>
-          <button class="market-tab-btn" data-resource="stone">🪨 Камень</button>
-          <button class="market-tab-btn" data-resource="meat">🍖 Мясо</button>
+          <button class="market-tab-btn active" data-resource="wood"><img class="resource-tab-icon" src="/resources/Tree.png" alt="Дерево">Дерево</button>
+          <button class="market-tab-btn" data-resource="stone"><img class="resource-tab-icon" src="/resources/Stone.png" alt="Камень">Камень</button>
+          <button class="market-tab-btn" data-resource="meat"><img class="resource-tab-icon" src="/resources/Meat.png" alt="Мясо">Мясо</button>
           <button class="market-tab-btn" data-resource="my-listings">📋 Мои объявления</button>
         </div>
         <div class="market-listings-container" id="market-listings-container"></div>
@@ -157,7 +157,7 @@
       <div class="modal-body">
         <div class="resource-input-group">
           <div class="resource-row">
-            <span>🌲 Дерево: <span id="storage-wood">0</span></span>
+            <span><img class="resource-label-icon" src="/resources/Tree.png" alt="Дерево">Дерево: <span id="storage-wood">0</span></span>
             <div class="input-controls">
               <input type="number" id="wood-input" placeholder="0">
               <button class="max-btn" onclick="window.setMaxWood()">MAX</button>
@@ -166,7 +166,7 @@
         </div>
         <div class="resource-input-group">
           <div class="resource-row">
-            <span>🪨 Камень: <span id="storage-stone">0</span></span>
+            <span><img class="resource-label-icon" src="/resources/Stone.png" alt="Камень">Камень: <span id="storage-stone">0</span></span>
             <div class="input-controls">
               <input type="number" id="stone-input" placeholder="0">
               <button class="max-btn" onclick="window.setMaxStone()">MAX</button>
@@ -175,7 +175,7 @@
         </div>
         <div class="resource-input-group">
           <div class="resource-row">
-            <span>🍖 Мясо: <span id="storage-meat">0</span></span>
+            <span><img class="resource-label-icon" src="/resources/Meat.png" alt="Мясо">Мясо: <span id="storage-meat">0</span></span>
             <div class="input-controls">
               <input type="number" id="meat-input" placeholder="0">
               <button class="max-btn" onclick="window.setMaxMeat()">MAX</button>
@@ -199,13 +199,13 @@
       </div>
       <div class="modal-body">
         <div class="exchange-section">
-          <p>Ваш баланс: <span id="exchange-gold">💰 0</span></p>
+          <p>Ваш баланс: <span id="exchange-gold"><img class="resource-inline-icon-lg" src="/resources/Jamcoin.png" alt="Jamcoin"> 0</span></p>
           <div class="exchange-input">
             <input type="number" id="gold-input" placeholder="Введите сумму Jamcoin">
           </div>
-          <div class="exchange-result" id="exchange-result">💎 0</div>
+          <div class="exchange-result" id="exchange-result"><img class="resource-inline-icon-lg" src="/resources/Jabcoin.png" alt="Jabcoin"> 0</div>
           <div class="exchange-rate">
-            <p>Курс: 1,000,000 💰 = 1 💎</p>
+            <p>Курс: 1,000,000 <img class="resource-inline-icon" src="/resources/Jamcoin.png" alt="Jamcoin"> = 1 <img class="resource-inline-icon" src="/resources/Jabcoin.png" alt="Jabcoin"></p>
             <p class="minimum">Минимум: 1,000,000 Jamcoin</p>
           </div>
         </div>
@@ -287,7 +287,7 @@
         <div class="treasury-info-main">
           <div class="treasury-level-display">
             <h3>Уровень <span id="treasury-current-level">1</span> / <span id="treasury-max-level">6</span></h3>
-            <p class="capacity-info">Вместимость: <span id="treasury-capacity-current">0</span> / <span id="treasury-capacity-total">0</span> 💰</p>
+            <p class="capacity-info">Вместимость: <span id="treasury-capacity-current">0</span> / <span id="treasury-capacity-total">0</span> <img class="resource-inline-icon" src="/resources/Jamcoin.png" alt="Jamcoin"></p>
           </div>
           <div class="treasury-progress-bar">
             <div class="progress-fill" id="treasury-progress-fill"></div>
@@ -317,21 +317,21 @@
           <div class="warehouse-resources-section">
             <div class="warehouse-resource-item">
               <div class="resource-header">
-                <span class="resource-name">🌲 Дерево</span>
+                <span class="resource-name"><img class="resource-inline-icon-lg" src="/resources/Tree.png" alt="Дерево"> Дерево</span>
                 <span class="resource-amount"><span id="warehouse-wood-current">0</span> / <span id="warehouse-wood-total">0</span></span>
               </div>
               <div class="warehouse-progress-bar"><div class="progress-fill" id="warehouse-wood-fill"></div></div>
             </div>
             <div class="warehouse-resource-item">
               <div class="resource-header">
-                <span class="resource-name">🪨 Камень</span>
+                <span class="resource-name"><img class="resource-inline-icon-lg" src="/resources/Stone.png" alt="Камень"> Камень</span>
                 <span class="resource-amount"><span id="warehouse-stone-current">0</span> / <span id="warehouse-stone-total">0</span></span>
               </div>
               <div class="warehouse-progress-bar"><div class="progress-fill" id="warehouse-stone-fill"></div></div>
             </div>
             <div class="warehouse-resource-item">
               <div class="resource-header">
-                <span class="resource-name">🍖 Мясо</span>
+                <span class="resource-name"><img class="resource-inline-icon-lg" src="/resources/Meat.png" alt="Мясо"> Мясо</span>
                 <span class="resource-amount"><span id="warehouse-meat-current">0</span> / <span id="warehouse-meat-total">0</span></span>
               </div>
               <div class="warehouse-progress-bar"><div class="progress-fill" id="warehouse-meat-fill"></div></div>
@@ -359,13 +359,13 @@
       <div class="modal-body">
         <div class="market-sell-buttons">
           <button class="btn-resource" onclick="window.market.openSetPriceModal('wood')">
-            🌲 Дерево: <span id="warehouse-sell-wood-amount">0</span>
+            <img class="resource-inline-icon-lg" src="/resources/Tree.png" alt="Дерево"> Дерево: <span id="warehouse-sell-wood-amount">0</span>
           </button>
           <button class="btn-resource" onclick="window.market.openSetPriceModal('stone')">
-            🪨 Камень: <span id="warehouse-sell-stone-amount">0</span>
+            <img class="resource-inline-icon-lg" src="/resources/Stone.png" alt="Камень"> Камень: <span id="warehouse-sell-stone-amount">0</span>
           </button>
           <button class="btn-resource" onclick="window.market.openSetPriceModal('meat')">
-            🍖 Мясо: <span id="warehouse-sell-meat-amount">0</span>
+            <img class="resource-inline-icon-lg" src="/resources/Meat.png" alt="Мясо"> Мясо: <span id="warehouse-sell-meat-amount">0</span>
           </button>
         </div>
       </div>

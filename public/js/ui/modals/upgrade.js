@@ -4,6 +4,7 @@ import { updateUI } from '../dom.js';
 import { renderBuildings } from '../builders.js';
 import { formatNumber } from '../../utils/formatters.js';
 import { getUpgradeCost, getProductionRate, getBuildingConfig } from '../../game/config.js';
+import { getResourceIconHtml } from '../../utils/resourceIcons.js';
 
 export function openUpgradeModal(buildingId, currentLevel) {
   const building = appState.allBuildings.find((b) => b.id === buildingId);
@@ -84,9 +85,9 @@ export function openUpgradeModal(buildingId, currentLevel) {
     costValueEl.style.color = hasGold ? '#d4af37' : '#ff6b6b';
     if (costIconEl) {
       costIconEl.style.display = 'inline';
-      costIconEl.textContent = '💰';
+      costIconEl.innerHTML = getResourceIconHtml('gold', 'resource-inline-icon-lg', 'Jamcoin');
     }
-    playerGoldInfoEl.innerHTML = `Ваши Jamcoins: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} 💰</span>`;
+    playerGoldInfoEl.innerHTML = `Ваши Jamcoins: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</span>`;
   }
 
   // Enable/disable upgrade button

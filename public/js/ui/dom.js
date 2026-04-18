@@ -1,6 +1,6 @@
 import { formatNumberShort, formatNumber, formatDurationMs } from '../utils/formatters.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
-import { getTreasuryCapacity, getWarehouseCapacity } from '../game/config.js';
+import { getTreasuryCapacity } from '../game/config.js';
 
 /**
  * Generate initials or fallback emoji for avatar
@@ -54,17 +54,9 @@ export function updateUI(currentUser) {
   if (jabcoinsEl) jabcoinsEl.textContent = jabcoinsText;
 
   const treasuryCapacity = getTreasuryCapacity(currentUser.treasury_level || 1);
-  const warehouseCapacity = getWarehouseCapacity(currentUser.warehouse_level || 1);
   const treasuryProgress = treasuryCapacity > 0 ? Math.min(100, Math.round(((currentUser.gold || 0) / treasuryCapacity) * 100)) : 0;
-  const woodProgress = warehouseCapacity > 0 ? Math.round(((currentUser.wood || 0) / warehouseCapacity) * 100) : 0;
-  const stoneProgress = warehouseCapacity > 0 ? Math.round(((currentUser.stone || 0) / warehouseCapacity) * 100) : 0;
-  const meatProgress = warehouseCapacity > 0 ? Math.round(((currentUser.meat || 0) / warehouseCapacity) * 100) : 0;
-  const warehouseProgress = Math.max(woodProgress, stoneProgress, meatProgress);
 
   applyCapacityState(goldEl?.closest('.resource-item'), treasuryProgress);
-  applyCapacityState(woodEl?.closest('.resource-item'), woodProgress);
-  applyCapacityState(stoneEl?.closest('.resource-item'), stoneProgress);
-  applyCapacityState(meatEl?.closest('.resource-item'), meatProgress);
 
   // Update Jamcoin earned display on mining page with full number (no abbreviations)
   const jamcoinEarnedEl = document.getElementById('jamcoin-earned-display');
@@ -82,7 +74,7 @@ export function updateUI(currentUser) {
   document.getElementById('player-username').textContent = `@${currentUser.username || 'unknown'}`;
   document.getElementById('player-id').textContent = currentUser.telegram_id;
 
-  updatePlayerStatus(currentUser, treasuryProgress, warehouseProgress);
+  updatePlayerStatus(currentUser, treasuryProgress);
 
   // Update avatar with Telegram profile photo if available, otherwise show initials/fallback
   const avatarEl = document.getElementById('avatar-image');
@@ -134,10 +126,9 @@ function applyCapacityState(element, progress) {
   }
 }
 
-function updatePlayerStatus(currentUser, treasuryProgress, warehouseProgress) {
+function updatePlayerStatus(currentUser, treasuryProgress) {
   const shieldEl = document.getElementById('shield-status');
   const treasuryEl = document.getElementById('treasury-status');
-  const warehouseEl = document.getElementById('warehouse-status');
 
   if (shieldEl) {
     shieldEl.classList.remove('is-active', 'is-warning', 'is-danger');
@@ -164,10 +155,4 @@ function updatePlayerStatus(currentUser, treasuryProgress, warehouseProgress) {
     else if (treasuryProgress >= 85) treasuryEl.classList.add('is-warning');
   }
 
-  if (warehouseEl) {
-    warehouseEl.textContent = `Склад: ${warehouseProgress}%`;
-    warehouseEl.classList.remove('is-warning', 'is-danger');
-    if (warehouseProgress >= 100) warehouseEl.classList.add('is-danger');
-    else if (warehouseProgress >= 85) warehouseEl.classList.add('is-warning');
-  }
 }

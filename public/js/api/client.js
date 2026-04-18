@@ -57,8 +57,12 @@ export const apiClient = {
     return response.json();
   },
 
-  async clickCoin(userId) {
-    const response = await fetch(`/api/user/${userId}/coin-click`, { method: 'POST' });
+  async clickCoin(userId, count = 1) {
+    const response = await fetch(`/api/user/${userId}/coin-click`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ count }),
+    });
     if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to add gold'); }
     return response.json();
   },

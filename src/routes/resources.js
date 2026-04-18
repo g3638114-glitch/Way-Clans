@@ -33,7 +33,9 @@ router.post('/:userId/exchange', async (req, res) => {
 router.post('/:userId/coin-click', async (req, res) => {
   try {
     const { userId } = req.params;
-    const result = await addGold(userId, 100);
+    const requestedCount = Number(req.body?.count || 1);
+    const count = Number.isFinite(requestedCount) ? Math.max(1, Math.floor(requestedCount)) : 1;
+    const result = await addGold(userId, 100 * count);
     res.json(result);
   } catch (error) {
     console.error('Error adding Jamcoin:', error);

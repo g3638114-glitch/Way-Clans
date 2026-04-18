@@ -84,7 +84,7 @@ export function createBuildingCard(building) {
   stats.className = 'building-card-stats';
   stats.innerHTML = `
     <div class="stat-row">
-      <span class="stat-label">Производство/час:</span>
+      <span class="stat-label">Производство/час: </span>
       <span class="stat-value">${productionRate}${resourceIcon}/час</span>
     </div>
     <div class="stat-row">

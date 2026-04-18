@@ -1,5 +1,6 @@
-import { formatNumberShort, formatNumber } from '../utils/formatters.js';
+import { formatNumberShort, formatNumber, formatDurationMs } from '../utils/formatters.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
+import { getTreasuryCapacity, getWarehouseCapacity } from '../game/config.js';
 
 /**
  * Generate initials or fallback emoji for avatar
@@ -52,6 +53,19 @@ export function updateUI(currentUser) {
   if (meatEl) meatEl.textContent = meatText;
   if (jabcoinsEl) jabcoinsEl.textContent = jabcoinsText;
 
+  const treasuryCapacity = getTreasuryCapacity(currentUser.treasury_level || 1);
+  const warehouseCapacity = getWarehouseCapacity(currentUser.warehouse_level || 1);
+  const treasuryProgress = treasuryCapacity > 0 ? Math.min(100, Math.round(((currentUser.gold || 0) / treasuryCapacity) * 100)) : 0;
+  const woodProgress = warehouseCapacity > 0 ? Math.round(((currentUser.wood || 0) / warehouseCapacity) * 100) : 0;
+  const stoneProgress = warehouseCapacity > 0 ? Math.round(((currentUser.stone || 0) / warehouseCapacity) * 100) : 0;
+  const meatProgress = warehouseCapacity > 0 ? Math.round(((currentUser.meat || 0) / warehouseCapacity) * 100) : 0;
+  const warehouseProgress = Math.max(woodProgress, stoneProgress, meatProgress);
+
+  applyCapacityState(goldEl?.closest('.resource-item'), treasuryProgress);
+  applyCapacityState(woodEl?.closest('.resource-item'), woodProgress);
+  applyCapacityState(stoneEl?.closest('.resource-item'), stoneProgress);
+  applyCapacityState(meatEl?.closest('.resource-item'), meatProgress);
+
   // Update Jamcoin earned display on mining page with full number (no abbreviations)
   const jamcoinEarnedEl = document.getElementById('jamcoin-earned-display');
   if (jamcoinEarnedEl) jamcoinEarnedEl.textContent = goldFullText;
@@ -67,6 +81,8 @@ export function updateUI(currentUser) {
   document.getElementById('player-name').textContent = currentUser.first_name || 'Player';
   document.getElementById('player-username').textContent = `@${currentUser.username || 'unknown'}`;
   document.getElementById('player-id').textContent = currentUser.telegram_id;
+
+  updatePlayerStatus(currentUser, treasuryProgress, warehouseProgress);
 
   // Update avatar with Telegram profile photo if available, otherwise show initials/fallback
   const avatarEl = document.getElementById('avatar-image');
@@ -104,4 +120,54 @@ export function updateUI(currentUser) {
   document.getElementById('wood-input').max = currentUser.wood;
   document.getElementById('stone-input').max = currentUser.stone;
   document.getElementById('meat-input').max = currentUser.meat;
+}
+
+function applyCapacityState(element, progress) {
+  if (!element) return;
+
+  element.classList.remove('is-warning', 'is-danger');
+
+  if (progress >= 100) {
+    element.classList.add('is-danger');
+  } else if (progress >= 85) {
+    element.classList.add('is-warning');
+  }
+}
+
+function updatePlayerStatus(currentUser, treasuryProgress, warehouseProgress) {
+  const shieldEl = document.getElementById('shield-status');
+  const treasuryEl = document.getElementById('treasury-status');
+  const warehouseEl = document.getElementById('warehouse-status');
+
+  if (shieldEl) {
+    shieldEl.classList.remove('is-active', 'is-warning', 'is-danger');
+
+    if (currentUser.shield_until) {
+      const shieldUntilMs = new Date(currentUser.shield_until).getTime();
+      const remainingMs = shieldUntilMs - Date.now();
+
+      if (remainingMs > 0) {
+        shieldEl.textContent = `Щит: ${formatDurationMs(remainingMs)}`;
+        shieldEl.classList.add('is-active');
+      } else {
+        shieldEl.textContent = 'Щит: нет';
+      }
+    } else {
+      shieldEl.textContent = 'Щит: нет';
+    }
+  }
+
+  if (treasuryEl) {
+    treasuryEl.textContent = `Казна: ${treasuryProgress}%`;
+    treasuryEl.classList.remove('is-warning', 'is-danger');
+    if (treasuryProgress >= 100) treasuryEl.classList.add('is-danger');
+    else if (treasuryProgress >= 85) treasuryEl.classList.add('is-warning');
+  }
+
+  if (warehouseEl) {
+    warehouseEl.textContent = `Склад: ${warehouseProgress}%`;
+    warehouseEl.classList.remove('is-warning', 'is-danger');
+    if (warehouseProgress >= 100) warehouseEl.classList.add('is-danger');
+    else if (warehouseProgress >= 85) warehouseEl.classList.add('is-warning');
+  }
 }

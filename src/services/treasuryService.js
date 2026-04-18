@@ -1,20 +1,13 @@
 import { supabase } from '../bot.js';
 import { getTreasuryCapacity, getTreasuryUpgradeCost, getMaxTreasuryLevel } from '../config/buildings.js';
+import { getUserByTelegramId } from './userService.js';
 
 /**
  * Get treasury info for a user
  * Treasury stores Jamcoin 💰 (gold)
  */
 export async function getUserTreasury(userId) {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (error) {
-    throw new Error('User not found');
-  }
+  const user = await getUserByTelegramId(userId);
 
   const treasuryLevel = user.treasury_level || 1;
   const capacity = getTreasuryCapacity(treasuryLevel);
@@ -36,15 +29,7 @@ export async function getUserTreasury(userId) {
  * Requires jamcoins (gold), stone, and wood
  */
 export async function upgradeTreasury(userId) {
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (userError) {
-    throw new Error('User not found');
-  }
+  const user = await getUserByTelegramId(userId);
 
   const currentLevel = user.treasury_level || 1;
   const maxLevel = getMaxTreasuryLevel();
@@ -119,15 +104,7 @@ export async function upgradeTreasury(userId) {
  * Treasury stores Jamcoin 💰 (gold)
  */
 export async function isTreasuryFull(userId) {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (error) {
-    throw new Error('User not found');
-  }
+  const user = await getUserByTelegramId(userId);
 
   const treasuryLevel = user.treasury_level || 1;
   const capacity = getTreasuryCapacity(treasuryLevel);

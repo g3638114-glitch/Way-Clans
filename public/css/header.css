@@ -125,6 +125,50 @@
   font-size: 12px;
 }
 
+.fortress-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.fortress-badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.fortress-badge.is-warning {
+  color: #ffd666;
+  border-color: rgba(255, 214, 102, 0.24);
+  background: rgba(255, 214, 102, 0.08);
+}
+
+.fortress-badge.is-danger {
+  color: #ff928b;
+  border-color: rgba(255, 120, 120, 0.24);
+  background: rgba(255, 120, 120, 0.08);
+}
+
+.fortress-badge.is-active {
+  color: #8ff0b8;
+  border-color: rgba(95, 214, 138, 0.28);
+  background: rgba(95, 214, 138, 0.08);
+}
+
+.resource-item.is-warning {
+  border-color: rgba(255, 214, 102, 0.32);
+}
+
+.resource-item.is-danger {
+  border-color: rgba(255, 120, 120, 0.38);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 18px rgba(80, 0, 0, 0.18);
+}
+
 .main-hub-panel,
 .main-battle-panel {
   padding: 12px;

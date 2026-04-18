@@ -1,20 +1,13 @@
 import { supabase } from '../bot.js';
 import { getWarehouseCapacity, getWarehouseUpgradeCost, getMaxWarehouseLevel } from '../config/buildings.js';
+import { getUserByTelegramId } from './userService.js';
 
 /**
  * Get warehouse info for a user
  * Warehouse stores wood, stone, and meat
  */
 export async function getUserWarehouse(userId) {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (error) {
-    throw new Error('User not found');
-  }
+  const user = await getUserByTelegramId(userId);
 
   const warehouseLevel = user.warehouse_level || 1;
   const capacity = getWarehouseCapacity(warehouseLevel);
@@ -45,15 +38,7 @@ export async function getUserWarehouse(userId) {
  * Requires jamcoins (gold), stone, and wood
  */
 export async function upgradeWarehouse(userId) {
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (userError) {
-    throw new Error('User not found');
-  }
+  const user = await getUserByTelegramId(userId);
 
   const currentLevel = user.warehouse_level || 1;
   const maxLevel = getMaxWarehouseLevel();
@@ -128,15 +113,7 @@ export async function upgradeWarehouse(userId) {
  * Warehouse stores wood, stone, and meat
  */
 export async function isWarehouseFull(userId, resource = null) {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (error) {
-    throw new Error('User not found');
-  }
+  const user = await getUserByTelegramId(userId);
 
   const warehouseLevel = user.warehouse_level || 1;
   const capacity = getWarehouseCapacity(warehouseLevel);
@@ -161,15 +138,7 @@ export async function isWarehouseFull(userId, resource = null) {
  * Get which resources are full in the warehouse
  */
 export async function getFullWarehouseResources(userId) {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', userId)
-    .single();
-
-  if (error) {
-    throw new Error('User not found');
-  }
+  const user = await getUserByTelegramId(userId);
 
   const warehouseLevel = user.warehouse_level || 1;
   const capacity = getWarehouseCapacity(warehouseLevel);

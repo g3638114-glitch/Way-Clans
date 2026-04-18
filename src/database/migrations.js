@@ -106,6 +106,47 @@ const migrations = [
           ALTER TABLE market_listings DISABLE ROW LEVEL SECURITY;
           ALTER TABLE user_troops DISABLE ROW LEVEL SECURITY;`,
   },
+  {
+    name: 'Add indexes for hot paths',
+    sql: `CREATE INDEX IF NOT EXISTS idx_users_shield_until ON users(shield_until);
+          CREATE INDEX IF NOT EXISTS idx_user_buildings_user_id ON user_buildings(user_id);
+          CREATE INDEX IF NOT EXISTS idx_user_troops_user_id ON user_troops(user_id);
+          CREATE INDEX IF NOT EXISTS idx_market_listings_resource_type ON market_listings(resource_type);
+          CREATE INDEX IF NOT EXISTS idx_market_listings_seller_id ON market_listings(seller_id);`,
+  },
+  {
+    name: 'Add non-negative constraints',
+    sql: `ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_gold_non_negative;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_wood_non_negative;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_stone_non_negative;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_meat_non_negative;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_jabcoins_non_negative;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_jamcoins_from_clicks_non_negative;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_treasury_level_positive;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_warehouse_level_positive;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_attacker_level_positive;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_defender_level_positive;
+          ALTER TABLE user_troops DROP CONSTRAINT IF EXISTS chk_user_troops_count_non_negative;
+          ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_level_positive;
+          ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_collected_amount_non_negative;
+          ALTER TABLE market_listings DROP CONSTRAINT IF EXISTS chk_market_listings_quantity_positive;
+          ALTER TABLE market_listings DROP CONSTRAINT IF EXISTS chk_market_listings_price_positive;
+          ALTER TABLE users ADD CONSTRAINT chk_users_gold_non_negative CHECK (gold >= 0);
+          ALTER TABLE users ADD CONSTRAINT chk_users_wood_non_negative CHECK (wood >= 0);
+          ALTER TABLE users ADD CONSTRAINT chk_users_stone_non_negative CHECK (stone >= 0);
+          ALTER TABLE users ADD CONSTRAINT chk_users_meat_non_negative CHECK (meat >= 0);
+          ALTER TABLE users ADD CONSTRAINT chk_users_jabcoins_non_negative CHECK (jabcoins >= 0);
+          ALTER TABLE users ADD CONSTRAINT chk_users_jamcoins_from_clicks_non_negative CHECK (jamcoins_from_clicks >= 0);
+          ALTER TABLE users ADD CONSTRAINT chk_users_treasury_level_positive CHECK (treasury_level >= 1);
+          ALTER TABLE users ADD CONSTRAINT chk_users_warehouse_level_positive CHECK (warehouse_level >= 1);
+          ALTER TABLE users ADD CONSTRAINT chk_users_attacker_level_positive CHECK (attacker_level >= 1);
+          ALTER TABLE users ADD CONSTRAINT chk_users_defender_level_positive CHECK (defender_level >= 1);
+          ALTER TABLE user_troops ADD CONSTRAINT chk_user_troops_count_non_negative CHECK (count >= 0);
+          ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_level_positive CHECK (level >= 1);
+          ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_collected_amount_non_negative CHECK (collected_amount >= 0);
+          ALTER TABLE market_listings ADD CONSTRAINT chk_market_listings_quantity_positive CHECK (quantity > 0);
+          ALTER TABLE market_listings ADD CONSTRAINT chk_market_listings_price_positive CHECK (price_per_unit > 0);`,
+  },
 ];
 
 async function executeMigrations(client) {

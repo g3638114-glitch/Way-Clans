@@ -1,14 +1,15 @@
 import { supabase } from '../bot.js';
 import { TROOP_STATS, HIRE_COSTS } from '../config/troops.js';
+import { getUserByTelegramId } from './userService.js';
 
 export async function getUserTroops(userId) {
-  const { data: user } = await supabase.from('users').select('id, attacker_level, defender_level').eq('telegram_id', userId).single();
+  const user = await getUserByTelegramId(userId, 'id, attacker_level, defender_level');
   const { data: troops } = await supabase.from('user_troops').select('*').eq('user_id', user.id);
   return { attacker_level: user.attacker_level, defender_level: user.defender_level, troops: troops || [] };
 }
 
 export async function hireTroop(userId, type, quantity = 1) {
-  const { data: user } = await supabase.from('users').select('*').eq('telegram_id', userId).single();
+  const user = await getUserByTelegramId(userId);
   const level = type === 'attacker' ? user.attacker_level : user.defender_level;
   const cost = HIRE_COSTS[type];
 
@@ -48,7 +49,7 @@ export async function hireTroop(userId, type, quantity = 1) {
 }
 
 export async function upgradeTroopType(userId, type) {
-  const { data: user } = await supabase.from('users').select('*').eq('telegram_id', userId).single();
+  const user = await getUserByTelegramId(userId);
   const currentLevel = type === 'attacker' ? user.attacker_level : user.defender_level;
   
   if (currentLevel >= 6) throw new Error('Максимальный уровень достигнут');

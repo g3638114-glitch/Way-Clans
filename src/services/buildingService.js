@@ -1,41 +1,38 @@
 import { supabase } from '../bot.js';
 import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
 import { getOrCreateUser } from './userService.js';
+import { withTransaction } from '../database/pg.js';
 
 /**
  * Activate a building to start production
  * Resources will accumulate from this point until capacity is reached
  */
 export async function activateBuilding(userId, buildingId) {
-  const user = await getOrCreateUser(userId);
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT id FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
 
-  const { data: building, error: buildError } = await supabase
-    .from('user_buildings')
-    .select('*')
-    .eq('id', buildingId)
-    .eq('user_id', user.id)
-    .single();
+    const buildingResult = await client.query(
+      `SELECT * FROM user_buildings
+       WHERE id = $1 AND user_id = $2
+       FOR UPDATE`,
+      [buildingId, userResult.rows[0].id]
+    );
 
-  if (buildError) {
-    throw new Error('Building not found');
-  }
+    if (buildingResult.rows.length === 0) {
+      throw new Error('Building not found');
+    }
 
-  // Set activation time to now
-  const { data: updatedBuilding, error: updateError } = await supabase
-    .from('user_buildings')
-    .update({
-      last_activated: new Date().toISOString(),
-      collected_amount: 0,
-    })
-    .eq('id', buildingId)
-    .select()
-    .single();
+    const updatedBuilding = await client.query(
+      `UPDATE user_buildings
+       SET last_activated = $1, collected_amount = 0
+       WHERE id = $2
+       RETURNING *`,
+      [new Date().toISOString(), buildingId]
+    );
 
-  if (updateError) {
-    throw new Error('Failed to activate building');
-  }
-
-  return { success: true, building: updatedBuilding };
+    return { success: true, building: updatedBuilding.rows[0] };
+  });
 }
 
 /**
@@ -43,111 +40,77 @@ export async function activateBuilding(userId, buildingId) {
  * Can only collect if building is at full capacity
  */
 export async function collectResourcesFromBuilding(userId, buildingId) {
-  const user = await getOrCreateUser(userId);
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
 
-  const { data: building, error: buildError } = await supabase
-    .from('user_buildings')
-    .select('*')
-    .eq('id', buildingId)
-    .eq('user_id', user.id)
-    .single();
+    const buildingResult = await client.query(
+      `SELECT * FROM user_buildings
+       WHERE id = $1 AND user_id = $2
+       FOR UPDATE`,
+      [buildingId, user.id]
+    );
 
-  if (buildError) {
-    throw new Error('Building not found');
-  }
-
-  // If building hasn't been activated, can't collect
-  if (!building.last_activated) {
-    throw new Error('Building must be activated first');
-  }
-
-  // Calculate accumulated resources since last activation
-  const level = building.level || 1;
-  const productionRate = getProductionRate(building.building_type, level);
-  const capacity = getCapacity(building.building_type, level);
-
-  const lastActivated = new Date(building.last_activated);
-  const now = new Date();
-  const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
-
-  // Calculate total accumulated (with decimals for smooth progress)
-  const totalAccumulated = (building.collected_amount || 0) + (hoursPassed * productionRate);
-  const accumulated = Math.floor(Math.min(totalAccumulated, capacity));
-
-  // Can collect at any time if building is activated, but collect only what accumulated
-  // Determine how much to collect
-  const collectedAmount = Math.floor(accumulated);
-
-  // Add accumulated resources to user
-  const resourceType = getResourceType(building.building_type);
-
-  // Check storage capacity BEFORE updating building
-  if (resourceType === 'gold') {
-    // Check treasury capacity for gold
-    const treasuryLevel = user.treasury_level || 1;
-    const treasuryCapacity = getTreasuryCapacity(treasuryLevel);
-    const newGoldAmount = (user.gold || 0) + collectedAmount;
-
-    if (newGoldAmount > treasuryCapacity) {
-      throw new Error(`Лимит казны достигнут. Вы не можете собрать ${collectedAmount} Jamcoin. Вместимость казны: ${treasuryCapacity}, сейчас: ${user.gold || 0}. Освободите место и попробуйте снова.`);
+    if (buildingResult.rows.length === 0) {
+      throw new Error('Building not found');
     }
-  } else {
-    // Check warehouse capacity for wood, stone, meat
-    const warehouseLevel = user.warehouse_level || 1;
-    const warehouseCapacity = getWarehouseCapacity(warehouseLevel);
-    const newResourceAmount = (user[resourceType] || 0) + collectedAmount;
 
-    if (newResourceAmount > warehouseCapacity) {
-      const resourceNames = {
-        wood: 'дерева',
-        stone: 'камня',
-        meat: 'мяса',
-      };
-      const resourceEmojis = {
-        wood: '🌲',
-        stone: '🪨',
-        meat: '🍖',
-      };
-      throw new Error(`Лимит склада достигнут. Вы не можете собрать ${collectedAmount} ${resourceNames[resourceType]} ${resourceEmojis[resourceType]}. Вместимость склада: ${warehouseCapacity}, сейчас: ${user[resourceType] || 0}. Освободите место и попробуйте снова.`);
+    const building = buildingResult.rows[0];
+
+    if (!building.last_activated) {
+      throw new Error('Building must be activated first');
     }
-  }
 
-  // Now update building only if all checks passed
-  const { data: updatedBuilding, error: updateError } = await supabase
-    .from('user_buildings')
-    .update({
-      collected_amount: 0,
-      last_activated: new Date().toISOString(),
-    })
-    .eq('id', buildingId)
-    .select()
-    .single();
+    const level = building.level || 1;
+    const productionRate = getProductionRate(building.building_type, level);
+    const capacity = getCapacity(building.building_type, level);
+    const lastActivated = new Date(building.last_activated);
+    const now = new Date();
+    const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
+    const totalAccumulated = Number(building.collected_amount || 0) + (hoursPassed * productionRate);
+    const collectedAmount = Math.floor(Math.min(totalAccumulated, capacity));
+    const resourceType = getResourceType(building.building_type);
 
-  if (updateError) {
-    throw new Error('Failed to collect resources');
-  }
+    if (resourceType === 'gold') {
+      const treasuryCapacity = getTreasuryCapacity(user.treasury_level || 1);
+      const newGoldAmount = Number(user.gold || 0) + collectedAmount;
+      if (newGoldAmount > treasuryCapacity) {
+        throw new Error(`Лимит казны достигнут. Вы не можете собрать ${collectedAmount} Jamcoin. Вместимость казны: ${treasuryCapacity}, сейчас: ${user.gold || 0}. Освободите место и попробуйте снова.`);
+      }
+    } else {
+      const warehouseCapacity = getWarehouseCapacity(user.warehouse_level || 1);
+      const newResourceAmount = Number(user[resourceType] || 0) + collectedAmount;
+      if (newResourceAmount > warehouseCapacity) {
+        const resourceNames = { wood: 'дерева', stone: 'камня', meat: 'мяса' };
+        throw new Error(`Лимит склада достигнут. Вы не можете собрать ${collectedAmount} ${resourceNames[resourceType]}. Вместимость склада: ${warehouseCapacity}, сейчас: ${user[resourceType] || 0}. Освободите место и попробуйте снова.`);
+      }
+    }
 
-  const updateData = {};
-  updateData[resourceType] = (user[resourceType] || 0) + collectedAmount;
+    const updatedBuildingResult = await client.query(
+      `UPDATE user_buildings
+       SET collected_amount = 0, last_activated = $1
+       WHERE id = $2
+       RETURNING *`,
+      [new Date().toISOString(), buildingId]
+    );
 
-  const { data: updatedUser, error: userUpdateError } = await supabase
-    .from('users')
-    .update(updateData)
-    .eq('id', user.id)
-    .select()
-    .single();
+    const updatedUserResult = await client.query(
+      `UPDATE users
+       SET ${resourceType} = $1
+       WHERE id = $2
+       RETURNING *`,
+      [Number(user[resourceType] || 0) + collectedAmount, user.id]
+    );
 
-  if (userUpdateError) {
-    throw new Error('Failed to update resources');
-  }
-
-  return {
-    success: true,
-    collectedAmount: collectedAmount,
-    resourceType,
-    user: updatedUser,
-    building: updatedBuilding,
-  };
+    return {
+      success: true,
+      collectedAmount,
+      resourceType,
+      user: updatedUserResult.rows[0],
+      building: updatedBuildingResult.rows[0],
+    };
+  });
 }
 
 /**
@@ -156,110 +119,73 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
  * Others require gold
  */
 export async function upgradeBuilding(userId, buildingId) {
-  const user = await getOrCreateUser(userId);
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
 
-  const { data: building, error: buildError } = await supabase
-    .from('user_buildings')
-    .select('*')
-    .eq('id', buildingId)
-    .eq('user_id', user.id)
-    .single();
+    const buildingResult = await client.query(
+      `SELECT * FROM user_buildings
+       WHERE id = $1 AND user_id = $2
+       FOR UPDATE`,
+      [buildingId, user.id]
+    );
 
-  if (buildError) {
-    throw new Error('Building not found');
-  }
-
-  const currentLevel = building.level || 1;
-
-  // Can't upgrade beyond level 5
-  if (currentLevel >= 5) {
-    throw new Error('Building is already at maximum level (5)');
-  }
-
-  const nextLevel = currentLevel + 1;
-  const buildingType = building.building_type;
-
-  // Get upgrade cost
-  const costData = getUpgradeCost(buildingType, nextLevel);
-  if (!costData) {
-    throw new Error('Invalid level for upgrade');
-  }
-
-  // Check resources
-  if (buildingType === 'mine') {
-    // Mine requires stone + wood
-    if ((user.stone || 0) < costData.stone) {
-      throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
-    }
-    if ((user.wood || 0) < costData.wood) {
-      throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
+    if (buildingResult.rows.length === 0) {
+      throw new Error('Building not found');
     }
 
-    // Deduct resources
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        stone: user.stone - costData.stone,
-        wood: user.wood - costData.wood,
-      })
-      .eq('id', user.id);
+    const building = buildingResult.rows[0];
+    const currentLevel = building.level || 1;
 
-    if (updateError) {
-      throw new Error('Failed to deduct resources');
-    }
-  } else {
-    // Quarry, Lumber Mill, Farm require gold
-    if ((user.gold || 0) < costData.gold) {
-      throw new Error(`Not enough gold. Need ${costData.gold}, have ${user.gold || 0}`);
+    if (currentLevel >= 5) {
+      throw new Error('Building is already at maximum level (5)');
     }
 
-    // Deduct gold
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        gold: user.gold - costData.gold,
-      })
-      .eq('id', user.id);
+    const nextLevel = currentLevel + 1;
+    const buildingType = building.building_type;
+    const costData = getUpgradeCost(buildingType, nextLevel);
 
-    if (updateError) {
-      throw new Error('Failed to deduct gold');
+    if (!costData) {
+      throw new Error('Invalid level for upgrade');
     }
-  }
 
-  // Update building level
-  const newProductionRate = getProductionRate(buildingType, nextLevel);
+    let nextGold = Number(user.gold || 0);
+    let nextStone = Number(user.stone || 0);
+    let nextWood = Number(user.wood || 0);
 
-  const { data: updatedBuilding, error: upgradeBuildingError } = await supabase
-    .from('user_buildings')
-    .update({
-      level: nextLevel,
-      production_rate: newProductionRate,
-    })
-    .eq('id', buildingId)
-    .select()
-    .single();
+    if (buildingType === 'mine') {
+      if (nextStone < costData.stone) throw new Error(`Not enough stone. Need ${costData.stone}, have ${nextStone}`);
+      if (nextWood < costData.wood) throw new Error(`Not enough wood. Need ${costData.wood}, have ${nextWood}`);
+      nextStone -= costData.stone;
+      nextWood -= costData.wood;
+    } else {
+      if (nextGold < costData.gold) throw new Error(`Not enough gold. Need ${costData.gold}, have ${nextGold}`);
+      nextGold -= costData.gold;
+    }
 
-  if (upgradeBuildingError) {
-    throw new Error('Failed to upgrade building');
-  }
+    await client.query(
+      'UPDATE users SET gold = $1, stone = $2, wood = $3 WHERE id = $4',
+      [nextGold, nextStone, nextWood, user.id]
+    );
 
-  // Get updated user data
-  const { data: updatedUser, error: getUserError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+    const updatedBuildingResult = await client.query(
+      `UPDATE user_buildings
+       SET level = $1, production_rate = $2
+       WHERE id = $3
+       RETURNING *`,
+      [nextLevel, getProductionRate(buildingType, nextLevel), buildingId]
+    );
 
-  if (getUserError) {
-    throw new Error('Failed to get updated user data');
-  }
+    const updatedUserResult = await client.query('SELECT * FROM users WHERE id = $1', [user.id]);
 
-  return {
-    success: true,
-    cost: costData,
-    user: updatedUser,
-    building: updatedBuilding,
-  };
+    return {
+      success: true,
+      cost: costData,
+      user: updatedUserResult.rows[0],
+      building: updatedBuildingResult.rows[0],
+    };
+  });
 }
 
 /**

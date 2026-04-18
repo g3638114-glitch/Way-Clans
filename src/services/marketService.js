@@ -1,6 +1,7 @@
 import { supabase } from '../bot.js';
 import { getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
 import { getOrCreateUser } from './userService.js';
+import { withTransaction } from '../database/pg.js';
 
 
 /**
@@ -16,44 +17,42 @@ export async function createListing(telegramId, { resourceType, quantity, priceP
     throw new Error('Quantity and price must be positive');
   }
 
-  const user = await getOrCreateUser(telegramId);
-  if (!user) throw new Error('User not found');
+  return withTransaction(async (client) => {
+    const userResult = await client.query(
+      'SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE',
+      [telegramId]
+    );
 
-  // Check if user has enough resources
-  const userResources = user[resourceType] || 0;
-  if (userResources < quantity) {
-    throw new Error('Not enough resources');
-  }
+    if (userResult.rows.length === 0) {
+      throw new Error('User not found');
+    }
 
-  // Create listing
-  const { data: listing, error } = await supabase
-    .from('market_listings')
-    .insert({
-      seller_id: user.id,
-      resource_type: resourceType,
-      quantity,
-      price_per_unit: pricePerUnit,
-    })
-    .select()
-    .single();
+    const user = userResult.rows[0];
+    const userResources = Number(user[resourceType] || 0);
 
-  if (error) throw new Error('Failed to create listing');
+    if (userResources < quantity) {
+      throw new Error('Not enough resources');
+    }
 
-  // Deduct resources from user
-  const newQuantity = userResources - quantity;
-  await supabase
-    .from('users')
-    .update({ [resourceType]: newQuantity })
-    .eq('id', user.id);
+    const newQuantity = userResources - quantity;
+    await client.query(`UPDATE users SET ${resourceType} = $1 WHERE id = $2`, [newQuantity, user.id]);
 
-  return {
-    success: true,
-    listing,
-    user: {
-      ...user,
-      [resourceType]: newQuantity,
-    },
-  };
+    const listingResult = await client.query(
+      `INSERT INTO market_listings (seller_id, resource_type, quantity, price_per_unit)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [user.id, resourceType, quantity, pricePerUnit]
+    );
+
+    return {
+      success: true,
+      listing: listingResult.rows[0],
+      user: {
+        ...user,
+        [resourceType]: newQuantity,
+      },
+    };
+  });
 }
 
 /**
@@ -153,190 +152,176 @@ export async function buyFromListing(buyerTelegramId, listingId, quantity) {
     throw new Error('Quantity must be positive');
   }
 
-  const buyer = await getOrCreateUser(buyerTelegramId);
-  if (!buyer) throw new Error('Buyer not found');
+  return withTransaction(async (client) => {
+    const buyerResult = await client.query(
+      'SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE',
+      [buyerTelegramId]
+    );
 
-  // Get listing details
-  const { data: listing, error: listingError } = await supabase
-    .from('market_listings')
-    .select('*')
-    .eq('id', listingId)
-    .single();
+    if (buyerResult.rows.length === 0) {
+      throw new Error('Buyer not found');
+    }
 
-  if (listingError || !listing) throw new Error('Listing not found');
+    const buyer = buyerResult.rows[0];
+    const listingResult = await client.query(
+      'SELECT * FROM market_listings WHERE id = $1 FOR UPDATE',
+      [listingId]
+    );
 
-  // Check if buyer is trying to buy their own listing
-  if (buyer.id === listing.seller_id) {
-    throw new Error('You cannot buy your own listings');
-  }
+    if (listingResult.rows.length === 0) {
+      throw new Error('Listing not found');
+    }
 
-  if (quantity > listing.quantity) {
-    throw new Error('Not enough quantity in listing');
-  }
+    const listing = listingResult.rows[0];
 
-  // Get seller
-  const { data: seller, error: sellerError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', listing.seller_id)
-    .single();
+    if (buyer.id === listing.seller_id) {
+      throw new Error('You cannot buy your own listings');
+    }
 
-  if (sellerError) throw new Error('Seller not found');
+    if (quantity > Number(listing.quantity)) {
+      throw new Error('Not enough quantity in listing');
+    }
 
-  // Calculate total price
-  const totalPrice = quantity * listing.price_per_unit;
+    const sellerResult = await client.query(
+      'SELECT * FROM users WHERE id = $1 FOR UPDATE',
+      [listing.seller_id]
+    );
 
-  // Check buyer has enough gold
-  if (buyer.gold < totalPrice) {
-    throw new Error('Not enough Jamcoin');
-  }
+    if (sellerResult.rows.length === 0) {
+      throw new Error('Seller not found');
+    }
 
-  // Check buyer's warehouse capacity for this specific resource
-  const warehouseCapacity = getWarehouseCapacity(buyer.warehouse_level || 1);
-  const currentResourceAmount = buyer[listing.resource_type] || 0;
+    const seller = sellerResult.rows[0];
+    const totalPrice = quantity * Number(listing.price_per_unit);
 
-  if (currentResourceAmount + quantity > warehouseCapacity) {
-    throw new Error('Not enough warehouse space');
-  }
+    if (Number(buyer.gold) < totalPrice) {
+      throw new Error('Not enough Jamcoin');
+    }
 
-  // Check seller hasn't exceeded treasury capacity
-  const treasuryLevel = seller.treasury_level || 1;
-  const treasuryCapacity = getTreasuryCapacity(treasuryLevel);
-  const newSellerGold = seller.gold + totalPrice;
+    const warehouseCapacity = getWarehouseCapacity(buyer.warehouse_level || 1);
+    const currentResourceAmount = Number(buyer[listing.resource_type] || 0);
 
-  if (newSellerGold > treasuryCapacity) {
-    throw new Error('Seller treasury is full');
-  }
+    if (currentResourceAmount + quantity > warehouseCapacity) {
+      throw new Error('Not enough warehouse space');
+    }
 
-  // Perform transaction
-  // 1. Deduct gold from buyer
-  const buyerResourceField = listing.resource_type;
-  const buyerUpdates = {
-    gold: buyer.gold - totalPrice,
-    [buyerResourceField]: (buyer[buyerResourceField] || 0) + quantity,
-  };
+    const treasuryCapacity = getTreasuryCapacity(seller.treasury_level || 1);
+    const newSellerGold = Number(seller.gold) + totalPrice;
 
-  const newQuantity = listing.quantity - quantity;
-  await Promise.all([
-    supabase.from('users').update(buyerUpdates).eq('id', buyer.id),
-    supabase.from('users').update({ gold: newSellerGold }).eq('id', listing.seller_id),
-    newQuantity === 0
-      ? supabase.from('market_listings').delete().eq('id', listingId)
-      : supabase.from('market_listings').update({ quantity: newQuantity }).eq('id', listingId),
-  ]);
+    if (newSellerGold > treasuryCapacity) {
+      throw new Error('Seller treasury is full');
+    }
 
-  return {
-    success: true,
-    message: `Purchased ${quantity} ${listing.resource_type}`,
-    user: {
-      ...buyer,
-      ...buyerUpdates,
-    },
-  };
+    const buyerUpdates = {
+      gold: Number(buyer.gold) - totalPrice,
+      [listing.resource_type]: currentResourceAmount + quantity,
+    };
+
+    await client.query(
+      `UPDATE users
+       SET gold = $1, ${listing.resource_type} = $2
+       WHERE id = $3`,
+      [buyerUpdates.gold, buyerUpdates[listing.resource_type], buyer.id]
+    );
+
+    await client.query(
+      'UPDATE users SET gold = $1 WHERE id = $2',
+      [newSellerGold, seller.id]
+    );
+
+    const newQuantity = Number(listing.quantity) - quantity;
+    if (newQuantity <= 0) {
+      await client.query('DELETE FROM market_listings WHERE id = $1', [listingId]);
+    } else {
+      await client.query('UPDATE market_listings SET quantity = $1 WHERE id = $2', [newQuantity, listingId]);
+    }
+
+    return {
+      success: true,
+      message: `Purchased ${quantity} ${listing.resource_type}`,
+      user: { ...buyer, ...buyerUpdates },
+    };
+  });
 }
 
 /**
  * Delete a market listing (returns resources to seller)
  */
 export async function deleteListing(telegramId, listingId) {
-  const user = await getOrCreateUser(telegramId);
-  if (!user) throw new Error('User not found');
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
 
-  // Get listing
-  const { data: listing, error: listingError } = await supabase
-    .from('market_listings')
-    .select('*')
-    .eq('id', listingId)
-    .single();
+    const listingResult = await client.query('SELECT * FROM market_listings WHERE id = $1 FOR UPDATE', [listingId]);
+    if (listingResult.rows.length === 0) throw new Error('Listing not found');
+    const listing = listingResult.rows[0];
 
-  if (listingError || !listing) throw new Error('Listing not found');
+    if (listing.seller_id !== user.id) {
+      throw new Error('You do not own this listing');
+    }
 
-  // Check if user owns the listing
-  if (listing.seller_id !== user.id) {
-    throw new Error('You do not own this listing');
-  }
+    const resourceField = listing.resource_type;
+    const nextAmount = Number(user[resourceField] || 0) + Number(listing.quantity);
 
-  // Return resources to seller
-  const resourceField = listing.resource_type;
-  await supabase
-    .from('users')
-    .update({ [resourceField]: (user[resourceField] || 0) + listing.quantity })
-    .eq('id', user.id);
+    await client.query(`UPDATE users SET ${resourceField} = $1 WHERE id = $2`, [nextAmount, user.id]);
+    await client.query('DELETE FROM market_listings WHERE id = $1', [listingId]);
 
-  // Delete listing
-  await supabase.from('market_listings').delete().eq('id', listingId);
-
-  return {
-    success: true,
-    message: 'Listing deleted and resources returned',
-    user: {
-      ...user,
-      [resourceField]: (user[resourceField] || 0) + listing.quantity,
-    },
-  };
+    return {
+      success: true,
+      message: 'Listing deleted and resources returned',
+      user: { ...user, [resourceField]: nextAmount },
+    };
+  });
 }
 
 /**
  * Edit a market listing
  */
 export async function editListing(telegramId, listingId, { quantity, pricePerUnit }) {
-  const user = await getOrCreateUser(telegramId);
-  if (!user) throw new Error('User not found');
-
   if (quantity <= 0 || pricePerUnit <= 0) {
     throw new Error('Quantity and price must be positive');
   }
 
-  // Get listing
-  const { data: listing, error: listingError } = await supabase
-    .from('market_listings')
-    .select('*')
-    .eq('id', listingId)
-    .single();
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
 
-  if (listingError || !listing) throw new Error('Listing not found');
+    const listingResult = await client.query('SELECT * FROM market_listings WHERE id = $1 FOR UPDATE', [listingId]);
+    if (listingResult.rows.length === 0) throw new Error('Listing not found');
+    const listing = listingResult.rows[0];
 
-  // Check if user owns the listing
-  if (listing.seller_id !== user.id) {
-    throw new Error('You do not own this listing');
-  }
-
-  // Calculate quantity difference
-  const quantityDiff = quantity - listing.quantity;
-
-  // If increasing quantity, check if user has enough resources
-  let updatedUser = user;
-
-  if (quantityDiff > 0) {
-    const userResources = user[listing.resource_type] || 0;
-    if (userResources < quantityDiff) {
-      throw new Error('Not enough resources to increase listing quantity');
+    if (listing.seller_id !== user.id) {
+      throw new Error('You do not own this listing');
     }
 
-    const nextAmount = userResources - quantityDiff;
-    await supabase
-      .from('users')
-      .update({ [listing.resource_type]: nextAmount })
-      .eq('id', user.id);
-    updatedUser = { ...user, [listing.resource_type]: nextAmount };
-  } else if (quantityDiff < 0) {
-    const nextAmount = (user[listing.resource_type] || 0) - quantityDiff;
-    await supabase
-      .from('users')
-      .update({ [listing.resource_type]: nextAmount })
-      .eq('id', user.id);
-    updatedUser = { ...user, [listing.resource_type]: nextAmount };
-  }
+    const quantityDiff = quantity - Number(listing.quantity);
+    let updatedUser = user;
 
-  // Update listing
-  const { data: updatedListing, error: updateError } = await supabase
-    .from('market_listings')
-    .update({ quantity, price_per_unit: pricePerUnit })
-    .eq('id', listingId)
-    .select()
-    .single();
+    if (quantityDiff > 0) {
+      const userResources = Number(user[listing.resource_type] || 0);
+      if (userResources < quantityDiff) {
+        throw new Error('Not enough resources to increase listing quantity');
+      }
 
-  if (updateError) throw new Error('Failed to update listing');
+      const nextAmount = userResources - quantityDiff;
+      await client.query(`UPDATE users SET ${listing.resource_type} = $1 WHERE id = $2`, [nextAmount, user.id]);
+      updatedUser = { ...user, [listing.resource_type]: nextAmount };
+    } else if (quantityDiff < 0) {
+      const nextAmount = Number(user[listing.resource_type] || 0) - quantityDiff;
+      await client.query(`UPDATE users SET ${listing.resource_type} = $1 WHERE id = $2`, [nextAmount, user.id]);
+      updatedUser = { ...user, [listing.resource_type]: nextAmount };
+    }
 
-  return { success: true, listing: updatedListing, user: updatedUser };
+    const updatedListingResult = await client.query(
+      `UPDATE market_listings
+       SET quantity = $1, price_per_unit = $2
+       WHERE id = $3
+       RETURNING *`,
+      [quantity, pricePerUnit, listingId]
+    );
+
+    return { success: true, listing: updatedListingResult.rows[0], user: updatedUser };
+  });
 }

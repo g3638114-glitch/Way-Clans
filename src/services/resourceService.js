@@ -1,6 +1,5 @@
-import { supabase } from '../bot.js';
 import { getTreasuryCapacity } from '../config/buildings.js';
-import { getOrCreateUser } from './userService.js';
+import { withTransaction } from '../database/pg.js';
 
 const RESOURCE_PRICES = {
   wood: 10,
@@ -19,40 +18,31 @@ export async function sellResources(userId, { wood = 0, stone = 0, meat = 0 }) {
     + (stone || 0) * RESOURCE_PRICES.stone
     + (meat || 0) * RESOURCE_PRICES.meat;
 
-  const user = await getOrCreateUser(userId);
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
 
-  // Check if user has enough resources
-  if ((wood || 0) > user.wood || (stone || 0) > user.stone || (meat || 0) > user.meat) {
-    throw new Error('Not enough resources');
-  }
+    if ((wood || 0) > Number(user.wood) || (stone || 0) > Number(user.stone) || (meat || 0) > Number(user.meat)) {
+      throw new Error('Not enough resources');
+    }
 
-  // Check treasury capacity
-  const treasuryLevel = user.treasury_level || 1;
-  const capacity = getTreasuryCapacity(treasuryLevel);
-  const newGoldAmount = (user.gold || 0) + goldEarned;
+    const capacity = getTreasuryCapacity(user.treasury_level || 1);
+    const newGoldAmount = Number(user.gold || 0) + goldEarned;
+    if (newGoldAmount > capacity) {
+      throw new Error(`Лимит казны достигнут. Продажа невозможна: вы получите ${goldEarned} Jamcoin, а в казне уже ${user.gold || 0} из ${capacity}. Освободите место и попробуйте снова.`);
+    }
 
-  if (newGoldAmount > capacity) {
-    throw new Error(`Лимит казны достигнут. Продажа невозможна: вы получите ${goldEarned} Jamcoin, а в казне уже ${user.gold || 0} из ${capacity}. Освободите место и попробуйте снова.`);
-  }
+    const updatedUserResult = await client.query(
+      `UPDATE users
+       SET wood = $1, stone = $2, meat = $3, gold = $4
+       WHERE id = $5
+       RETURNING *`,
+      [Number(user.wood) - (wood || 0), Number(user.stone) - (stone || 0), Number(user.meat) - (meat || 0), newGoldAmount, user.id]
+    );
 
-  // Update user resources
-  const { data: updatedUser, error: updateError } = await supabase
-    .from('users')
-    .update({
-      wood: user.wood - (wood || 0),
-      stone: user.stone - (stone || 0),
-      meat: user.meat - (meat || 0),
-      gold: newGoldAmount,
-    })
-    .eq('telegram_id', userId)
-    .select()
-    .single();
-
-  if (updateError) {
-    throw new Error('Failed to update resources');
-  }
-
-  return { success: true, user: updatedUser };
+    return { success: true, user: updatedUserResult.rows[0] };
+  });
 }
 
 export async function exchangeGold(userId, goldAmount) {
@@ -60,56 +50,48 @@ export async function exchangeGold(userId, goldAmount) {
     throw new Error(`Minimum exchange is ${EXCHANGE_CONFIG.MIN_EXCHANGE} Jamcoin`);
   }
 
-  const user = await getOrCreateUser(userId);
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
 
-  if (user.gold < goldAmount) {
-    throw new Error('Not enough Jamcoin');
-  }
+    if (Number(user.gold) < goldAmount) {
+      throw new Error('Not enough Jamcoin');
+    }
 
-  const jabcoinsGained = Math.floor(goldAmount / EXCHANGE_CONFIG.EXCHANGE_RATE);
+    const jabcoinsGained = Math.floor(goldAmount / EXCHANGE_CONFIG.EXCHANGE_RATE);
+    const updatedUserResult = await client.query(
+      `UPDATE users
+       SET gold = $1, jabcoins = $2
+       WHERE id = $3
+       RETURNING *`,
+      [Number(user.gold) - goldAmount, Number(user.jabcoins) + jabcoinsGained, user.id]
+    );
 
-  const { data: updatedUser, error: updateError } = await supabase
-    .from('users')
-    .update({
-      gold: user.gold - goldAmount,
-      jabcoins: user.jabcoins + jabcoinsGained,
-    })
-    .eq('telegram_id', userId)
-    .select()
-    .single();
-
-  if (updateError) {
-    throw new Error('Failed to exchange Jamcoin');
-  }
-
-  return { success: true, user: updatedUser, jabcoinsGained };
+    return { success: true, user: updatedUserResult.rows[0], jabcoinsGained };
+  });
 }
 
 export async function addGold(userId, goldAmount) {
-  const user = await getOrCreateUser(userId);
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
 
-  // Check treasury capacity
-  const treasuryLevel = user.treasury_level || 1;
-  const capacity = getTreasuryCapacity(treasuryLevel);
-  const newGoldAmount = (user.gold || 0) + goldAmount;
+    const capacity = getTreasuryCapacity(user.treasury_level || 1);
+    const newGoldAmount = Number(user.gold || 0) + goldAmount;
+    if (newGoldAmount > capacity) {
+      throw new Error(`Лимит казны достигнут. Вы не можете получить ещё ${goldAmount} Jamcoin. Вместимость казны: ${capacity}, сейчас: ${user.gold || 0}. Обменяйте или потратьте Jamcoin и попробуйте снова.`);
+    }
 
-  if (newGoldAmount > capacity) {
-    throw new Error(`Лимит казны достигнут. Вы не можете получить ещё ${goldAmount} Jamcoin. Вместимость казны: ${capacity}, сейчас: ${user.gold || 0}. Обменяйте или потратьте Jamcoin и попробуйте снова.`);
-  }
+    const updatedUserResult = await client.query(
+      `UPDATE users
+       SET gold = $1, jamcoins_from_clicks = $2
+       WHERE id = $3
+       RETURNING *`,
+      [newGoldAmount, Number(user.jamcoins_from_clicks || 0) + goldAmount, user.id]
+    );
 
-  const { data: updatedUser, error: updateError } = await supabase
-    .from('users')
-    .update({
-      gold: newGoldAmount,
-      jamcoins_from_clicks: (user.jamcoins_from_clicks || 0) + goldAmount,
-    })
-    .eq('telegram_id', userId)
-    .select()
-    .single();
-
-  if (updateError) {
-    throw new Error('Failed to add Jamcoin');
-  }
-
-  return { success: true, user: updatedUser };
+    return { success: true, user: updatedUserResult.rows[0] };
+  });
 }

@@ -1,6 +1,7 @@
 import { supabase } from '../bot.js';
 import { getWarehouseCapacity, getWarehouseUpgradeCost, getMaxWarehouseLevel } from '../config/buildings.js';
 import { getUserByTelegramId } from './userService.js';
+import { withTransaction } from '../database/pg.js';
 
 /**
  * Get warehouse info for a user
@@ -38,74 +39,45 @@ export async function getUserWarehouse(userId) {
  * Requires jamcoins (gold), stone, and wood
  */
 export async function upgradeWarehouse(userId) {
-  const user = await getUserByTelegramId(userId);
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
 
-  const currentLevel = user.warehouse_level || 1;
-  const maxLevel = getMaxWarehouseLevel();
+    const currentLevel = user.warehouse_level || 1;
+    const maxLevel = getMaxWarehouseLevel();
+    if (currentLevel >= maxLevel) {
+      throw new Error(`Warehouse is already at maximum level (${maxLevel})`);
+    }
 
-  // Can't upgrade beyond max level
-  if (currentLevel >= maxLevel) {
-    throw new Error(`Warehouse is already at maximum level (${maxLevel})`);
-  }
+    const nextLevel = currentLevel + 1;
+    const costData = getWarehouseUpgradeCost(nextLevel);
+    if (!costData) throw new Error('Invalid level for upgrade');
 
-  const nextLevel = currentLevel + 1;
+    const nextGold = Number(user.gold) - costData.jamcoins;
+    const nextStone = Number(user.stone) - costData.stone;
+    const nextWood = Number(user.wood) - costData.wood;
 
-  // Get upgrade cost
-  const costData = getWarehouseUpgradeCost(nextLevel);
-  if (!costData) {
-    throw new Error('Invalid level for upgrade');
-  }
+    if (nextGold < 0) throw new Error(`Not enough Jamcoin. Need ${costData.jamcoins}, have ${user.gold || 0}`);
+    if (nextStone < 0) throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
+    if (nextWood < 0) throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
 
-  // Check resources
-  if ((user.gold || 0) < costData.jamcoins) {
-    throw new Error(
-      `Not enough Jamcoin. Need ${costData.jamcoins}, have ${user.gold || 0}`
+    const updatedUserResult = await client.query(
+      `UPDATE users
+       SET gold = $1, stone = $2, wood = $3, warehouse_level = $4
+       WHERE id = $5
+       RETURNING *`,
+      [nextGold, nextStone, nextWood, nextLevel, user.id]
     );
-  }
 
-  if ((user.stone || 0) < costData.stone) {
-    throw new Error(`Not enough stone. Need ${costData.stone}, have ${user.stone || 0}`);
-  }
-
-  if ((user.wood || 0) < costData.wood) {
-    throw new Error(`Not enough wood. Need ${costData.wood}, have ${user.wood || 0}`);
-  }
-
-  // Deduct resources
-  const { error: updateError } = await supabase
-    .from('users')
-    .update({
-      gold: user.gold - costData.jamcoins,
-      stone: user.stone - costData.stone,
-      wood: user.wood - costData.wood,
-      warehouse_level: nextLevel,
-    })
-    .eq('id', user.id);
-
-  if (updateError) {
-    throw new Error('Failed to upgrade warehouse');
-  }
-
-  // Get updated user data
-  const { data: updatedUser, error: getUserError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (getUserError) {
-    throw new Error('Failed to get updated user data');
-  }
-
-  const newCapacity = getWarehouseCapacity(nextLevel);
-
-  return {
-    success: true,
-    cost: costData,
-    newLevel: nextLevel,
-    newCapacity: newCapacity,
-    user: updatedUser,
-  };
+    return {
+      success: true,
+      cost: costData,
+      newLevel: nextLevel,
+      newCapacity: getWarehouseCapacity(nextLevel),
+      user: updatedUserResult.rows[0],
+    };
+  });
 }
 
 /**

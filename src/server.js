@@ -44,5 +44,13 @@ app.get('/', (req, res) => {
   res.sendFile(join(__dirname, '../public/index.html'));
 });
 
+app.get('/wayclans', (req, res) => {
+  res.sendFile(join(__dirname, '../public/index.html'));
+});
+
+app.get('/wayclans/*', (req, res) => {
+  res.sendFile(join(__dirname, '../public/index.html'));
+});
+
 export { app };
 export default app;

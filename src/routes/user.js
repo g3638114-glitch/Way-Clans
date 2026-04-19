@@ -250,7 +250,7 @@ router.get('/:userId/referrals', async (req, res) => {
     const { userId } = req.params;
     const summary = await getReferralSummary(userId);
 
-    const directMiniAppLink = buildReferralMiniAppLink(userId);
+    const directMiniAppLink = await buildReferralMiniAppLink(userId);
 
     res.json({
       totalReferrals: summary.totalReferrals,
@@ -259,19 +259,47 @@ router.get('/:userId/referrals', async (req, res) => {
     });
   } catch (error) {
     console.error('Error loading referrals:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: error.message || 'Server error' });
   }
 });
 
-function buildReferralMiniAppLink(userId) {
-  const botUsername = (process.env.TELEGRAM_BOT_USERNAME || '').replace(/^@/, '').trim();
+async function buildReferralMiniAppLink(userId) {
+  const botUsername = await getTelegramBotUsername();
   const miniAppShortName = (process.env.TELEGRAM_MINIAPP_SHORT_NAME || '').trim();
 
-  if (!botUsername || !miniAppShortName) {
-    throw new Error('Telegram MiniApp deep link is not configured');
+  if (!botUsername) {
+    throw new Error('Не удалось определить username Telegram-бота. Добавьте TELEGRAM_BOT_USERNAME в env.');
+  }
+
+  if (!miniAppShortName) {
+    throw new Error('Не настроен TELEGRAM_MINIAPP_SHORT_NAME. Добавьте short name вашего MiniApp в env.');
   }
 
   return `https://t.me/${botUsername}/${miniAppShortName}?startapp=${encodeURIComponent(`ref_${userId}`)}`;
+}
+
+async function getTelegramBotUsername() {
+  const envUsername = (process.env.TELEGRAM_BOT_USERNAME || '').replace(/^@/, '').trim();
+  if (envUsername) {
+    return envUsername;
+  }
+
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return data?.result?.username || null;
+  } catch {
+    return null;
+  }
 }
 
 export default router;

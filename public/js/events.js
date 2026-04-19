@@ -15,13 +15,11 @@ import { renderBuildings } from './ui/builders.js';
 import * as market from './game/market.js';
 import { renderBarracks } from './game/barracks.js';
 import { openAttackMenu, closeAttackModal } from './game/attack.js';
-import { showRewardAd } from './utils/adsgram.js';
 
 const COIN_VALUE = 100;
 const MAX_SIMULTANEOUS_TOUCHES = 3;
 const CLICK_FLUSH_DELAY_MS = 120;
 const MINING_UI_UPDATE_DELAY_MS = 80;
-const MINING_AD_THRESHOLD = 40000;
 
 let queuedCoinClicks = 0;
 let pendingOptimisticCoinClicks = 0;
@@ -29,7 +27,6 @@ let coinFlushTimer = null;
 let coinRequestInFlight = false;
 let ignoreSyntheticClickUntil = 0;
 let miningUiUpdateTimer = null;
-let miningThresholdAdInProgress = false;
 
 function scheduleMiningUiUpdate() {
   if (miningUiUpdateTimer) return;
@@ -116,7 +113,6 @@ async function flushCoinClicks() {
       }
 
       scheduleMiningUiUpdate();
-      maybeShowMiningThresholdAd();
     }
   } catch (error) {
     await rollbackCoinClicksAndReload();
@@ -130,49 +126,6 @@ async function flushCoinClicks() {
     coinRequestInFlight = false;
     if (queuedCoinClicks > 0) {
       flushCoinClicks();
-    }
-  }
-}
-
-async function maybeShowMiningThresholdAd() {
-  if (miningThresholdAdInProgress || !appState.currentUser) return;
-
-  const currentClicksGold = Number(appState.currentUser.jamcoins_from_clicks || 0);
-  const lastThreshold = Number(appState.currentUser.last_mining_ad_threshold || 0);
-  const nextThreshold = lastThreshold + MINING_AD_THRESHOLD;
-
-  if (currentClicksGold < nextThreshold) {
-    return;
-  }
-
-  miningThresholdAdInProgress = true;
-  let shouldAdvanceThreshold = false;
-
-  try {
-    await showRewardAd('miningThreshold');
-    shouldAdvanceThreshold = true;
-  } catch (error) {
-    tg.showAlert(`Реклама не запущена: ${error.message || 'неизвестная ошибка AdsGram'}`);
-    miningThresholdAdInProgress = false;
-    return;
-  }
-
-  try {
-    if (shouldAdvanceThreshold) {
-      const result = await apiClient.updateMiningAdThreshold(appState.userId, nextThreshold);
-      if (result.user) {
-        appState.currentUser = { ...appState.currentUser, ...result.user };
-        scheduleMiningUiUpdate();
-      } else {
-        appState.currentUser = { ...appState.currentUser, last_mining_ad_threshold: nextThreshold };
-      }
-    }
-  } catch (error) {
-    console.error('Failed to update mining ad threshold:', error);
-  } finally {
-    miningThresholdAdInProgress = false;
-    if (Number(appState.currentUser?.jamcoins_from_clicks || 0) >= Number(appState.currentUser?.last_mining_ad_threshold || 0) + MINING_AD_THRESHOLD) {
-      setTimeout(() => maybeShowMiningThresholdAd(), 0);
     }
   }
 }

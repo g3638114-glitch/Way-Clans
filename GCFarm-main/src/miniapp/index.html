@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GC Farm - MiniApp</title>
+  <link rel="stylesheet" href="/miniapp/static/styles.css" />
+  <script>window.ADSGRAM_CONFIG = { interstitialBlockId: 'int-15539', rewardBlockId: '15541', taskBlockId: 'task-15542', energyAdBlockId: '15540', dailyRewardBlockId: '15734' };</script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+  <script src="/miniapp/config.js"></script>
+</head>
+<body>
+  <div class="game-root">
+    <div class="app-aurora" aria-hidden="true"></div>
+    <div id="loading-screen" class="loading-overlay" role="status" aria-live="polite">
+      <div class="loading-content">
+        <div class="loading-visual" aria-hidden="true">
+          <div class="loading-planet"></div>
+          <div class="loading-orbit">
+            <span class="loading-satellite"></span>
+          </div>
+        </div>
+        <p id="loading-message" class="loading-message">Загружаем вашу базу…</p>
+        <div class="loading-dots" aria-hidden="true">
+          <span class="loading-dot"></span>
+          <span class="loading-dot"></span>
+          <span class="loading-dot"></span>
+        </div>
+      </div>
+    </div>
+    <header class="game-header">
+      <div class="player-avatar" id="avatar">A</div>
+      <div class="balances">
+        <div class="balance-s">💎 SCube: <span id="scube">0</span></div>
+        <div class="balance-s">🏅 VP: <span id="vp">0</span></div>
+        <div class="balance-s">🎟️ Билеты: <span id="tickets">0</span></div>
+      </div>
+      <div class="header-glow" aria-hidden="true"></div>
+    </header>
+    <div id="app-message" class="store-feedback app-message"></div>
+
+    <main class="game-main">
+      <section class="tab-content" id="home">
+        <div class="cube-area">
+          <div class="cube-aurora" aria-hidden="true"></div>
+          <button id="golden-cube" class="golden-cube" title="Нажми чтобы получить 1 SCube" aria-label="Золотой куб">🔶</button>
+          <div class="cube-sparkles" aria-hidden="true"></div>
+          <div class="resource-cards">
+            <div class="resource-card energy-card">
+              <div class="resource-card-header">
+                <div class="resource-card-icon" aria-hidden="true">⚡</div>
+                <div class="resource-card-info">
+                  <span class="resource-card-label">Энергия</span>
+                  <span class="resource-card-value"><span id="energy">0</span> / <span id="energy-capacity">50</span></span>
+                </div>
+              </div>
+              <p class="resource-card-note">Держи заряд на пике, чтобы добывать без пауз.</p>
+            </div>
+            <div class="resource-card daily-card">
+              <div class="resource-card-header">
+                <div class="resource-card-icon" aria-hidden="true">📅</div>
+                <div class="resource-card-info">
+                  <span class="resource-card-label">Прогресс дня</span>
+                  <span class="resource-card-value"><span id="daily">0</span> / <span id="daily-limit">400</span></span>
+                </div>
+              </div>
+              <p class="resource-card-note">Закрывай лимит и открывай новые апгрейды базы.</p>
+            </div>
+          </div>
+          <div class="ad-block">
+            <p class="ad-caption">🎬 Усиль прогресс, смотри рекламу и восполняй энергию мгновенно.</p>
+            <div class="ad-buttons">
+              <button id="watch-ad" class="watch-ad">🎥 Смотреть рекламу (+20 SCube)</button>
+              <button id="refill-btn" class="watch-ad secondary">⚡ Восполнить энергию полностью</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-content hidden" id="store">
+        <div class="store-container">
+          <h3>💸 Центр вывода</h3>
+          <p class="section-hint">💎 Выводи награды или прокачивай базу для ещё большей добычи.</p>
+          <div class="store-actions">
+            <button id="open-withdrawals" class="withdraw-trigger-btn" type="button">💸 Вывести средства</button>
+          </div>
+
+          <h3>🚀 Лаборатория улучшений</h3>
+          <p class="section-hint">🧠 Собирай апгрейды и расширяй мощности базы.</p>
+          <div class="upgrades">
+
+            <div class="upgrade-card">
+              <div class="card-header">
+                <span class="card-icon">📈</span>
+                <div class="card-text">
+                  <div class="upgrade-title">Увеличение дневного лимита +50</div>
+                  <div class="upgrade-subtitle">Повышай пределы заработка</div>
+                </div>
+              </div>
+              <div class="upgrade-cost">Стоимость: <span id="daily-cost">90</span> SCube (зависит от уровня)</div>
+              <div class="upgrade-level">Текущий уровень: <span id="daily-level">0</span></div>
+              <button class="upgrade-btn" data-type="daily_limit">Купить</button>
+              <div class="card-glow" aria-hidden="true"></div>
+            </div>
+
+            <div class="upgrade-card">
+              <div class="card-header">
+                <span class="card-icon">🤖</span>
+                <div class="card-text">
+                  <div class="upgrade-title">Автоэнергия (энергия +1 каждые 10 секунд)</div>
+                  <div class="upgrade-subtitle">Пусть дрон пополняет заряд</div>
+                </div>
+              </div>
+              <div class="upgrade-cost">Стоимость: 2000 SCube</div>
+              <button class="upgrade-btn" data-type="auto_energy">Купить автоэнергию</button>
+              <div class="card-glow" aria-hidden="true"></div>
+            </div>
+          </div>
+
+          <div class="store-feedback" id="store-feedback"></div>
+        </div>
+      </section>
+
+      <section class="tab-content hidden" id="withdrawals">
+        <div class="withdrawals-container">
+          <div class="withdrawals-header">
+            <div class="withdrawals-legend">
+              <h3>💸 Вывод средств</h3>
+              <p class="section-hint">Выбирай удобный способ вывода и отправляй заявку напрямую из MiniApp.</p>
+            </div>
+            <button id="withdraw-back-to-store" class="withdraw-back-btn" type="button">← Назад в магазин</button>
+          </div>
+          <div id="withdraw-feedback" class="withdraw-feedback"></div>
+          <div class="withdraw-methods" id="withdraw-methods">
+            <article class="withdraw-method-card">
+              <div class="withdraw-method-icon" aria-hidden="true">⭐</div>
+              <div class="withdraw-method-content">
+                <h4 class="withdraw-method-title">Telegram-звёзды</h4>
+                <p class="withdraw-method-description">Выводи звёзды партиями от 15 до 100. Комиссия — 5 SCube на каждые 100 SCube.</p>
+              </div>
+              <button class="withdraw-method-button" data-method="stars" type="button">Вывести как Stars</button>
+            </article>
+            <article class="withdraw-method-card">
+              <div class="withdraw-method-icon" aria-hidden="true">🟨</div>
+              <div class="withdraw-method-content">
+                <h4 class="withdraw-method-title">GCubes</h4>
+                <p class="withdraw-method-description">Получай GCubes в Blockman Go. Фиксированная комиссия — 50 SCube за заявку.</p>
+              </div>
+              <button class="withdraw-method-button" data-method="gcubes" type="button">Вывести как GCubes</button>
+            </article>
+            <article class="withdraw-method-card">
+              <div class="withdraw-method-icon" aria-hidden="true">💸</div>
+              <div class="withdraw-method-content">
+                <h4 class="withdraw-method-title">Перевод ₽</h4>
+                <p class="withdraw-method-description">Перевод на номер телефона. Комиссия — 50 SCube за каждые 100 ₽.</p>
+              </div>
+              <button class="withdraw-method-button" data-method="rub" type="button">Вывести как ₽</button>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-content hidden" id="tasks">
+        <div class="tasks-container">
+          <h3>📝 Задания</h3>
+          <p class="section-hint">✅ Выполняй кастомные задания и смотри рекламу для получения бонусов.</p>
+          <div class="daily-streak-card" id="daily-streak-card" aria-live="polite">
+            <div class="daily-streak-header">
+              <div class="daily-streak-icon">📅</div>
+              <div class="daily-streak-text">
+                <h4 class="daily-streak-title">Ежедневный вход</h4>
+                <p class="daily-streak-sub">Собирай награду каждый день. Для получения смотри короткую рекламу.</p>
+              </div>
+            </div>
+            <div class="daily-streak-progress" id="daily-streak-progress"></div>
+            <div class="daily-streak-actions">
+              <button id="daily-claim-btn" class="daily-claim-btn">🎁 Забрать награду</button>
+              <span id="daily-note" class="daily-note"></span>
+            </div>
+          </div>
+          <div class="tasks-illustration" aria-hidden="true"></div>
+          <h4>🧩 Кастомные задания</h4>
+          <div id="custom-tasks-wrap" class="ads-task-wrap"></div>
+          <div class="task-feedback" id="task-feedback"></div>
+        </div>
+      </section>
+
+
+      <section class="tab-content hidden" id="leaderboard">
+        <div class="leader-container">
+          <h3>🏆 Рейтинг</h3>
+          <p class="leader-hint">✨ Выбирай таблицу и смотри, кто впереди команды.</p>
+          <div class="leader-personal" id="leader-personal" aria-live="polite">
+            <div class="leader-personal-cards">
+              <div class="leader-personal-card" id="leader-personal-rank">
+                <span class="leader-personal-label">🤩 Твой ранг</span>
+                <span class="leader-personal-value" id="leader-self-rank">—</span>
+              </div>
+              <div class="leader-personal-card" id="leader-personal-score">
+                <span class="leader-personal-label">📊 Твои очки</span>
+                <span class="leader-personal-value" id="leader-self-value">—</span>
+              </div>
+            </div>
+            <p class="leader-personal-note" id="leader-self-note">Собирай кристаллы и выполняй задания, чтобы ворваться в топ!</p>
+          </div>
+          <div class="leader-tabs">
+            <button id="leader-by-clicks" class="leader-btn active">⛏️ SCube (нажатия)</button>
+            <button id="leader-by-tasks" class="leader-btn">✅  Выполненные задания</button>
+          </div>
+          <ol id="leader-list" class="leader-list"></ol>
+          <div id="leader-empty" class="leader-empty hidden">Пока пусто</div>
+        </div>
+      </section>
+
+      <section class="tab-content hidden" id="referrals">
+        <div class="referrals-container">
+          <h3>👥 Рефералы</h3>
+          <p class="referral-info">Приглашайте друзей: получайте 10% от их добычи SCube за нажатия и задания.</p>
+          <div class="referral-code">
+            <div class="referral-code-line">Ваш ID: <strong id="referral-code">—</strong></div>
+            <div class="referral-link-line">
+              <input id="referral-link" class="referral-link-input" readonly />
+              <button id="copy-referral" class="small-btn copy-referral" type="button">Копировать</button>
+            </div>
+          </div>
+          <div class="referral-actions">
+            <button id="share-invite" class="share-invite-btn" type="button">📣 Поделиться приглашением</button>
+          </div>
+          <div class="referral-stats">Приглашено: <strong id="referral-count">0</strong></div>
+          <div class="referral-stats">Заработано с рефералов: <strong id="referral-earned">0</strong> SCube</div>
+        </div>
+      </section>
+
+      <section class="tab-content hidden" id="games">
+        <div class="games-container">
+          <h3>🎮 Игры</h3>
+          <p class="section-hint">Выбери игру и ставку, затем присоединись к комнате или создай свою.</p>
+          <div class="game-cards" id="game-cards">
+            <button class="game-card" data-game="rps">
+              <span class="card-icon">✊✋✌️</span>
+              <span class="card-title">Камень, ножницы, бумага</span>
+            </button>
+            <button class="game-card" data-game="ttt">
+              <span class="card-icon">⭕❌</span>
+              <span class="card-title">Крестики-нолики</span>
+            </button>
+          </div>
+          <div class="bet-selector" id="bet-selector">
+            <button class="bet-chip" data-bet="50">50</button>
+            <button class="bet-chip" data-bet="150">150</button>
+            <button class="bet-chip" data-bet="300">300</button>
+            <button class="bet-chip" data-bet="500">500</button>
+            <button class="bet-chip" data-bet="1000">1000</button>
+            <button class="bet-chip" data-bet="2000">2000</button>
+          </div>
+          <div class="rooms-actions">
+            <button id="create-room" class="create-room-btn">Создать комнату</button>
+          </div>
+          <div class="rooms-list" id="rooms-list"></div>
+          <div class="game-stage hidden" id="game-stage"></div>
+        </div>
+      </section>
+
+      <section class="tab-content hidden" id="admin">
+        <div class="withdrawals-container">
+          <div class="withdrawals-header">
+            <div class="withdrawals-legend">
+              <h3>🛠️ Админ-панель</h3>
+              <p class="section-hint">Только для администраторов.</p>
+            </div>
+            <button id="admin-back" class="withdraw-back-btn" type="button">← В пользовательскую часть</button>
+          </div>
+
+          <h4>📊 Статистика</h4>
+          <div id="admin-stats" class="admin-stats"></div>
+
+          <div class="admin-tools-header">
+            <button id="admin-task-toggle" class="small-btn" type="button">Задания</button>
+          </div>
+          <div id="admin-task-wrap" class="hidden">
+          <h4>➕ Кастомные задания</h4>
+          <form id="admin-task-form" class="withdraw-form">
+            <label class="withdraw-input-group"><span class="withdraw-input-label">Название</span><input id="task-name" class="withdraw-input" required /></label>
+            <label class="withdraw-input-group"><span class="withdraw-input-label">Тип задачи</span>
+              <select id="task-type" class="withdraw-input">
+                <option value="subscribe">Подписаться</option>
+                <option value="earn_scube">Заработать SCube</option>
+              </select>
+            </label>
+            <div id="task-link-wrap" class="withdraw-input-group"><span class="withdraw-input-label">Ссылка или @юзернейм</span><input id="task-link" class="withdraw-input" placeholder="https://t.me/Channel или @channel" /></div>
+            <div id="task-required-wrap" class="withdraw-input-group"><span class="withdraw-input-label">Количество</span><input id="task-required" type="number" min="1" class="withdraw-input" /></div>
+            <div class="withdraw-input-row">
+              <label class="withdraw-input-group"><span class="withdraw-input-label">Награда</span>
+                <select id="reward-type" class="withdraw-input">
+                  <option value="scube">SCube</option>
+                  <option value="vp">VP</option>
+                  <option value="tickets">Билеты</option>
+                </select>
+              </label>
+              <label class="withdraw-input-group"><span class="withdraw-input-label">Количество</span><input id="reward-amount" type="number" min="1" class="withdraw-input" required /></label>
+            </div>
+            <div id="admin-task-feedback" class="withdraw-modal-feedback"></div>
+            <button type="submit" class="withdraw-submit-btn">Создать задачу</button>
+          </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <nav class="tabs-bottom">
+      <button class="tab-button active" data-tab="home">🏠 Главная</button>
+      <button class="tab-button" data-tab="games">🎮 Игры</button>
+      <button class="tab-button" data-tab="tasks">🧾 Задания</button>
+      <button class="tab-button" data-tab="referrals">👥 Рефералы</button>
+      <button class="tab-button" data-tab="leaderboard">🏆 Рейтинг</button>
+
+    </nav>
+
+    <button id="store-fab" class="store-fab"><span class="store-icon">🛒</span><span class="store-label">Магазин</span></button>
+
+    <!-- Ad countdown overlay top-right -->
+    <div id="ad-countdown-overlay" class="ad-countdown-overlay hidden">
+      <div id="ad-countdown-badge" class="ad-countdown-badge">Реклама через 3</div>
+    </div>
+
+    <div id="subgram-gate" class="subgram-gate hidden">
+      <div class="subgram-gate-inner">
+        <span>⚠️ Требуется подписка на спонсоров</span>
+        <button id="subgram-open" class="small-btn">Открыть SubGram</button>
+        <button id="subgram-recheck" class="small-btn">Проверить</button>
+      </div>
+    </div>
+
+    <div id="subgram-blocker" class="subgram-blocker hidden" aria-modal="true" role="dialog">
+      <div class="subgram-blocker-dialog">
+        <h3 class="subgram-blocker-title">Подпишитесь на спонсоров, чтобы продолжить игру</h3>
+        <p class="subgram-blocker-text">Пожалуйста подпишитесь на все каналы/боты из списка ниже. Если вы отпишетесь в течение недели — вам будет начислена жалоба. Множественные жалобы могут привести к тому, что заявки на вывод будут отклоняться без возврата средств. Окно нельзя закрыть до подтверждения подписки на всех спонсоров.</p>
+        <ul id="subgram-blocker-links" class="subgram-links-list"></ul>
+        <div class="subgram-blocker-actions">
+          <button id="subgram-blocker-open" class="subgram-open-btn">Открыть SubGram</button>
+          <button id="subgram-blocker-recheck" class="subgram-recheck-btn">Проверить подписки</button>
+        </div>
+        <p class="subgram-blocker-note">Окно нельзя закрыть до подтверждения подписки.</p>
+      </div>
+    </div>
+
+    <div id="confirm-modal" class="confirm-modal hidden">
+      <div class="confirm-box">
+        <div id="confirm-message">Confirm?</div>
+        <div class="confirm-actions">
+          <button id="confirm-cancel" class="confirm-btn">Отмена</button>
+          <button id="confirm-ok" class="confirm-btn primary">Подтвердить</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="onboarding" class="onboarding-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="onb-title">
+      <div class="onboarding-content">
+        <div class="onboarding-slides" id="onb-slides">
+          <section class="onb-slide onb-slide-active">
+            <h2 id="onb-title" class="onb-title"><strong>ДОБРО ПОЖАЛОВАТЬ В BGGCube!</strong></h2>
+            <p class="onb-text">Здесь ты добываешь SCube и обмениваешь их на GCube.</p>
+            <p class="onb-text">Начисление GCube идёт по твоему игровому ID — без паролей.</p>
+          </section>
+          <section class="onb-slide">
+            <h2 class="onb-title">Как добывать SCube?</h2>
+            <p class="onb-text">1 — Нажимай на золотой куб на вкладке «Главная».</p>
+            <p class="onb-text">2 — Выполняй кастомные задания на вкладке «Задания».</p>
+          </section>
+          <section class="onb-slide">
+            <h2 class="onb-title">Как вывести SCube?</h2>
+            <p class="onb-text">Вывод доступен в Магазине. Есть три варианта:</p>
+            <p class="onb-text">1 — В GCube.</p>
+            <p class="onb-text">2 — В Telegram Stars.</p>
+            <p class="onb-text">3 — В ₽ по номеру.</p>
+          </section>
+        </div>
+        <div class="onb-dots" id="onb-dots"></div>
+        <div class="onb-actions">
+          <button id="onb-skip" class="onb-btn">Пропустить</button>
+          <button id="onb-next" class="onb-btn primary">Далее</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="withdraw-modal" class="withdraw-modal hidden" aria-hidden="true">
+      <div class="withdraw-dialog" role="dialog" aria-modal="true" aria-labelledby="withdraw-modal-title">
+        <div class="withdraw-dialog-header">
+          <h3 id="withdraw-modal-title" class="withdraw-dialog-title"></h3>
+          <button id="withdraw-modal-close" class="withdraw-close-btn" type="button" aria-label="Закрыть">✕</button>
+        </div>
+        <p id="withdraw-modal-hint" class="withdraw-dialog-hint"></p>
+        <div id="withdraw-options" class="withdraw-options"></div>
+        <form id="withdraw-form" class="withdraw-form">
+          <div id="withdraw-inputs" class="withdraw-inputs"></div>
+          <label class="withdraw-input-group">
+            <span class="withdraw-input-label">Дополнительная информация</span>
+            <textarea id="withdraw-notes" class="withdraw-textarea" placeholder="Напишите детали, если нужно"></textarea>
+          </label>
+          <div id="withdraw-modal-feedback" class="withdraw-modal-feedback"></div>
+          <button type="submit" class="withdraw-submit-btn">Отправить заявку</button>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="/miniapp/static/app.js"></script>
+  </div>
+</body>
+</html>

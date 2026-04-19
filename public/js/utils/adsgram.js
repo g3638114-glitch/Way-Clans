@@ -18,27 +18,33 @@ function ensureAdsgramScript() {
 
   adsgramScriptPromise = new Promise((resolve, reject) => {
     const existingScript = document.querySelector(`script[src="${ADSGRAM_SCRIPT_SRC}"]`);
-
     if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(window.Adsgram), { once: true });
-      existingScript.addEventListener('error', () => reject(new Error('AdsGram SDK failed to load')), { once: true });
-      setTimeout(() => {
-        if (window.Adsgram?.init) {
-          resolve(window.Adsgram);
-        }
-      }, 0);
-      return;
+      existingScript.remove();
     }
 
     const script = document.createElement('script');
     script.src = ADSGRAM_SCRIPT_SRC;
     script.async = true;
-    script.onload = () => resolve(window.Adsgram);
+    script.onload = () => {
+      if (window.Adsgram?.init) {
+        resolve(window.Adsgram);
+      } else {
+        reject(new Error('AdsGram SDK loaded, but window.Adsgram.init is missing'));
+      }
+    };
     script.onerror = () => reject(new Error('AdsGram SDK failed to load'));
     document.head.appendChild(script);
+
+    setTimeout(() => {
+      if (!window.Adsgram?.init) {
+        reject(new Error('AdsGram SDK load timeout'));
+      }
+    }, 8000);
   });
 
-  return adsgramScriptPromise;
+  return adsgramScriptPromise.finally(() => {
+    adsgramScriptPromise = null;
+  });
 }
 
 async function waitForAdsgramSdk(timeoutMs = 10000) {

@@ -3,16 +3,17 @@ import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { renderBuildings } from '../builders.js';
 import { formatNumber } from '../../utils/formatters.js';
-import { getUpgradeCost, getProductionRate, getBuildingConfig, getBuildingIcon } from '../../game/config.js';
+import { getUpgradeCost, getProductionRate, getBuildingConfig, getBuildingIcon, getMaxBuildingLevel } from '../../game/config.js';
 import { getResourceIconHtml, getResourceLabel } from '../../utils/resourceIcons.js';
 
 export function openUpgradeModal(buildingId, currentLevel) {
   const building = appState.allBuildings.find((b) => b.id === buildingId);
   if (!building) return;
 
-  // Can't upgrade beyond level 5
-  if (currentLevel >= 5) {
-    window.tg.showAlert('Здание уже на максимальном уровне (5)');
+  const maxLevel = getMaxBuildingLevel();
+
+  if (currentLevel >= maxLevel) {
+    window.tg.showAlert(`Здание уже на максимальном уровне (${maxLevel})`);
     return;
   }
 

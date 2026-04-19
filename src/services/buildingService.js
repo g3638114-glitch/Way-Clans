@@ -1,5 +1,5 @@
 import { supabase } from '../bot.js';
-import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
+import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getWarehouseCapacity, getMaxBuildingLevel } from '../config/buildings.js';
 import { getOrCreateUser } from './userService.js';
 import { withTransaction } from '../database/pg.js';
 
@@ -138,8 +138,9 @@ export async function upgradeBuilding(userId, buildingId) {
     const building = buildingResult.rows[0];
     const currentLevel = building.level || 1;
 
-    if (currentLevel >= 5) {
-      throw new Error('Building is already at maximum level (5)');
+    const maxLevel = getMaxBuildingLevel();
+    if (currentLevel >= maxLevel) {
+      throw new Error(`Building is already at maximum level (${maxLevel})`);
     }
 
     const nextLevel = currentLevel + 1;

@@ -4,6 +4,7 @@ import {
   getProductionRate,
   getCapacity,
   getBuildingConfig,
+  getMaxBuildingLevel,
 } from '../game/config.js';
 import { activateBuilding, collectResources, upgradeBuilding } from '../game/buildings.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
@@ -133,7 +134,7 @@ export function createBuildingCard(building) {
   }
 
   // Upgrade button
-  if (level < 5) {
+  if (level < getMaxBuildingLevel()) {
     const upgradeBtn = document.createElement('button');
     upgradeBtn.className = 'btn btn-upgrade';
     upgradeBtn.textContent = `Улучшить до уровня ${level + 1}`;

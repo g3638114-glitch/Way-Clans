@@ -96,6 +96,19 @@ const migrations = [
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );`,
   },
+  {
+    name: 'Create market_sales table',
+    sql: `CREATE TABLE IF NOT EXISTS market_sales (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      seller_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      buyer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      resource_type TEXT NOT NULL,
+      quantity BIGINT NOT NULL,
+      price_per_unit BIGINT NOT NULL,
+      total_price BIGINT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );`,
+  },
 
   // === DISABLE ROW LEVEL SECURITY ===
   {
@@ -112,7 +125,8 @@ const migrations = [
           CREATE INDEX IF NOT EXISTS idx_user_buildings_user_id ON user_buildings(user_id);
           CREATE INDEX IF NOT EXISTS idx_user_troops_user_id ON user_troops(user_id);
           CREATE INDEX IF NOT EXISTS idx_market_listings_resource_type ON market_listings(resource_type);
-          CREATE INDEX IF NOT EXISTS idx_market_listings_seller_id ON market_listings(seller_id);`,
+          CREATE INDEX IF NOT EXISTS idx_market_listings_seller_id ON market_listings(seller_id);
+          CREATE INDEX IF NOT EXISTS idx_market_sales_seller_id ON market_sales(seller_id);`,
   },
   {
     name: 'Add non-negative constraints',

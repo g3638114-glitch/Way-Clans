@@ -81,6 +81,56 @@
   line-height: 1.35;
 }
 
+.market-history-card {
+  padding: 14px;
+  background: linear-gradient(180deg, rgba(18, 24, 46, 0.96) 0%, rgba(10, 15, 29, 0.98) 100%);
+  border: 1px solid rgba(98, 120, 186, 0.18);
+  border-radius: 14px;
+}
+
+.market-history-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.market-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.market-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.market-history-resource {
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.market-history-meta,
+.market-history-empty {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+
+.market-history-total {
+  color: #ffd666;
+  font-size: 15px;
+  font-weight: 800;
+  text-align: right;
+}
+
 /* ========================================
    MARKET LISTING ITEM
    ======================================== */

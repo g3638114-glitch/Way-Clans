@@ -127,9 +127,19 @@ export async function getMyListings(telegramId) {
 
   if (error) throw new Error('Failed to get listings');
 
+  const { data: sales, error: salesError } = await supabase
+    .from('market_sales')
+    .select('id, resource_type, quantity, price_per_unit, total_price, created_at')
+    .eq('seller_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (salesError) throw new Error('Failed to load market sales history');
+
   return {
     listings,
     pendingGold: Number(user.market_pending_gold || 0),
+    salesHistory: sales || [],
   };
 }
 
@@ -209,6 +219,12 @@ export async function buyFromListing(buyerTelegramId, listingId, quantity) {
     await client.query(
       'UPDATE users SET market_pending_gold = $1 WHERE id = $2',
       [Number(seller.market_pending_gold || 0) + totalPrice, seller.id]
+    );
+
+    await client.query(
+      `INSERT INTO market_sales (seller_id, buyer_id, resource_type, quantity, price_per_unit, total_price)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [seller.id, buyer.id, listing.resource_type, quantity, Number(listing.price_per_unit), totalPrice]
     );
 
     const newQuantity = Number(listing.quantity) - quantity;

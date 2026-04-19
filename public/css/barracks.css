@@ -6,30 +6,31 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.2);
+  padding: 12px 15px 10px;
+  background: linear-gradient(180deg, rgba(16, 21, 40, 0.98) 0%, rgba(10, 14, 27, 0.98) 100%);
+  border-bottom: 1px solid rgba(95, 120, 190, 0.14);
 }
 
 .barracks-tab-btn {
-  padding: 10px 5px;
-  background: rgba(76, 111, 166, 0.15);
-  border: 2px solid transparent;
+  padding: 12px 8px;
+  background: rgba(59, 74, 117, 0.2);
+  border: 1px solid rgba(95, 120, 190, 0.18);
   color: #fff;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .barracks-tab-btn.active {
-  background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%);
+  background: linear-gradient(135deg, #4f73b8 0%, #2b3d66 100%);
   border-color: #d4af37;
-  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4);
+  box-shadow: 0 10px 20px rgba(60, 96, 170, 0.24), 0 0 18px rgba(212, 175, 55, 0.14);
 }
 
 .barracks-container {
-  padding: 15px;
+  padding: 14px 15px 18px;
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -37,48 +38,50 @@
 
 /* Troop Card */
 .troop-card {
-  background: linear-gradient(135deg, rgba(76, 111, 166, 0.2) 0%, rgba(55, 74, 107, 0.2) 100%);
-  border: 2px solid rgba(76, 111, 166, 0.4);
-  border-radius: 15px;
+  background: linear-gradient(180deg, rgba(27, 34, 63, 0.98) 0%, rgba(16, 22, 40, 0.98) 100%);
+  border: 1px solid rgba(95, 120, 190, 0.22);
+  border-radius: 18px;
   padding: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.24);
 }
 
 .troop-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-  padding-bottom: 10px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.16);
+  padding-bottom: 12px;
 }
 
 .troop-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: bold;
   color: #fff;
 }
 
 .troop-level-badge {
-  background: rgba(212, 175, 55, 0.2);
+  background: rgba(212, 175, 55, 0.12);
   color: #d4af37;
-  padding: 4px 12px;
+  padding: 8px 14px;
   border-radius: 20px;
-  border: 1px solid #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.72);
   font-size: 14px;
+  font-weight: 700;
 }
 
 .troop-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .troop-stat-item {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 10px;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   text-align: center;
 }
 
@@ -90,7 +93,7 @@
 }
 
 .troop-stat-value {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
   color: #d4af37;
 }
@@ -104,11 +107,13 @@
 .btn-hire {
   background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
   color: #fff;
+  box-shadow: 0 10px 20px rgba(76, 175, 80, 0.22);
 }
 
 .btn-upgrade-troop {
   background: linear-gradient(135deg, #d4af37 0%, #a8860e 100%);
   color: #000;
+  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
 }
 
 .cost-info-small {
@@ -122,17 +127,18 @@
 .my-soldiers-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .soldier-item {
   background: rgba(255, 255, 255, 0.05);
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-left: 4px solid #4c6fa6;
+  border: 1px solid rgba(95, 120, 190, 0.14);
 }
 
 .soldier-info-main {
@@ -186,14 +192,14 @@
 
 /* Hire Troops Modal Styles */
 .troop-hire-info {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  background: linear-gradient(180deg, rgba(26, 34, 60, 0.96) 0%, rgba(16, 21, 39, 0.98) 100%);
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.18);
 }
 
 .troop-type-header {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   color: #d4af37;
   margin-bottom: 15px;
@@ -213,9 +219,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 6px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
 }
 
 .stat-name {
@@ -230,9 +236,9 @@
 }
 
 .cost-per-unit {
-  background: rgba(76, 111, 166, 0.2);
-  padding: 10px;
-  border-radius: 8px;
+  background: rgba(76, 111, 166, 0.14);
+  padding: 12px;
+  border-radius: 12px;
   margin-bottom: 10px;
 }
 
@@ -249,9 +255,9 @@
 }
 
 .available-resources {
-  background: rgba(76, 111, 166, 0.15);
+  background: rgba(76, 111, 166, 0.12);
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 12px;
   border-left: 3px solid #4caf50;
 }
 
@@ -262,9 +268,9 @@
 }
 
 .hire-troops-cost {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.04);
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 14px;
 }
 
 .hire-troops-cost p {

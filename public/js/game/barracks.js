@@ -240,8 +240,18 @@ window.setMaxHireTroopsQuantity = () => {
 window.confirmHireTroops = async () => {
   const quantity = parseInt(document.getElementById('hire-troops-quantity').value) || 1;
 
-  if (quantity <= 0 || quantity > currentHiringContext.maxPossible) {
-    tg.showAlert('❌ Неверное количество воинов');
+  if (currentHiringContext.maxPossible <= 0) {
+    tg.showAlert('❌ Недостаточно ресурсов для найма воинов');
+    return;
+  }
+
+  if (quantity <= 0) {
+    tg.showAlert('❌ Введите корректное количество воинов');
+    return;
+  }
+
+  if (quantity > currentHiringContext.maxPossible) {
+    tg.showAlert(`❌ Недостаточно ресурсов для найма. Сейчас можно нанять максимум ${currentHiringContext.maxPossible} воин(ов).`);
     return;
   }
 

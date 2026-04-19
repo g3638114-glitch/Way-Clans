@@ -309,6 +309,7 @@ export async function loadMyListings() {
     const result = await apiClient.getMyMarketListings(appState.userId);
     const listings = result.listings || [];
     const pendingGold = Number(result.pendingGold || 0);
+    const salesHistory = result.salesHistory || [];
 
     const container = document.getElementById('market-listings-container');
     container.innerHTML = '';
@@ -328,6 +329,24 @@ export async function loadMyListings() {
     container.appendChild(pendingBlock);
 
     document.getElementById('claim-market-gold-btn')?.addEventListener('click', claimPendingMarketGold);
+
+    const historyBlock = document.createElement('div');
+    historyBlock.className = 'market-history-card';
+    historyBlock.innerHTML = `
+      <div class="market-history-title">История продаж</div>
+      <div class="market-history-list">
+        ${salesHistory.length > 0 ? salesHistory.map((sale) => `
+          <div class="market-history-item">
+            <div class="market-history-main">
+              <div class="market-history-resource">${getResourceIconHtml(sale.resource_type, 'resource-inline-icon-lg', sale.resource_type)} ${getResourceName(sale.resource_type)}</div>
+              <div class="market-history-meta">${Number(sale.quantity).toLocaleString()} шт. по ${Number(sale.price_per_unit).toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</div>
+            </div>
+            <div class="market-history-total">+${Number(sale.total_price).toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</div>
+          </div>
+        `).join('') : '<div class="market-history-empty">Продаж ещё не было</div>'}
+      </div>
+    `;
+    container.appendChild(historyBlock);
 
     if (listings.length === 0) {
       const empty = document.createElement('p');
@@ -386,6 +405,14 @@ async function claimPendingMarketGold() {
       alert(error.message || 'Не удалось забрать Jamcoin с рынка');
     }
   });
+}
+
+function getResourceName(resourceType) {
+  return {
+    wood: 'Дерево',
+    stone: 'Камень',
+    meat: 'Мясо',
+  }[resourceType] || resourceType;
 }
 
 /**

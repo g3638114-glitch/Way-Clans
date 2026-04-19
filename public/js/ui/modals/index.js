@@ -139,4 +139,10 @@ export function setupModalHandlers() {
       import('../game/market.js').then(m => m.closeEditListingModal());
     }
   });
+
+  document.getElementById('market-history-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'market-history-modal') {
+      import('../game/market.js').then(m => m.closeSalesHistoryModal());
+    }
+  });
 }

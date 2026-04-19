@@ -9,6 +9,7 @@ let currentBuyListing = null;
 let currentBuyMaxQuantity = 0;
 let currentEditListing = null;
 let currentEditMaxQuantity = 0;
+let currentSalesHistory = [];
 
 function applyReturnedUser(user) {
   if (!user) return;
@@ -51,6 +52,7 @@ export function openSetPriceModal(resourceType) {
 export function closeSetPriceModal() {
   document.getElementById('set-price-modal').classList.remove('active');
   document.getElementById('warehouse-sell-modal').classList.add('active');
+  document.getElementById('warehouse-sell-modal').style.display = '';
   currentSetPriceResource = null;
 }
 
@@ -106,7 +108,6 @@ export async function confirmSellPrice() {
         applyReturnedUser(result.user);
         alert('Объявление выставлено на рынок!');
         closeSetPriceModal();
-        document.getElementById('warehouse-sell-modal').style.display = 'none';
         updateWarehouseSellModal();
       } catch (error) {
       alert('Ошибка: ' + (error.message || 'Не удалось выставить объявление'));
@@ -309,7 +310,8 @@ export async function loadMyListings() {
     const result = await apiClient.getMyMarketListings(appState.userId);
     const listings = result.listings || [];
     const pendingGold = Number(result.pendingGold || 0);
-    const salesHistory = result.salesHistory || [];
+    const salesHistory = (result.salesHistory || []).slice(0, 10);
+    currentSalesHistory = salesHistory;
 
     const container = document.getElementById('market-listings-container');
     container.innerHTML = '';
@@ -322,31 +324,17 @@ export async function loadMyListings() {
           <div class="market-pending-title">Ожидает на рынке</div>
           <div class="market-pending-value">${pendingGold.toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</div>
         </div>
-        <button class="btn btn-primary btn-sm" ${pendingGold <= 0 ? 'disabled' : ''} id="claim-market-gold-btn">Забрать</button>
+        <div class="market-pending-actions">
+          <button class="btn btn-secondary btn-sm" id="open-sales-history-btn">История</button>
+          <button class="btn btn-primary btn-sm" ${pendingGold <= 0 ? 'disabled' : ''} id="claim-market-gold-btn">Забрать</button>
+        </div>
       </div>
       <div class="market-pending-hint">Jamcoin от проданных ресурсов копятся здесь, пока вы не заберёте их в казну.</div>
     `;
     container.appendChild(pendingBlock);
 
     document.getElementById('claim-market-gold-btn')?.addEventListener('click', claimPendingMarketGold);
-
-    const historyBlock = document.createElement('div');
-    historyBlock.className = 'market-history-card';
-    historyBlock.innerHTML = `
-      <div class="market-history-title">История продаж</div>
-      <div class="market-history-list">
-        ${salesHistory.length > 0 ? salesHistory.map((sale) => `
-          <div class="market-history-item">
-            <div class="market-history-main">
-              <div class="market-history-resource">${getResourceIconHtml(sale.resource_type, 'resource-inline-icon-lg', sale.resource_type)} ${getResourceName(sale.resource_type)}</div>
-              <div class="market-history-meta">${Number(sale.quantity).toLocaleString()} шт. по ${Number(sale.price_per_unit).toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</div>
-            </div>
-            <div class="market-history-total">+${Number(sale.total_price).toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</div>
-          </div>
-        `).join('') : '<div class="market-history-empty">Продаж ещё не было</div>'}
-      </div>
-    `;
-    container.appendChild(historyBlock);
+    document.getElementById('open-sales-history-btn')?.addEventListener('click', openSalesHistoryModal);
 
     if (listings.length === 0) {
       const empty = document.createElement('p');
@@ -413,6 +401,34 @@ function getResourceName(resourceType) {
     stone: 'Камень',
     meat: 'Мясо',
   }[resourceType] || resourceType;
+}
+
+export function openSalesHistoryModal() {
+  const body = document.getElementById('market-history-modal-body');
+  if (!body) return;
+
+  body.innerHTML = `
+    <div class="market-history-card">
+      <div class="market-history-title">10 последних продаж</div>
+      <div class="market-history-list">
+        ${currentSalesHistory.length > 0 ? currentSalesHistory.map((sale) => `
+          <div class="market-history-item">
+            <div class="market-history-main">
+              <div class="market-history-resource">${getResourceIconHtml(sale.resource_type, 'resource-inline-icon-lg', sale.resource_type)} ${getResourceName(sale.resource_type)}</div>
+              <div class="market-history-meta">${Number(sale.quantity).toLocaleString()} шт. по ${Number(sale.price_per_unit).toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</div>
+            </div>
+            <div class="market-history-total">+${Number(sale.total_price).toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</div>
+          </div>
+        `).join('') : '<div class="market-history-empty">Продаж ещё не было</div>'}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('market-history-modal')?.classList.add('active');
+}
+
+export function closeSalesHistoryModal() {
+  document.getElementById('market-history-modal')?.classList.remove('active');
 }
 
 /**

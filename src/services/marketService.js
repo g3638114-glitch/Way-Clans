@@ -132,7 +132,7 @@ export async function getMyListings(telegramId) {
     .select('id, resource_type, quantity, price_per_unit, total_price, created_at')
     .eq('seller_id', user.id)
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(10);
 
   if (salesError) throw new Error('Failed to load market sales history');
 

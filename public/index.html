@@ -518,13 +518,22 @@
             <button class="max-btn" onclick="window.setMaxHireTroopsQuantity()">MAX</button>
           </div>
         </div>
-        <div class="hire-troops-cost" style="margin-top: 15px;">
-          <p>Стоимость:</p>
-          <div id="hire-troops-cost-display"></div>
-        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary" id="confirm-hire-troops-btn" onclick="window.confirmHireTroops()">Нанять</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="market-history-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>История продаж</h2>
+        <button class="close-btn" onclick="window.market.closeSalesHistoryModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="market-history-modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="window.market.closeSalesHistoryModal()">Закрыть</button>
       </div>
     </div>
   </div>

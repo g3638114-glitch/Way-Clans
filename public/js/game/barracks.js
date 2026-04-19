@@ -211,25 +211,7 @@ window.closeHireTroopsModal = () => {
 };
 
 window.updateHireTroopsCost = () => {
-  const quantity = parseInt(document.getElementById('hire-troops-quantity').value) || 1;
-  const cost = currentHiringContext.cost;
-
-  const totalCost = {
-    gold: cost.gold * quantity,
-    wood: cost.wood * quantity,
-    stone: cost.stone * quantity,
-    meat: cost.meat * quantity
-  };
-
-  const costDisplay = document.getElementById('hire-troops-cost-display');
-  costDisplay.innerHTML = `
-    <div class="cost-items-row">
-      <div class="cost-item">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${formatNumber(totalCost.gold)}</div>
-      <div class="cost-item">${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${formatNumber(totalCost.wood)}</div>
-      <div class="cost-item">${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}${formatNumber(totalCost.stone)}</div>
-      <div class="cost-item">${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${formatNumber(totalCost.meat)}</div>
-    </div>
-  `;
+  // Kept for oninput compatibility; detailed per-unit cost is already shown in the info block.
 };
 
 window.setMaxHireTroopsQuantity = () => {

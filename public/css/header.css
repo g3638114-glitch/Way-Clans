@@ -103,8 +103,8 @@
 
 .fortress-avatar-block {
   align-items: center;
-  min-width: 104px;
-  flex: 0 0 104px;
+  min-width: 86px;
+  flex: 0 0 86px;
   gap: 5px;
 }
 
@@ -267,8 +267,8 @@
 }
 
 .avatar-placeholder {
-  width: 96px;
-  height: 96px;
+  width: 80px;
+  height: 80px;
   background: rgba(212, 175, 55, 0.15);
   background-size: cover;
   background-position: center;
@@ -277,7 +277,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
+  font-size: 30px;
   overflow: hidden;
   flex-shrink: 0;
   font-weight: bold;
@@ -294,7 +294,7 @@
 /* Avatar with fallback (initials or emoji) */
 .avatar-placeholder.avatar-fallback {
   background-color: rgba(76, 111, 166, 0.3);
-  font-size: 38px;
+  font-size: 32px;
 }
 
 .avatar-placeholder img {

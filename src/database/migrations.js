@@ -172,6 +172,12 @@ const migrations = [
           ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_market_pending_gold_non_negative;
           ALTER TABLE users ADD CONSTRAINT chk_users_market_pending_gold_non_negative CHECK (market_pending_gold >= 0);`,
   },
+  {
+    name: 'Add mining ad threshold',
+    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS last_mining_ad_threshold BIGINT DEFAULT 0;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_last_mining_ad_threshold_non_negative;
+          ALTER TABLE users ADD CONSTRAINT chk_users_last_mining_ad_threshold_non_negative CHECK (last_mining_ad_threshold >= 0);`,
+  },
 ];
 
 async function executeMigrations(client) {

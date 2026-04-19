@@ -77,6 +77,16 @@ export const apiClient = {
     return response.json();
   },
 
+  async updateMiningAdThreshold(userId, threshold) {
+    const response = await fetch(`/api/user/${userId}/mining-ad-threshold`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ threshold }),
+    });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to update mining ad threshold'); }
+    return response.json();
+  },
+
   async getTreasury(userId) {
     const response = await fetch(`/api/user/${userId}/treasury`);
     if (!response.ok) throw new Error('Failed to load treasury data');

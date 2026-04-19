@@ -5,6 +5,7 @@ import { renderBuildings } from '../ui/builders.js';
 import { openUpgradeModal } from '../ui/modals/index.js';
 import { getBuildingConfig, getCapacity } from './config.js';
 import { getResourceIconHtml, getResourceLabel } from '../utils/resourceIcons.js';
+import { showRewardAd } from '../utils/adsgram.js';
 
 /**
  * Activate a building to start production
@@ -42,6 +43,13 @@ export async function activateBuilding(buildingId) {
 export async function collectResources(buildingId) {
   await withOperationLock(`collectResources_${buildingId}`, async () => {
     try {
+      try {
+        await showRewardAd('buildingCollect');
+      } catch (adError) {
+        window.tg.showAlert('Просмотрите рекламу, чтобы собрать ресурсы.');
+        return;
+      }
+
       const result = await apiClient.collectResources(appState.userId, buildingId);
       appState.currentUser = result.user;
       updateUI(appState.currentUser);

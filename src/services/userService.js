@@ -10,10 +10,10 @@ const DEFAULT_USER_RESOURCES = {
 
 const INITIAL_BUILDING_TYPES = ['mine', 'quarry', 'lumber_mill', 'farm'];
 const INITIAL_PRODUCTION_RATES = {
-  mine: 100,
-  quarry: 80,
-  lumber_mill: 90,
-  farm: 70,
+  mine: 625,
+  quarry: 312,
+  lumber_mill: 312,
+  farm: 10,
 };
 
 export async function createInitialBuildings(userRecord) {

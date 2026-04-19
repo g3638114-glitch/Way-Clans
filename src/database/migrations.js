@@ -172,6 +172,27 @@ const migrations = [
           ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_market_pending_gold_non_negative;
           ALTER TABLE users ADD CONSTRAINT chk_users_market_pending_gold_non_negative CHECK (market_pending_gold >= 0);`,
   },
+  {
+    name: 'Add ads columns and sessions',
+    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS mining_ad_progress BIGINT DEFAULT 0;
+          ALTER TABLE users ADD COLUMN IF NOT EXISTS mining_ad_required BOOLEAN DEFAULT FALSE;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_mining_ad_progress_non_negative;
+          ALTER TABLE users ADD CONSTRAINT chk_users_mining_ad_progress_non_negative CHECK (mining_ad_progress >= 0);
+          CREATE TABLE IF NOT EXISTS ad_reward_sessions (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            session_type TEXT NOT NULL,
+            building_id UUID REFERENCES user_buildings(id) ON DELETE CASCADE,
+            resource_type TEXT,
+            collected_amount BIGINT DEFAULT 0,
+            remaining_amount BIGINT DEFAULT 0,
+            ad_confirmed_at TIMESTAMP WITH TIME ZONE,
+            claimed_at TIMESTAMP WITH TIME ZONE,
+            expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          );
+          CREATE INDEX IF NOT EXISTS idx_ad_reward_sessions_user_type ON ad_reward_sessions(user_id, session_type, created_at DESC);`,
+  },
 ];
 
 async function executeMigrations(client) {

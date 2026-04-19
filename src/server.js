@@ -14,6 +14,7 @@ import warehouseRouter from './routes/warehouse.js';
 import marketRouter from './routes/market.js';
 import barracksRouter from './routes/barracks.js';
 import attackRouter from './routes/attack.js';
+import adsgramRouter from './routes/adsgram.js';
 
 dotenv.config();
 
@@ -23,7 +24,11 @@ const __dirname = dirname(__filename);
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    req.rawBody = buf.toString('utf8');
+  },
+}));
 app.use(express.static(join(__dirname, '../public')));
 app.use('/resources', express.static(join(__dirname, '../resources')));
 
@@ -38,6 +43,7 @@ app.use('/api/user', warehouseRouter);
 app.use('/api/user', marketRouter);
 app.use('/api/user', barracksRouter);
 app.use('/api/user', attackRouter);
+app.use('/api/adsgram', adsgramRouter);
 
 // Serve MiniApp HTML
 app.get('/', (req, res) => {

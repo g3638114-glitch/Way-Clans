@@ -5,6 +5,7 @@ import { renderBuildings } from '../ui/builders.js';
 import { openUpgradeModal } from '../ui/modals/index.js';
 import { getBuildingConfig, getCapacity } from './config.js';
 import { getResourceIconHtml, getResourceLabel } from '../utils/resourceIcons.js';
+import { getAdsgramBlockId, showRewardedAd } from '../services/adsgram.js';
 
 /**
  * Activate a building to start production
@@ -18,7 +19,7 @@ export async function activateBuilding(buildingId) {
       const buildingIndex = appState.allBuildings.findIndex((b) => b.id === buildingId);
       if (buildingIndex !== -1) {
         appState.allBuildings[buildingIndex] = result.building;
-        appState.allBuildings[buildingIndex].currentAccumulated = 0;
+        appState.allBuildings[buildingIndex].currentAccumulated = result.remainingAmount || 0;
       }
 
       renderBuildings();
@@ -42,7 +43,15 @@ export async function activateBuilding(buildingId) {
 export async function collectResources(buildingId) {
   await withOperationLock(`collectResources_${buildingId}`, async () => {
     try {
-      const result = await apiClient.collectResources(appState.userId, buildingId);
+      const startResult = await apiClient.startCollectResources(appState.userId, buildingId);
+      const adShown = await showRewardedAd(getAdsgramBlockId('building'));
+
+      if (!adShown) {
+        window.tg.showAlert('Реклама не была просмотрена полностью. Сбор не выполнен.');
+        return;
+      }
+
+      const result = await finalizeCollectAfterAd(buildingId, startResult.sessionId);
       appState.currentUser = result.user;
       updateUI(appState.currentUser);
 
@@ -77,6 +86,26 @@ export async function collectResources(buildingId) {
       window.tg.showAlert(error.message || 'Ошибка при сборе ресурсов');
     }
   });
+}
+
+async function finalizeCollectAfterAd(buildingId, sessionId) {
+  const startedAt = Date.now();
+  const timeoutMs = 12000;
+  const delayMs = 1200;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      return await apiClient.finalizeCollectResources(appState.userId, buildingId, sessionId);
+    } catch (error) {
+      if (!error.message.includes('Reward not confirmed yet')) {
+        throw error;
+      }
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  throw new Error('Реклама просмотрена, но подтверждение ещё не пришло. Попробуйте снова через пару секунд.');
 }
 
 function renderCollectionResultModal({ buildingName, resourceType, collectedAmount, partialCollection = false, remainingAmount = 0 }) {

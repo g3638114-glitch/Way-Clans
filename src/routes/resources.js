@@ -1,5 +1,6 @@
 import express from 'express';
 import { sellResources, exchangeGold, addGold } from '../services/resourceService.js';
+import { getMiningAdStatus } from '../services/adService.js';
 
 const router = express.Router();
 
@@ -39,6 +40,17 @@ router.post('/:userId/coin-click', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error adding Jamcoin:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.get('/:userId/mining-ad-status', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await getMiningAdStatus(userId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error loading mining ad status:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

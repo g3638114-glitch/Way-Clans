@@ -15,6 +15,7 @@ import { renderBuildings } from './ui/builders.js';
 import * as market from './game/market.js';
 import { renderBarracks } from './game/barracks.js';
 import { openAttackMenu, closeAttackModal } from './game/attack.js';
+import { getAdsgramBlockId, showRewardedAd } from './services/adsgram.js';
 
 const COIN_VALUE = 100;
 const MAX_SIMULTANEOUS_TOUCHES = 3;
@@ -27,6 +28,7 @@ let coinFlushTimer = null;
 let coinRequestInFlight = false;
 let ignoreSyntheticClickUntil = 0;
 let miningUiUpdateTimer = null;
+let miningAdBusy = false;
 
 function scheduleMiningUiUpdate() {
   if (miningUiUpdateTimer) return;
@@ -113,11 +115,18 @@ async function flushCoinClicks() {
       }
 
       scheduleMiningUiUpdate();
+
+      if (result.adRequired) {
+        queuedCoinClicks = 0;
+        await requireMiningAd();
+      }
     }
   } catch (error) {
     await rollbackCoinClicksAndReload();
 
-    if (error.message.includes('Лимит казны')) {
+    if (error.message.includes('Требуется просмотр рекламы')) {
+      await requireMiningAd();
+    } else if (error.message.includes('Лимит казны')) {
       tg.showAlert(error.message);
     } else {
       tg.showAlert(error.message || '❌ Ошибка');
@@ -132,6 +141,10 @@ async function flushCoinClicks() {
 
 function queueCoinClicks(clickCount, points = []) {
   if (!appState.currentUser || clickCount <= 0) return;
+  if (appState.currentUser.mining_ad_required) {
+    requireMiningAd();
+    return;
+  }
 
   const acceptedClicks = Math.min(MAX_SIMULTANEOUS_TOUCHES, clickCount);
   queuedCoinClicks += acceptedClicks;
@@ -153,6 +166,44 @@ function queueCoinClicks(clickCount, points = []) {
     coinFlushTimer = null;
     flushCoinClicks();
   }, CLICK_FLUSH_DELAY_MS);
+}
+
+async function requireMiningAd() {
+  if (miningAdBusy) return;
+  miningAdBusy = true;
+
+  try {
+    const adShown = await showRewardedAd(getAdsgramBlockId('mining'));
+    if (!adShown) {
+      tg.showAlert('Реклама не была просмотрена полностью. Чтобы продолжить майнинг, досмотрите её.');
+      return;
+    }
+
+    const updatedUser = await waitForMiningAdConfirmation();
+    appState.currentUser = { ...appState.currentUser, ...updatedUser };
+    updateUI(appState.currentUser);
+  } catch (error) {
+    tg.showAlert(error.message || 'Не удалось подтвердить просмотр рекламы');
+  } finally {
+    miningAdBusy = false;
+  }
+}
+
+async function waitForMiningAdConfirmation() {
+  const startedAt = Date.now();
+  const timeoutMs = 12000;
+  const delayMs = 1200;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const status = await apiClient.getMiningAdStatus(appState.userId);
+    if (!status.mining_ad_required) {
+      return status;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  throw new Error('Просмотр рекламы ещё не подтверждён. Попробуйте снова через пару секунд.');
 }
 
 export function setupEventListeners() {

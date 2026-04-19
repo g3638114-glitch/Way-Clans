@@ -1,10 +1,10 @@
 import express from 'express';
 import {
-  collectResourcesFromBuilding,
   upgradeBuilding,
   activateBuilding,
   getUserBuildings,
 } from '../services/buildingService.js';
+import { createBuildingCollectSession, finalizeBuildingCollectSession } from '../services/adService.js';
 
 const router = express.Router();
 
@@ -32,14 +32,25 @@ router.post('/:userId/building/:buildingId/activate', async (req, res) => {
   }
 });
 
-// POST /api/user/:userId/building/:buildingId/collect
-router.post('/:userId/building/:buildingId/collect', async (req, res) => {
+router.post('/:userId/building/:buildingId/collect/start', async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
-    const result = await collectResourcesFromBuilding(userId, buildingId);
+    const result = await createBuildingCollectSession(userId, buildingId);
     res.json(result);
   } catch (error) {
-    console.error('Error collecting resources:', error);
+    console.error('Error starting collect session:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.post('/:userId/building/:buildingId/collect/finalize', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { sessionId } = req.body || {};
+    const result = await finalizeBuildingCollectSession(userId, sessionId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error finalizing collect session:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

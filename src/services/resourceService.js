@@ -1,6 +1,8 @@
 import { getTreasuryCapacity } from '../config/buildings.js';
 import { withTransaction } from '../database/pg.js';
 
+const MINING_AD_THRESHOLD = 40000;
+
 const RESOURCE_PRICES = {
   wood: 10,
   stone: 15,
@@ -78,20 +80,29 @@ export async function addGold(userId, goldAmount) {
     if (userResult.rows.length === 0) throw new Error('User not found');
     const user = userResult.rows[0];
 
+    if (user.mining_ad_required) {
+      const error = new Error('Требуется просмотр рекламы для продолжения майнинга');
+      error.code = 'MINING_AD_REQUIRED';
+      throw error;
+    }
+
     const capacity = getTreasuryCapacity(user.treasury_level || 1);
     const newGoldAmount = Number(user.gold || 0) + goldAmount;
     if (newGoldAmount > capacity) {
       throw new Error(`Лимит казны достигнут. Вы не можете получить ещё ${goldAmount} Jamcoin. Вместимость казны: ${capacity}, сейчас: ${user.gold || 0}. Обменяйте или потратьте Jamcoin и попробуйте снова.`);
     }
 
+    const nextMiningProgress = Number(user.mining_ad_progress || 0) + goldAmount;
+    const adRequired = nextMiningProgress >= MINING_AD_THRESHOLD;
+
     const updatedUserResult = await client.query(
       `UPDATE users
-       SET gold = $1, jamcoins_from_clicks = $2
-       WHERE id = $3
+       SET gold = $1, jamcoins_from_clicks = $2, mining_ad_progress = $3, mining_ad_required = $4
+       WHERE id = $5
        RETURNING *`,
-      [newGoldAmount, Number(user.jamcoins_from_clicks || 0) + goldAmount, user.id]
+      [newGoldAmount, Number(user.jamcoins_from_clicks || 0) + goldAmount, nextMiningProgress, adRequired, user.id]
     );
 
-    return { success: true, user: updatedUserResult.rows[0] };
+    return { success: true, adRequired, user: updatedUserResult.rows[0] };
   });
 }

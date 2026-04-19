@@ -4,7 +4,7 @@ import { updateUI } from '../ui/dom.js';
 import { renderBuildings } from '../ui/builders.js';
 import { openUpgradeModal } from '../ui/modals/index.js';
 import { getBuildingConfig, getCapacity } from './config.js';
-import { getResourceLabel } from '../utils/resourceIcons.js';
+import { getResourceIconHtml, getResourceLabel } from '../utils/resourceIcons.js';
 
 /**
  * Activate a building to start production
@@ -56,9 +56,11 @@ export async function collectResources(buildingId) {
       renderBuildings();
 
       const config = getBuildingConfig(result.building.building_type);
-      window.tg.showAlert(
-        `✅ Собрано ${result.collectedAmount} ${getResourceLabel(config.resource)}! Здание перезагрузилось.`
-      );
+      renderCollectionResultModal({
+        buildingName: config.name,
+        resourceType: config.resource,
+        collectedAmount: result.collectedAmount,
+      });
     } catch (error) {
       console.error('Error collecting resources:', error);
 
@@ -74,6 +76,41 @@ export async function collectResources(buildingId) {
     }
   });
 }
+
+function renderCollectionResultModal({ buildingName, resourceType, collectedAmount }) {
+  const modal = document.getElementById('game-result-modal');
+  const title = document.getElementById('game-result-title');
+  const body = document.getElementById('game-result-body');
+
+  if (!modal || !title || !body) {
+    window.tg.showAlert(`Собрано ${collectedAmount} ${getResourceLabel(resourceType)}!`);
+    return;
+  }
+
+  title.textContent = 'Сбор ресурсов';
+  body.innerHTML = `
+    <div class="target-card">
+      <div class="target-name">${buildingName}</div>
+      <div class="target-defenders">
+        <div class="soldier-item" style="border-left-color: #4caf50; display:block;">
+          <div style="font-weight:700; margin-bottom:6px;">Ресурсы собраны успешно</div>
+          <div style="display:flex; align-items:center; gap:10px; font-weight:700; color:#fff;">
+            <span>${getResourceIconHtml(resourceType, 'resource-inline-icon-lg', getResourceLabel(resourceType))}</span>
+            <span>${collectedAmount} ${getResourceLabel(resourceType)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('active');
+}
+
+export function closeGameResultModal() {
+  document.getElementById('game-result-modal')?.classList.remove('active');
+}
+
+window.closeGameResultModal = closeGameResultModal;
 
 /**
  * Upgrade building - opens modal with cost details

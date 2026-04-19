@@ -1,11 +1,18 @@
 // API Client for communicating with server
 export const apiClient = {
   // ... existing methods ...
-  async getUser(userId, userInfo = null) {
+  async getUser(userId, userInfo = null, startParam = null) {
     const headers = { 'Content-Type': 'application/json' };
-    const body = userInfo ? JSON.stringify({ userInfo }) : undefined;
-    const response = await fetch(`/api/user/${userId}`, { method: userInfo ? 'POST' : 'GET', headers, body });
+    const body = userInfo ? JSON.stringify({ userInfo, startParam }) : undefined;
+    const query = startParam && !userInfo ? `?startParam=${encodeURIComponent(startParam)}` : '';
+    const response = await fetch(`/api/user/${userId}${query}`, { method: userInfo ? 'POST' : 'GET', headers, body });
     if (!response.ok) throw new Error('Failed to load user data');
+    return response.json();
+  },
+
+  async getReferrals(userId) {
+    const response = await fetch(`/api/user/${userId}/referrals`);
+    if (!response.ok) throw new Error('Failed to load referrals');
     return response.json();
   },
 

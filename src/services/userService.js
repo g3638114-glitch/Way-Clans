@@ -116,6 +116,52 @@ export async function getOrCreateUser(telegramId, userInfo = null) {
   return newUser;
 }
 
+export function parseReferralStartParam(startParam) {
+  if (!startParam || typeof startParam !== 'string') return null;
+  if (!startParam.startsWith('ref_')) return null;
+
+  const referrerId = Number(startParam.slice(4));
+  if (!Number.isFinite(referrerId) || referrerId <= 0) return null;
+  return referrerId;
+}
+
+export async function applyReferralIfEligible(user, startParam) {
+  const referrerTelegramId = parseReferralStartParam(startParam);
+
+  if (!user || !referrerTelegramId) return user;
+  if (Number(user.telegram_id) === referrerTelegramId) return user;
+  if (user.referred_by_telegram_id) return user;
+
+  const { data: referrer, error: referrerError } = await supabase
+    .from('users')
+    .select('id, telegram_id, referral_count')
+    .eq('telegram_id', referrerTelegramId)
+    .single();
+
+  if (referrerError || !referrer) {
+    return user;
+  }
+
+  const { data: updatedUser, error: updateUserError } = await supabase
+    .from('users')
+    .update({ referred_by_telegram_id: referrerTelegramId })
+    .eq('id', user.id)
+    .is('referred_by_telegram_id', null)
+    .select('*')
+    .single();
+
+  if (updateUserError || !updatedUser) {
+    return user;
+  }
+
+  await supabase
+    .from('users')
+    .update({ referral_count: Number(referrer.referral_count || 0) + 1 })
+    .eq('id', referrer.id);
+
+  return updatedUser;
+}
+
 export async function getUserByTelegramId(telegramId, columns = '*') {
   const { data: user, error } = await supabase
     .from('users')
@@ -142,4 +188,25 @@ export async function getUserById(userId, columns = '*') {
   }
 
   return user;
+}
+
+export async function getReferralSummary(telegramId) {
+  const user = await getUserByTelegramId(telegramId, 'id, telegram_id, referral_count');
+
+  const { data: invitedUsers, error } = await supabase
+    .from('users')
+    .select('telegram_id, first_name, username, created_at')
+    .eq('referred_by_telegram_id', telegramId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    throw new Error('Failed to load referrals');
+  }
+
+  return {
+    user,
+    invitedUsers: invitedUsers || [],
+    totalReferrals: Number(user.referral_count || 0),
+  };
 }

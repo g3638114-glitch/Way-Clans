@@ -80,7 +80,7 @@ async function rollbackCoinClicksAndReload() {
   queuedCoinClicks = 0;
 
   try {
-    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
+    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo, appState.startParam);
     updateUI(appState.currentUser);
   } catch (reloadError) {
     console.error('Error reloading user after coin click failure:', reloadError);
@@ -192,7 +192,7 @@ export function setupEventListeners() {
   document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));
   document.getElementById('nav-coin-mining').addEventListener('click', () => showPage('coin-mining'));
   document.getElementById('nav-barracks').addEventListener('click', () => showPage('barracks'));
-  document.getElementById('nav-market-back').addEventListener('click', () => showPage('main'));
+  document.getElementById('nav-friends').addEventListener('click', () => showPage('friends'));
 
   document.querySelectorAll('.market-tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {

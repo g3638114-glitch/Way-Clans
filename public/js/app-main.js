@@ -22,7 +22,7 @@ async function loadUserData() {
       return;
     }
 
-    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo);
+    appState.currentUser = await apiClient.getUser(appState.userId, appState.userInfo, appState.startParam);
     updateUI(appState.currentUser);
 
     // If user doesn't have a profile photo, try to fetch it from Telegram

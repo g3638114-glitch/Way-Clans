@@ -1,7 +1,7 @@
 import express from 'express';
 import crypto from 'crypto';
 import { supabase } from '../bot.js';
-import { getOrCreateUser } from '../services/userService.js';
+import { applyReferralIfEligible, getOrCreateUser, getReferralSummary } from '../services/userService.js';
 
 const router = express.Router();
 
@@ -181,8 +181,10 @@ router.post('/auth/verify', async (req, res) => {
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    const startParam = req.query.startParam;
 
-    const user = await getOrCreateUser(userId);
+    let user = await getOrCreateUser(userId);
+    user = await applyReferralIfEligible(user, startParam);
     res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -193,9 +195,10 @@ router.get('/:userId', async (req, res) => {
 router.post('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { userInfo } = req.body;
+    const { userInfo, startParam } = req.body;
 
-    const user = await getOrCreateUser(userId, userInfo);
+    let user = await getOrCreateUser(userId, userInfo);
+    user = await applyReferralIfEligible(user, startParam);
     res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -241,5 +244,36 @@ router.post('/:userId/fetch-photo', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+router.get('/:userId/referrals', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const summary = await getReferralSummary(userId);
+
+    const directMiniAppLink = buildReferralMiniAppLink(userId);
+
+    res.json({
+      totalReferrals: summary.totalReferrals,
+      invitedUsers: summary.invitedUsers,
+      referralLink: directMiniAppLink,
+    });
+  } catch (error) {
+    console.error('Error loading referrals:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+function buildReferralMiniAppLink(userId) {
+  const botUsername = process.env.TELEGRAM_BOT_USERNAME;
+  const miniAppShortName = process.env.TELEGRAM_MINIAPP_SHORT_NAME;
+
+  if (botUsername && miniAppShortName) {
+    return `https://t.me/${botUsername}/${miniAppShortName}?startapp=ref_${userId}`;
+  }
+
+  const miniAppUrl = process.env.MINIAPP_URL || '';
+  const separator = miniAppUrl.includes('?') ? '&' : '?';
+  return `${miniAppUrl}${separator}startapp=ref_${userId}`;
+}
 
 export default router;

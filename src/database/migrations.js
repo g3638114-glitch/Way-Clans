@@ -147,6 +147,11 @@ const migrations = [
           ALTER TABLE market_listings ADD CONSTRAINT chk_market_listings_quantity_positive CHECK (quantity > 0);
           ALTER TABLE market_listings ADD CONSTRAINT chk_market_listings_price_positive CHECK (price_per_unit > 0);`,
   },
+  {
+    name: 'Add referral columns and index',
+    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by_telegram_id BIGINT;
+          CREATE INDEX IF NOT EXISTS idx_users_referred_by_telegram_id ON users(referred_by_telegram_id);`,
+  },
 ];
 
 async function executeMigrations(client) {

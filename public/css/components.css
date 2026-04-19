@@ -338,6 +338,114 @@
   font-size: 13px;
 }
 
+.friends-page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+}
+
+.friends-hero-card,
+.friends-link-card,
+.friends-list-card {
+  background: linear-gradient(180deg, rgba(21, 27, 49, 0.98) 0%, rgba(14, 19, 36, 0.98) 100%);
+  border: 1px solid rgba(93, 118, 184, 0.18);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+.friends-hero-kicker {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(143, 171, 255, 0.74);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.friends-hero-title,
+.friends-link-title,
+.friends-list-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.friends-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.friends-stat-card {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.friends-stat-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.friends-stat-value {
+  font-size: 20px;
+  color: #ffd666;
+  font-weight: 800;
+}
+
+.friends-link-box {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  word-break: break-all;
+  margin-bottom: 12px;
+}
+
+.friends-link-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.friend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.friend-item-name {
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.friend-item-username,
+.friend-item-date,
+.friends-empty,
+.friends-loading {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+
 /* ========================================
    ACTION BUTTONS GRID
    ======================================== */

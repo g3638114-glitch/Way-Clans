@@ -4,6 +4,7 @@ export const appState = {
   currentUser: null,
   userId: null,
   userInfo: null, // Telegram user info (username, first_name, etc.)
+  startParam: null,
 
   // Game data
   allBuildings: [],
@@ -66,6 +67,11 @@ export async function initializeUserId() {
   // First try to get from URL parameters (direct link with userId)
   const params = new URLSearchParams(window.location.search);
   const urlUserId = params.get('userId');
+  const urlStartParam = params.get('startapp') || params.get('tgWebAppStartParam');
+
+  if (urlStartParam) {
+    appState.startParam = urlStartParam;
+  }
 
   if (urlUserId) {
     console.log(`📌 Got userId from URL: ${urlUserId}`);
@@ -82,6 +88,10 @@ export async function initializeUserId() {
     }
 
     const tg = window.Telegram.WebApp;
+
+    if (tg.initDataUnsafe?.start_param) {
+      appState.startParam = tg.initDataUnsafe.start_param;
+    }
 
     // Try method 1: initDataUnsafe (available immediately, not verified)
     if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {

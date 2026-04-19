@@ -108,9 +108,9 @@ function renderAttackResult(result) {
   const searchBtn = document.getElementById('search-target-btn');
 
   body.innerHTML = `
-    <div class="target-card">
-      <div class="target-name">${result.won ? 'Победа' : 'Атака отражена'}</div>
-      <div class="target-resources">
+    <div class="target-card attack-result-card ${result.won ? 'attack-result-win' : 'attack-result-lose'}">
+      <div class="target-name attack-result-title">${result.won ? 'Победа' : 'Атака отражена'}</div>
+      <div class="target-resources attack-result-summary">
         <div class="troop-stat-item">
           <span class="troop-stat-label">Ваши воины</span>
           <span class="troop-stat-value">${result.attackerTroopsCount}</span>
@@ -128,6 +128,7 @@ function renderAttackResult(result) {
           <span class="troop-stat-value">${result.defendersKilled}</span>
         </div>
       </div>
+      ${renderLossesBlock(result)}
       ${result.won ? renderLootBlock(result) : ''}
     </div>
   `;
@@ -136,6 +137,24 @@ function renderAttackResult(result) {
   confirmBtn.onclick = searchNewTarget;
   searchBtn.textContent = 'Закрыть';
   searchBtn.onclick = closeAttackModal;
+}
+
+function renderLossesBlock(result) {
+  return `
+    <div class="target-defenders attack-result-section">
+      <h4>Потери по уровням</h4>
+      <div class="attack-loss-grid">
+        <div class="attack-loss-card">
+          <div class="attack-loss-title">Ваши</div>
+          ${renderLevelCountRows(result.attackerLossesByLevel, 'Никто не погиб')}
+        </div>
+        <div class="attack-loss-card">
+          <div class="attack-loss-title">Врага</div>
+          ${renderLevelCountRows(result.defenderLossesByLevel, 'Потерь нет')}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderLootBlock(result) {
@@ -159,7 +178,7 @@ function renderLootBlock(result) {
   }
 
   return `
-    <div class="target-defenders">
+    <div class="target-defenders attack-result-section">
       <h4>Добыча:</h4>
       ${rows.join('')}
       <div class="soldier-item" style="border-left-color: #d4af37; display:block; margin-top:8px;">
@@ -173,6 +192,27 @@ function renderLootBlock(result) {
       </div>
     </div>
   `;
+}
+
+function renderLevelCountRows(levelMap = {}, emptyText) {
+  const rows = [];
+
+  for (let level = 1; level <= 6; level++) {
+    const count = Number(levelMap[level] || 0);
+    if (!count) continue;
+    rows.push(`
+      <div class="attack-level-row">
+        <span class="attack-level-chip">Ур. ${level}</span>
+        <span class="attack-level-count">${count}</span>
+      </div>
+    `);
+  }
+
+  if (rows.length === 0) {
+    return `<div class="attack-empty-row">${emptyText}</div>`;
+  }
+
+  return rows.join('');
 }
 
 window.closeAttackModal = closeAttackModal;

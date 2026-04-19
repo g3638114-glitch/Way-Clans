@@ -19,12 +19,39 @@ import { openAttackMenu, closeAttackModal } from './game/attack.js';
 const COIN_VALUE = 100;
 const MAX_SIMULTANEOUS_TOUCHES = 3;
 const CLICK_FLUSH_DELAY_MS = 120;
+const MINING_UI_UPDATE_DELAY_MS = 80;
 
 let queuedCoinClicks = 0;
 let pendingOptimisticCoinClicks = 0;
 let coinFlushTimer = null;
 let coinRequestInFlight = false;
 let ignoreSyntheticClickUntil = 0;
+let miningUiUpdateTimer = null;
+
+function scheduleMiningUiUpdate() {
+  if (miningUiUpdateTimer) return;
+
+  miningUiUpdateTimer = setTimeout(() => {
+    miningUiUpdateTimer = null;
+    updateUI(appState.currentUser);
+  }, MINING_UI_UPDATE_DELAY_MS);
+}
+
+function showFloatingCoinReward(totalAmount, touchCount = 1) {
+  const wrapper = document.querySelector('.coin-wrapper');
+  if (!wrapper || totalAmount <= 0) return;
+
+  const reward = document.createElement('div');
+  reward.className = 'coin-floating-reward';
+  reward.textContent = `+${totalAmount}`;
+
+  const spread = Math.min(28, 10 + ((touchCount - 1) * 8));
+  const offsetX = Math.round((Math.random() * spread * 2) - spread);
+  reward.style.setProperty('--float-x', `${offsetX}px`);
+
+  wrapper.appendChild(reward);
+  setTimeout(() => reward.remove(), 900);
+}
 
 function applyOptimisticCoinClicks(clickCount) {
   if (!appState.currentUser || clickCount <= 0) return;
@@ -36,7 +63,8 @@ function applyOptimisticCoinClicks(clickCount) {
     gold: Number(appState.currentUser.gold || 0) + amount,
     jamcoins_from_clicks: Number(appState.currentUser.jamcoins_from_clicks || 0) + amount,
   };
-  updateUI(appState.currentUser);
+  showFloatingCoinReward(amount, clickCount);
+  scheduleMiningUiUpdate();
 }
 
 async function rollbackCoinClicksAndReload() {
@@ -76,7 +104,7 @@ async function flushCoinClicks() {
         };
       }
 
-      updateUI(appState.currentUser);
+      scheduleMiningUiUpdate();
     }
   } catch (error) {
     await rollbackCoinClicksAndReload();

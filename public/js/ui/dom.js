@@ -32,13 +32,20 @@ function generateAvatarInitials(user) {
 export function updateUI(currentUser) {
   if (!currentUser) return;
 
+  const goldValue = Number(currentUser.gold || 0);
+  const woodValue = Number(currentUser.wood || 0);
+  const stoneValue = Number(currentUser.stone || 0);
+  const meatValue = Number(currentUser.meat || 0);
+  const jabcoinsValue = Number(currentUser.jabcoins || 0);
+  const jamcoinsFromClicksValue = Number(currentUser.jamcoins_from_clicks || 0);
+
   // Update resources - use short format for header to prevent wrapping
-  const goldText = formatNumberShort(currentUser.gold);
-  const goldFullText = formatNumber(currentUser.gold);
-  const woodText = formatNumberShort(currentUser.wood);
-  const stoneText = formatNumberShort(currentUser.stone);
-  const meatText = formatNumberShort(currentUser.meat);
-  const jabcoinsText = currentUser.jabcoins;
+  const goldText = formatNumberShort(goldValue);
+  const goldFullText = formatNumber(goldValue);
+  const woodText = formatNumberShort(woodValue);
+  const stoneText = formatNumberShort(stoneValue);
+  const meatText = formatNumberShort(meatValue);
+  const jabcoinsText = jabcoinsValue;
 
   // Update header resources
   const goldEl = document.getElementById('gold-value');
@@ -54,7 +61,7 @@ export function updateUI(currentUser) {
   if (jabcoinsEl) jabcoinsEl.textContent = jabcoinsText;
 
   const treasuryCapacity = getTreasuryCapacity(currentUser.treasury_level || 1);
-  const treasuryProgress = treasuryCapacity > 0 ? Math.min(100, Math.round(((currentUser.gold || 0) / treasuryCapacity) * 100)) : 0;
+  const treasuryProgress = treasuryCapacity > 0 ? Math.min(100, Math.round((goldValue / treasuryCapacity) * 100)) : 0;
 
   applyCapacityState(goldEl?.closest('.resource-item'), treasuryProgress);
 
@@ -65,8 +72,7 @@ export function updateUI(currentUser) {
   // Update Jamcoin from clicks display
   const jamcoinsFromClicksEl = document.getElementById('jamcoins-from-clicks-display');
   if (jamcoinsFromClicksEl) {
-    const jamcoinsFromClicks = currentUser.jamcoins_from_clicks || 0;
-    jamcoinsFromClicksEl.textContent = formatNumber(jamcoinsFromClicks);
+    jamcoinsFromClicksEl.textContent = formatNumber(jamcoinsFromClicksValue);
   }
 
   // Update player card
@@ -109,9 +115,9 @@ export function updateUI(currentUser) {
   if (exchangeGoldEl) exchangeGoldEl.innerHTML = `${getResourceIconHtml('gold', 'resource-inline-icon-lg', 'Jamcoin')} ${goldText}`;
 
   // Reset input fields
-  document.getElementById('wood-input').max = currentUser.wood;
-  document.getElementById('stone-input').max = currentUser.stone;
-  document.getElementById('meat-input').max = currentUser.meat;
+  document.getElementById('wood-input').max = woodValue;
+  document.getElementById('stone-input').max = stoneValue;
+  document.getElementById('meat-input').max = meatValue;
 }
 
 function applyCapacityState(element, progress) {

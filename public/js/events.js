@@ -33,8 +33,8 @@ function applyOptimisticCoinClicks(clickCount) {
   pendingOptimisticCoinClicks += clickCount;
   appState.currentUser = {
     ...appState.currentUser,
-    gold: (appState.currentUser.gold || 0) + amount,
-    jamcoins_from_clicks: (appState.currentUser.jamcoins_from_clicks || 0) + amount,
+    gold: Number(appState.currentUser.gold || 0) + amount,
+    jamcoins_from_clicks: Number(appState.currentUser.jamcoins_from_clicks || 0) + amount,
   };
   updateUI(appState.currentUser);
 }
@@ -71,8 +71,8 @@ async function flushCoinClicks() {
         const optimisticAmount = pendingOptimisticCoinClicks * COIN_VALUE;
         appState.currentUser = {
           ...appState.currentUser,
-          gold: (appState.currentUser.gold || 0) + optimisticAmount,
-          jamcoins_from_clicks: (appState.currentUser.jamcoins_from_clicks || 0) + optimisticAmount,
+          gold: Number(appState.currentUser.gold || 0) + optimisticAmount,
+          jamcoins_from_clicks: Number(appState.currentUser.jamcoins_from_clicks || 0) + optimisticAmount,
         };
       }
 

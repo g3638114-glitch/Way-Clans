@@ -151,10 +151,49 @@ export async function upgradeTreasuryToLevel() {
 
       renderTreasuryContent();
 
-      tg.showAlert(`✅ Казна улучшена до уровня ${result.newLevel}! Новая вместимость: ${result.newCapacity}`);
+      showUpgradeResultModal({
+        title: 'Казна улучшена',
+        icon: '🏰',
+        name: 'Казна клана',
+        newLevel: result.newLevel,
+        benefitLabel: 'Вместимость',
+        benefitValue: `${result.newCapacity} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}`,
+      });
     } catch (error) {
       console.error('Error upgrading treasury:', error);
       tg.showAlert(error.message || 'Ошибка при обновлении казначейства.');
     }
   });
+}
+
+function showUpgradeResultModal({ title, icon, name, newLevel, benefitLabel, benefitValue }) {
+  const modal = document.getElementById('game-result-modal');
+  const titleEl = document.getElementById('game-result-title');
+  const bodyEl = document.getElementById('game-result-body');
+
+  if (!modal || !titleEl || !bodyEl) {
+    tg.showAlert(`✅ ${name} улучшена до уровня ${newLevel}`);
+    return;
+  }
+
+  titleEl.textContent = title;
+  bodyEl.innerHTML = `
+    <div class="target-card attack-result-card attack-result-win">
+      <div class="upgrade-result-hero">
+        <div class="upgrade-result-icon">${icon}</div>
+        <div>
+          <div class="target-name" style="margin-bottom:4px;">${name}</div>
+          <div class="upgrade-result-level">Теперь уровень ${newLevel}</div>
+        </div>
+      </div>
+      <div class="upgrade-delta-card" style="margin-top: 12px;">
+        <div class="upgrade-section-title">Получено улучшение</div>
+        <div class="upgrade-delta-row">
+          <span class="upgrade-delta-label">${benefitLabel}</span>
+          <div class="upgrade-delta-values"><span class="new">${benefitValue}</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+  modal.classList.add('active');
 }

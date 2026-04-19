@@ -456,6 +456,29 @@
   font-weight: 700;
 }
 
+.upgrade-result-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.upgrade-result-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.upgrade-result-level {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .attack-result-card {
   background: linear-gradient(180deg, rgba(26, 30, 52, 0.98) 0%, rgba(16, 19, 35, 0.98) 100%);
 }
@@ -660,11 +683,12 @@
    ======================================== */
 
 .treasury-info-main {
-  padding: 15px;
-  background: rgba(156, 39, 176, 0.1);
-  border-radius: 10px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(70, 30, 83, 0.38) 0%, rgba(26, 20, 42, 0.86) 100%);
+  border-radius: 16px;
   margin-bottom: 20px;
-  border: 1px solid rgba(156, 39, 176, 0.3);
+  border: 1px solid rgba(190, 96, 214, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 22px rgba(0,0,0,0.16);
 }
 
 .treasury-level-display h3 {
@@ -681,19 +705,20 @@
 
 .treasury-progress-bar {
   width: 100%;
-  height: 20px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.26);
+  border-radius: 999px;
   overflow: hidden;
-  margin-top: 10px;
-  border: 1px solid rgba(156, 39, 176, 0.3);
+  margin-top: 12px;
+  border: 1px solid rgba(190, 96, 214, 0.18);
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #9c27b0 0%, #e91e63 100%);
+  background: linear-gradient(90deg, #b04bd8 0%, #e4589d 55%, #ffbf69 100%);
   width: 0%;
   transition: width 0.3s ease;
+  box-shadow: 0 0 18px rgba(228, 88, 157, 0.28);
 }
 
 .treasury-upgrade-section {
@@ -834,11 +859,12 @@
    ======================================== */
 
 .warehouse-info-main {
-  padding: 15px;
-  background: rgba(76, 111, 166, 0.1);
-  border-radius: 10px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(44, 59, 102, 0.34) 0%, rgba(18, 25, 46, 0.92) 100%);
+  border-radius: 16px;
   margin-bottom: 20px;
-  border: 1px solid rgba(76, 111, 166, 0.3);
+  border: 1px solid rgba(99, 131, 204, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 22px rgba(0,0,0,0.16);
 }
 
 .warehouse-level-display h3 {
@@ -856,9 +882,9 @@
 
 .warehouse-resource-item {
   padding: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  border: 1px solid rgba(76, 111, 166, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border: 1px solid rgba(99, 131, 204, 0.16);
 }
 
 .resource-header {
@@ -881,11 +907,11 @@
 
 .warehouse-progress-bar {
   width: 100%;
-  height: 16px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.26);
+  border-radius: 999px;
   overflow: hidden;
-  border: 1px solid rgba(76, 111, 166, 0.2);
+  border: 1px solid rgba(99, 131, 204, 0.16);
 }
 
 .warehouse-upgrade-section {

@@ -3,7 +3,7 @@ import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
 import { renderBuildings } from '../builders.js';
 import { formatNumber } from '../../utils/formatters.js';
-import { getUpgradeCost, getProductionRate, getBuildingConfig } from '../../game/config.js';
+import { getUpgradeCost, getProductionRate, getBuildingConfig, getBuildingIcon } from '../../game/config.js';
 import { getResourceIconHtml, getResourceLabel } from '../../utils/resourceIcons.js';
 
 export function openUpgradeModal(buildingId, currentLevel) {
@@ -24,6 +24,7 @@ export function openUpgradeModal(buildingId, currentLevel) {
   const buildingName = `${config.name}`;
 
   // Update modal content
+  document.getElementById('upgrade-hero-icon').textContent = getBuildingIcon(building.building_type);
   document.getElementById('upgrade-building-name').textContent = buildingName;
   document.getElementById('upgrade-current-level').textContent = currentLevel;
   document.getElementById('upgrade-new-level').textContent = nextLevel;
@@ -122,10 +123,49 @@ export async function confirmUpgrade() {
 
       closeUpgradeModal();
       renderBuildings();
-      window.tg.showAlert(`✅ Здание улучшено! Новый уровень: ${nextLevel}`);
+      showUpgradeResultModal({
+        title: 'Здание улучшено',
+        icon: getBuildingIcon(result.building.building_type),
+        name: getBuildingConfig(result.building.building_type).name,
+        newLevel: nextLevel,
+        benefitLabel: 'Производство',
+        benefitValue: `${getProductionRate(result.building.building_type, nextLevel)}${getResourceIconHtml(getBuildingConfig(result.building.building_type).resource, 'resource-inline-icon', getResourceLabel(getBuildingConfig(result.building.building_type).resource))}/час`,
+      });
     } catch (error) {
       console.error('Error upgrading building:', error);
       window.tg.showAlert(error.message || 'Ошибка при улучшении здания');
     }
   });
+}
+
+function showUpgradeResultModal({ title, icon, name, newLevel, benefitLabel, benefitValue }) {
+  const modal = document.getElementById('game-result-modal');
+  const titleEl = document.getElementById('game-result-title');
+  const bodyEl = document.getElementById('game-result-body');
+
+  if (!modal || !titleEl || !bodyEl) {
+    window.tg.showAlert(`✅ ${name} улучшено до уровня ${newLevel}`);
+    return;
+  }
+
+  titleEl.textContent = title;
+  bodyEl.innerHTML = `
+    <div class="target-card attack-result-card attack-result-win">
+      <div class="upgrade-result-hero">
+        <div class="upgrade-result-icon">${icon}</div>
+        <div>
+          <div class="target-name" style="margin-bottom:4px;">${name}</div>
+          <div class="upgrade-result-level">Теперь уровень ${newLevel}</div>
+        </div>
+      </div>
+      <div class="upgrade-delta-card" style="margin-top: 12px;">
+        <div class="upgrade-section-title">Получено улучшение</div>
+        <div class="upgrade-delta-row">
+          <span class="upgrade-delta-label">${benefitLabel}</span>
+          <div class="upgrade-delta-values"><span class="new">${benefitValue}</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+  modal.classList.add('active');
 }

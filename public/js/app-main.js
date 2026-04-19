@@ -6,6 +6,7 @@ import { showPage } from './ui/pages.js';
 import { renderBuildings } from './ui/builders.js';
 import { setupEventListeners } from './events.js';
 import * as market from './game/market.js';
+import { initializeAdsgram } from './services/adsgram.js';
 
 // Initialize Telegram WebApp
 const tg = window.Telegram.WebApp;
@@ -94,6 +95,8 @@ async function initializeApp() {
 
     // Setup all event listeners
     setupEventListeners();
+
+    initializeAdsgram();
 
     // Show main page
     showPage('main');

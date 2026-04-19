@@ -1,4 +1,5 @@
 const ADSGRAM_SDK_URL = 'https://sad.adsgram.ai/js/sad.min.js';
+const ADSGRAM_SHOW_TIMEOUT_MS = 15000;
 
 let adsgramLoadPromise = null;
 
@@ -57,10 +58,27 @@ export async function showRewardedAd(blockId) {
     throw new Error('Не задан blockId для AdsGram');
   }
 
+  try {
+    window.Telegram?.WebApp?.expand?.();
+  } catch {}
+
   const Adsgram = await ensureAdsgramReady();
   const controller = Adsgram.init({ blockId: String(blockId) });
-  const result = await controller.show();
+  const result = await Promise.race([
+    controller.show(),
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('AdsGram не открыл рекламу вовремя')), ADSGRAM_SHOW_TIMEOUT_MS);
+    }),
+  ]);
   return Boolean(result && result.done && !result.error);
+}
+
+export async function initializeAdsgram() {
+  try {
+    await ensureAdsgramReady();
+  } catch (error) {
+    console.warn('AdsGram init failed:', error);
+  }
 }
 
 export function getAdsgramBlockId(kind) {

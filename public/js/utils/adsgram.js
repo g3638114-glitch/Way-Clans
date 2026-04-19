@@ -3,7 +3,7 @@ const ADSGRAM_BLOCKS = {
   miningThreshold: '28167',
 };
 
-const ADSGRAM_SCRIPT_SRC = 'https://sad.adsgram.ai/js/sad.min.js';
+const ADSGRAM_SCRIPT_SRC = '/vendor/adsgram.js';
 const controllerCache = new Map();
 let adsgramScriptPromise = null;
 

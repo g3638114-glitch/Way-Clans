@@ -264,16 +264,14 @@ router.get('/:userId/referrals', async (req, res) => {
 });
 
 function buildReferralMiniAppLink(userId) {
-  const botUsername = process.env.TELEGRAM_BOT_USERNAME;
-  const miniAppShortName = process.env.TELEGRAM_MINIAPP_SHORT_NAME;
+  const botUsername = (process.env.TELEGRAM_BOT_USERNAME || '').replace(/^@/, '').trim();
+  const miniAppShortName = (process.env.TELEGRAM_MINIAPP_SHORT_NAME || '').trim();
 
-  if (botUsername && miniAppShortName) {
-    return `https://t.me/${botUsername}/${miniAppShortName}?startapp=ref_${userId}`;
+  if (!botUsername || !miniAppShortName) {
+    throw new Error('Telegram MiniApp deep link is not configured');
   }
 
-  const miniAppUrl = process.env.MINIAPP_URL || '';
-  const separator = miniAppUrl.includes('?') ? '&' : '?';
-  return `${miniAppUrl}${separator}startapp=ref_${userId}`;
+  return `https://t.me/${botUsername}/${miniAppShortName}?startapp=${encodeURIComponent(`ref_${userId}`)}`;
 }
 
 export default router;

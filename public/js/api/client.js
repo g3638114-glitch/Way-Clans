@@ -12,7 +12,10 @@ export const apiClient = {
 
   async getReferrals(userId) {
     const response = await fetch(`/api/user/${userId}/referrals`);
-    if (!response.ok) throw new Error('Failed to load referrals');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Failed to load referrals');
+    }
     return response.json();
   },
 

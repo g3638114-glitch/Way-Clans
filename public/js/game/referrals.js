@@ -12,7 +12,11 @@ export async function loadReferralsPage() {
       const data = await apiClient.getReferrals(appState.userId);
       renderReferralsPage(data);
     } catch (error) {
-      container.innerHTML = `<div class="friends-empty">Ошибка: ${error.message || 'Не удалось загрузить друзей'}</div>`;
+      const message = error.message || 'Не удалось загрузить друзей';
+      const details = message.includes('Failed to load referrals')
+        ? 'Реферальная ссылка MiniApp пока не настроена на сервере. Нужны TELEGRAM_BOT_USERNAME и TELEGRAM_MINIAPP_SHORT_NAME.'
+        : message;
+      container.innerHTML = `<div class="friends-empty">${details}</div>`;
     }
   });
 }

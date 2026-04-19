@@ -1,13 +1,64 @@
-function getAdsgramController(blockId) {
-  if (!window.Adsgram || !blockId) {
-    throw new Error('AdsGram недоступен');
+const ADSGRAM_SDK_URL = 'https://sad.adsgram.ai/js/sad.min.js';
+
+let adsgramLoadPromise = null;
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function loadAdsgramScript() {
+  if (adsgramLoadPromise) {
+    return adsgramLoadPromise;
   }
 
-  return window.Adsgram.init({ blockId: String(blockId) });
+  adsgramLoadPromise = new Promise((resolve, reject) => {
+    if (window.Adsgram) {
+      resolve(window.Adsgram);
+      return;
+    }
+
+    const existingScript = document.querySelector(`script[src="${ADSGRAM_SDK_URL}"]`);
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(window.Adsgram));
+      existingScript.addEventListener('error', () => reject(new Error('Не удалось загрузить AdsGram SDK')));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = ADSGRAM_SDK_URL;
+    script.async = true;
+    script.onload = () => resolve(window.Adsgram);
+    script.onerror = () => reject(new Error('Не удалось загрузить AdsGram SDK'));
+    document.head.appendChild(script);
+  });
+
+  return adsgramLoadPromise;
+}
+
+async function ensureAdsgramReady() {
+  if (window.Adsgram) {
+    return window.Adsgram;
+  }
+
+  await loadAdsgramScript();
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (window.Adsgram) {
+      return window.Adsgram;
+    }
+    await wait(150);
+  }
+
+  throw new Error('AdsGram недоступен');
 }
 
 export async function showRewardedAd(blockId) {
-  const controller = getAdsgramController(blockId);
+  if (!blockId) {
+    throw new Error('Не задан blockId для AdsGram');
+  }
+
+  const Adsgram = await ensureAdsgramReady();
+  const controller = Adsgram.init({ blockId: String(blockId) });
   const result = await controller.show();
   return Boolean(result && result.done && !result.error);
 }

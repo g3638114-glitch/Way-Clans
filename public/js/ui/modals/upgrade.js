@@ -4,7 +4,7 @@ import { updateUI } from '../dom.js';
 import { renderBuildings } from '../builders.js';
 import { formatNumber } from '../../utils/formatters.js';
 import { getUpgradeCost, getProductionRate, getBuildingConfig } from '../../game/config.js';
-import { getResourceIconHtml } from '../../utils/resourceIcons.js';
+import { getResourceIconHtml, getResourceLabel } from '../../utils/resourceIcons.js';
 
 export function openUpgradeModal(buildingId, currentLevel) {
   const building = appState.allBuildings.find((b) => b.id === buildingId);
@@ -31,10 +31,9 @@ export function openUpgradeModal(buildingId, currentLevel) {
   // Current and new production rates
   const currentProduction = getProductionRate(building.building_type, currentLevel);
   const newProduction = getProductionRate(building.building_type, nextLevel);
-  const resourceEmoji = config.resourceEmoji;
-
-  document.getElementById('upgrade-current-production').textContent = `${currentProduction}${resourceEmoji}/час`;
-  document.getElementById('upgrade-new-production').textContent = `${newProduction}${resourceEmoji}/час`;
+  const resourceType = config.resource;
+  document.getElementById('upgrade-current-production').innerHTML = `${currentProduction}${getResourceIconHtml(resourceType, 'resource-inline-icon', getResourceLabel(resourceType))}/час`;
+  document.getElementById('upgrade-new-production').innerHTML = `${newProduction}${getResourceIconHtml(resourceType, 'resource-inline-icon', getResourceLabel(resourceType))}/час`;
 
   // Get upgrade cost
   const costData = getUpgradeCost(building.building_type, nextLevel);

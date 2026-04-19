@@ -3,6 +3,7 @@ import { appState } from '../utils/state.js';
 import { formatNumberShort, formatNumber } from '../utils/formatters.js';
 import { apiClient } from '../api/client.js';
 import { withOperationLock } from '../utils/state.js';
+import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 /**
  * Show warrior card for a specific warrior type
@@ -112,10 +113,10 @@ function renderWarriorCard(warrior) {
       <div class="warrior-loot-section">
         <div class="loot-title">1 Атакующий крадёт:</div>
         <div class="loot-items">
-          <div class="loot-item">💰 ${currentLevelData.loot.gold}</div>
-          <div class="loot-item">🌲 ${currentLevelData.loot.wood}</div>
-          <div class="loot-item">🪨 ${currentLevelData.loot.stone}</div>
-          <div class="loot-item">🍖 ${currentLevelData.loot.meat}</div>
+          <div class="loot-item">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')} ${currentLevelData.loot.gold}</div>
+          <div class="loot-item">${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')} ${currentLevelData.loot.wood}</div>
+          <div class="loot-item">${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')} ${currentLevelData.loot.stone}</div>
+          <div class="loot-item">${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')} ${currentLevelData.loot.meat}</div>
         </div>
       </div>
     `;
@@ -131,16 +132,16 @@ function renderWarriorCard(warrior) {
         <div class="hire-cost-title">Стоимость найма одного воина</div>
         <div class="hire-cost-items">
           <div class="hire-cost-item ${hasEnoughResources('hire', warrior) ? '' : 'insufficient'}">
-            💰 ${formatNumber(warrior.hireCost.gold)}
+            ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')} ${formatNumber(warrior.hireCost.gold)}
           </div>
           <div class="hire-cost-item ${hasEnoughResources('hire', warrior) ? '' : 'insufficient'}">
-            🌲 ${warrior.hireCost.wood}
+            ${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')} ${warrior.hireCost.wood}
           </div>
           <div class="hire-cost-item ${hasEnoughResources('hire', warrior) ? '' : 'insufficient'}">
-            🪨 ${warrior.hireCost.stone}
+            ${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')} ${warrior.hireCost.stone}
           </div>
           <div class="hire-cost-item ${hasEnoughResources('hire', warrior) ? '' : 'insufficient'}">
-            🍖 ${warrior.hireCost.meat}
+            ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')} ${warrior.hireCost.meat}
           </div>
         </div>
       </div>
@@ -157,15 +158,15 @@ function renderWarriorCard(warrior) {
     const upgradeCost = nextLevelData.upgradeCost;
     if (upgradeCost.gold) {
       const hasGold = appState.currentUser?.gold >= upgradeCost.gold;
-      html += `<div class="cost-item ${hasGold ? '' : 'insufficient'}">💰 ${formatNumber(upgradeCost.gold)}</div>`;
+      html += `<div class="cost-item ${hasGold ? '' : 'insufficient'}">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')} ${formatNumber(upgradeCost.gold)}</div>`;
     }
     if (upgradeCost.jabcoin) {
       const hasJabcoin = appState.currentUser?.jabcoins >= upgradeCost.jabcoin;
-      html += `<div class="cost-item ${hasJabcoin ? '' : 'insufficient'}">💎 ${upgradeCost.jabcoin}</div>`;
+      html += `<div class="cost-item ${hasJabcoin ? '' : 'insufficient'}">${getResourceIconHtml('jabcoin', 'resource-inline-icon', 'Jabcoin')} ${upgradeCost.jabcoin}</div>`;
     }
     if (upgradeCost.meat) {
       const hasMeat = appState.currentUser?.meat >= upgradeCost.meat;
-      html += `<div class="cost-item ${hasMeat ? '' : 'insufficient'}">🍖 ${upgradeCost.meat}</div>`;
+      html += `<div class="cost-item ${hasMeat ? '' : 'insufficient'}">${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')} ${upgradeCost.meat}</div>`;
     }
 
     html += `

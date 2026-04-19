@@ -1,15 +1,6 @@
 import { supabase } from '../bot.js';
-import { TROOP_STATS } from '../config/troops.js';
 import { withTransaction } from '../database/pg.js';
-
-const LOOT_PER_LEVEL = {
-  1: { gold: 31, wood: 15, stone: 15, meat: 1 },
-  2: { gold: 62, wood: 30, stone: 30, meat: 2 },
-  3: { gold: 125, wood: 60, stone: 60, meat: 4 },
-  4: { gold: 400, wood: 150, stone: 150, meat: 10 },
-  5: { gold: 800, wood: 300, stone: 300, meat: 20 },
-  6: { gold: 2000, wood: 500, stone: 500, meat: 30 },
-};
+import { computeLootFromSurvivors, simulateBattle } from '../domain/battleMath.js';
 
 export async function getRandomTarget(userId) {
   const { data: currentUser } = await supabase.from('users').select('id').eq('telegram_id', userId).single();
@@ -107,39 +98,24 @@ export async function performAttack(userId, targetId) {
       throw new Error('У вас нет атакующих воинов');
     }
 
-    const attackerCount = attackerTroops.reduce((sum, t) => sum + Number(t.count), 0);
-    const defenderCount = defenderTroops.reduce((sum, t) => sum + Number(t.count), 0);
-    const totalAttackerDamage = attackerTroops.reduce((sum, t) => sum + TROOP_STATS.attacker[t.level].damage * Number(t.count), 0);
-    const totalDefenderDamage = defenderTroops.reduce((sum, t) => sum + TROOP_STATS.defender[t.level].damage * Number(t.count), 0);
-
-    const attackerKills = defenderCount > 0
-      ? Math.min(attackerCount, Math.floor(totalDefenderDamage / TROOP_STATS.attacker[1].health))
-      : 0;
-    const defenderKills = attackerCount > 0
-      ? Math.min(defenderCount, Math.floor(totalAttackerDamage / TROOP_STATS.defender[1].health))
-      : defenderCount;
-
-    const attackersByLevel = buildLevelCountMap(attackerTroops);
-    const defendersByLevel = buildLevelCountMap(defenderTroops);
-    const attackerLossesByLevel = applyLossesByLowestLevel(attackersByLevel, attackerKills);
-    const defenderLossesByLevel = applyLossesByLowestLevel(defendersByLevel, defenderKills);
-
-    const attackersRemaining = sumLevelCounts(attackersByLevel);
-    const defendersRemaining = sumLevelCounts(defendersByLevel);
+    const battle = simulateBattle(attackerTroops, defenderTroops);
+    const {
+      attackerCount,
+      defenderCount,
+      attackerKills,
+      defenderKills,
+      attackersByLevel,
+      defendersByLevel,
+      attackerLossesByLevel,
+      defenderLossesByLevel,
+      attackersRemaining,
+      defendersRemaining,
+    } = battle;
 
     let totalLoot = { gold: 0, wood: 0, stone: 0, meat: 0 };
 
     if (attackersRemaining > 0 && defendersRemaining === 0) {
-      for (let level = 1; level <= 6; level++) {
-        const survivingCount = attackersByLevel[level];
-        if (survivingCount > 0) {
-          const lootPerUnit = LOOT_PER_LEVEL[level];
-          totalLoot.gold += lootPerUnit.gold * survivingCount;
-          totalLoot.wood += lootPerUnit.wood * survivingCount;
-          totalLoot.stone += lootPerUnit.stone * survivingCount;
-          totalLoot.meat += lootPerUnit.meat * survivingCount;
-        }
-      }
+      totalLoot = computeLootFromSurvivors(attackersByLevel);
 
       totalLoot = {
         gold: Math.min(totalLoot.gold, Number(targetUser.gold)),
@@ -201,35 +177,6 @@ export async function performAttack(userId, targetId) {
       won: defendersRemaining === 0,
     };
   });
-}
-
-function buildLevelCountMap(troops) {
-  const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-
-  for (const troop of troops) {
-    counts[troop.level] += Number(troop.count);
-  }
-
-  return counts;
-}
-
-function applyLossesByLowestLevel(levelCounts, totalKills) {
-  const losses = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-  let remainingKills = totalKills;
-
-  for (let level = 1; level <= 6; level++) {
-    if (remainingKills <= 0) break;
-    const killed = Math.min(levelCounts[level], remainingKills);
-    levelCounts[level] -= killed;
-    losses[level] = killed;
-    remainingKills -= killed;
-  }
-
-  return losses;
-}
-
-function sumLevelCounts(levelCounts) {
-  return Object.values(levelCounts).reduce((sum, count) => sum + Number(count), 0);
 }
 
 async function persistTroopCounts(client, troops, survivorCounts) {

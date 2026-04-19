@@ -66,6 +66,16 @@ async function flushCoinClicks() {
 
     if (result.user) {
       appState.currentUser = result.user;
+
+      if (pendingOptimisticCoinClicks > 0) {
+        const optimisticAmount = pendingOptimisticCoinClicks * COIN_VALUE;
+        appState.currentUser = {
+          ...appState.currentUser,
+          gold: (appState.currentUser.gold || 0) + optimisticAmount,
+          jamcoins_from_clicks: (appState.currentUser.jamcoins_from_clicks || 0) + optimisticAmount,
+        };
+      }
+
       updateUI(appState.currentUser);
     }
   } catch (error) {
@@ -146,8 +156,8 @@ export function setupEventListeners() {
   document.querySelectorAll('.market-tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.market-tab-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      market.loadMarketListings(e.target.dataset.resource);
+      e.currentTarget.classList.add('active');
+      market.loadMarketListings(e.currentTarget.dataset.resource);
     });
   });
 
@@ -155,8 +165,8 @@ export function setupEventListeners() {
   document.querySelectorAll('.barracks-tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.barracks-tab-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      appState.selectedBarracksTab = e.target.dataset.type;
+      e.currentTarget.classList.add('active');
+      appState.selectedBarracksTab = e.currentTarget.dataset.type;
       renderBarracks();
     });
   });
@@ -164,8 +174,8 @@ export function setupEventListeners() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      appState.selectedBuildingType = e.target.dataset.type;
+      e.currentTarget.classList.add('active');
+      appState.selectedBuildingType = e.currentTarget.dataset.type;
       renderBuildings();
     });
   });

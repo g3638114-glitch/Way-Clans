@@ -4,6 +4,7 @@ import { updateUI } from '../ui/dom.js';
 import { renderBuildings } from '../ui/builders.js';
 import { openUpgradeModal } from '../ui/modals/index.js';
 import { getBuildingConfig, getCapacity } from './config.js';
+import { getResourceLabel } from '../utils/resourceIcons.js';
 
 /**
  * Activate a building to start production
@@ -55,9 +56,8 @@ export async function collectResources(buildingId) {
       renderBuildings();
 
       const config = getBuildingConfig(result.building.building_type);
-      const emoji = config.resourceEmoji;
       window.tg.showAlert(
-        `✅ Собрано ${result.collectedAmount}${emoji}! Здание перезагрузилось.`
+        `✅ Собрано ${result.collectedAmount} ${getResourceLabel(config.resource)}! Здание перезагрузилось.`
       );
     } catch (error) {
       console.error('Error collecting resources:', error);

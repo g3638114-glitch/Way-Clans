@@ -1,6 +1,6 @@
 import { apiClient } from '../api/client.js';
 import { appState, withOperationLock } from '../utils/state.js';
-import { getTreasuryCapacity, getWarehouseCapacity } from './config.js';
+import { getWarehouseCapacity } from './config.js';
 import { updateUI } from '../ui/dom.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
@@ -72,19 +72,9 @@ export function updatePriceTotal() {
   const total = quantity * pricePerUnit;
 
   document.getElementById('price-total').textContent = total.toLocaleString();
-
-  // Check treasury capacity
-  const treasuryCapacity = getTreasuryCapacity(appState.currentUser.treasury_level || 1);
-  const newGoldAmount = (appState.currentUser.gold || 0) + total;
   const totalElement = document.getElementById('price-total');
-
-  if (newGoldAmount > treasuryCapacity) {
-    totalElement.style.color = '#ff6b6b';
-    totalElement.title = 'Казна переполнится!';
-  } else {
-    totalElement.style.color = '#d4af37';
-    totalElement.title = '';
-  }
+  totalElement.style.color = '#d4af37';
+  totalElement.title = '';
 }
 
 /**
@@ -102,17 +92,6 @@ export async function confirmSellPrice() {
 
   if (!pricePerUnit || pricePerUnit <= 0) {
     alert('Введите цену');
-    return;
-  }
-
-  // Check if treasury will be full after this sale
-  const totalRevenue = quantity * pricePerUnit;
-  const treasuryCapacity = getTreasuryCapacity(appState.currentUser.treasury_level || 1);
-  const newGoldAmount = (appState.currentUser.gold || 0) + totalRevenue;
-
-  if (newGoldAmount > treasuryCapacity) {
-    const maxSellable = Math.floor((treasuryCapacity - (appState.currentUser.gold || 0)) / pricePerUnit);
-    alert(`❌ Казна переполнится! Вы можете продать максимум ${maxSellable} единиц по этой цене.\n\nТекущий баланс: ${(appState.currentUser.gold || 0).toLocaleString()} / ${treasuryCapacity.toLocaleString()}`);
     return;
   }
 
@@ -462,22 +441,9 @@ export function updateEditTotal() {
   const total = quantity * pricePerUnit;
 
   document.getElementById('edit-total').textContent = total.toLocaleString();
-
-  // Check treasury capacity
-  const treasuryCapacity = getTreasuryCapacity(appState.currentUser.treasury_level || 1);
-  const currentGold = appState.currentUser.gold || 0;
-  const originalQuantity = currentEditListing?.originalQuantity || 0;
-  const priceChange = (quantity - originalQuantity) * pricePerUnit;
-  const newGoldAmount = currentGold + priceChange;
   const totalElement = document.getElementById('edit-total');
-
-  if (newGoldAmount > treasuryCapacity) {
-    totalElement.style.color = '#ff6b6b';
-    totalElement.title = 'Казна переполнится!';
-  } else {
-    totalElement.style.color = '#d4af37';
-    totalElement.title = '';
-  }
+  totalElement.style.color = '#d4af37';
+  totalElement.title = '';
 }
 
 /**

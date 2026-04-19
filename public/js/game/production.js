@@ -1,5 +1,5 @@
 import { appState } from '../utils/state.js';
-import { getProductionRate, getCapacity, getResourceEmoji } from './config.js';
+import { getProductionRate, getCapacity } from './config.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 /**

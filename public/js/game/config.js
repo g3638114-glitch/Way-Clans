@@ -1,22 +1,24 @@
+import { getResourceLabel } from '../utils/resourceIcons.js';
+
 /**
  * Building & Troop Configuration System
  */
 
 // ... existing BUILDING_TYPES, TREASURY_CONFIG, WAREHOUSE_CONFIG ...
 export const BUILDING_TYPES = {
-  mine: { name: 'Шахта', icon: '⛏', resource: 'gold', resourceEmoji: '💰' },
-  quarry: { name: 'Каменоломня', icon: '🪨', resource: 'stone', resourceEmoji: '🪨' },
-  lumber_mill: { name: 'Лесопилка', icon: '🌲', resource: 'wood', resourceEmoji: '🌲' },
-  farm: { name: 'Ферма', icon: '🍖', resource: 'meat', resourceEmoji: '🍖' },
+  mine: { name: 'Шахта', icon: '⛏', resource: 'gold' },
+  quarry: { name: 'Каменоломня', icon: '🪨', resource: 'stone' },
+  lumber_mill: { name: 'Лесопилка', icon: '🌲', resource: 'wood' },
+  farm: { name: 'Ферма', icon: '🍖', resource: 'meat' },
 };
 
-export const TREASURY_CONFIG = { name: 'Казна', icon: '🏰', resource: 'gold', resourceEmoji: '💰' };
+export const TREASURY_CONFIG = { name: 'Казна', icon: '🏰', resource: 'gold' };
 export const TREASURY_CAPACITY_PER_LEVEL = [31250, 62500, 125000, 250000, 500000, 1000000];
 export const TREASURY_UPGRADE_COSTS = {
   2: [625, 625, 625], 3: [1250, 1250, 1250], 4: [2500, 2500, 2500], 5: [5000, 5000, 5000], 6: [10000, 10000, 10000],
 };
 
-export const WAREHOUSE_CONFIG = { name: 'Склад', icon: '🏭', resources: ['wood', 'stone', 'meat'], resourceEmojis: { wood: '🌲', stone: '🪨', meat: '🍖' } };
+export const WAREHOUSE_CONFIG = { name: 'Склад', icon: '🏭', resources: ['wood', 'stone', 'meat'] };
 export const WAREHOUSE_CAPACITY_PER_LEVEL = [5000, 30000, 60000, 120000, 240000, 500000];
 export const WAREHOUSE_UPGRADE_COSTS = {
   2: [625, 625, 625], 3: [1250, 1250, 1250], 4: [2500, 2500, 2500], 5: [5000, 5000, 5000], 6: [10000, 10000, 10000],
@@ -70,7 +72,7 @@ export function getUpgradeCost(buildingType, nextLevel) { if (nextLevel < 2 || n
 export function getBuildingName(type) { return BUILDING_TYPES[type]?.name || 'Здание'; }
 export function getBuildingIcon(type) { return BUILDING_TYPES[type]?.icon || '🏢'; }
 export function getResourceType(type) { return BUILDING_TYPES[type]?.resource || 'gold'; }
-export function getResourceEmoji(type) { return BUILDING_TYPES[type]?.resourceEmoji || '💰'; }
+export function getResourceName(type) { return getResourceLabel(getResourceType(type)); }
 export function getTreasuryCapacity(level) { const validLevel = Math.max(1, Math.min(level, TREASURY_CAPACITY_PER_LEVEL.length)); return TREASURY_CAPACITY_PER_LEVEL[validLevel - 1]; }
 export function getMaxTreasuryLevel() { return TREASURY_CAPACITY_PER_LEVEL.length; }
 export function getTreasuryUpgradeCost(nextLevel) { const cost = TREASURY_UPGRADE_COSTS[nextLevel]; if (!cost) return null; return { jamcoins: cost[0], stone: cost[1], wood: cost[2] }; }

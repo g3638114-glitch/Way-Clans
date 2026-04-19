@@ -4,7 +4,6 @@ import {
   getProductionRate,
   getCapacity,
   getBuildingConfig,
-  getResourceEmoji,
 } from '../game/config.js';
 import { activateBuilding, collectResources, upgradeBuilding } from '../game/buildings.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';

@@ -34,7 +34,7 @@ export async function exchangeGold() {
       appState.currentUser = result.user;
       updateUI(appState.currentUser);
       closeExchangeModal();
-      tg.showAlert(`✅ Обмен пройден успешно! Получено ${result.jabcoinsGained} 💎`);
+      tg.showAlert(`✅ Обмен пройден успешно! Получено ${result.jabcoinsGained} Jabcoin`);
     } catch (error) {
       console.error('Error exchanging Jamcoin:', error);
       tg.showAlert(error.message || 'Ошибка при обмене');

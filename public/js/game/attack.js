@@ -143,15 +143,16 @@ function renderLootBlock(result) {
   for (let level = 1; level <= 6; level++) {
     const count = result.lootByLevel?.[level] || 0;
     if (!count) continue;
+    const levelLoot = result.actualLootByLevel?.[level] || { gold: 0, wood: 0, stone: 0, meat: 0 };
 
     rows.push(`
       <div class="soldier-item" style="margin-bottom: 5px; border-left-color: #4caf50; display:block;">
         <div style="font-weight:700; margin-bottom:4px;">Ур. ${level}: ${count} выживших</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-          <span>${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${formatNumber((result.lootByLevel[level] || 0) * getLootInfo(level).gold)}</span>
-          <span>${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${formatNumber((result.lootByLevel[level] || 0) * getLootInfo(level).wood)}</span>
-          <span>${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}${formatNumber((result.lootByLevel[level] || 0) * getLootInfo(level).stone)}</span>
-          <span>${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${formatNumber((result.lootByLevel[level] || 0) * getLootInfo(level).meat)}</span>
+          <span>${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${formatNumber(levelLoot.gold)}</span>
+          <span>${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${formatNumber(levelLoot.wood)}</span>
+          <span>${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}${formatNumber(levelLoot.stone)}</span>
+          <span>${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}${formatNumber(levelLoot.meat)}</span>
         </div>
       </div>
     `);
@@ -172,17 +173,6 @@ function renderLootBlock(result) {
       </div>
     </div>
   `;
-}
-
-function getLootInfo(level) {
-  return {
-    1: { gold: 31, wood: 15, stone: 15, meat: 1 },
-    2: { gold: 62, wood: 30, stone: 30, meat: 2 },
-    3: { gold: 125, wood: 60, stone: 60, meat: 4 },
-    4: { gold: 400, wood: 150, stone: 150, meat: 10 },
-    5: { gold: 800, wood: 300, stone: 300, meat: 20 },
-    6: { gold: 2000, wood: 500, stone: 500, meat: 30 },
-  }[level];
 }
 
 window.closeAttackModal = closeAttackModal;

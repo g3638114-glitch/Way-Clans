@@ -152,13 +152,9 @@ async function maybeShowMiningThresholdAd() {
     await showRewardAd('miningThreshold');
     shouldAdvanceThreshold = true;
   } catch (error) {
-    if (error.message?.includes('AdsGram SDK is not available')) {
-      tg.showAlert('Реклама пока недоступна. Попробуйте позже.');
-      miningThresholdAdInProgress = false;
-      return;
-    }
-
-    shouldAdvanceThreshold = true;
+    tg.showAlert(`Реклама не запущена: ${error.message || 'неизвестная ошибка AdsGram'}`);
+    miningThresholdAdInProgress = false;
+    return;
   }
 
   try {

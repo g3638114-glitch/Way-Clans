@@ -38,5 +38,28 @@ export async function showRewardAd(placement) {
   }
 
   const controller = await getAdsgramController(blockId);
-  return controller.show();
+
+  return controller.show()
+    .then((result) => {
+      if (result?.error) {
+        throw createAdsgramError(result);
+      }
+
+      return result;
+    })
+    .catch((result) => {
+      throw createAdsgramError(result);
+    });
+}
+
+function createAdsgramError(result) {
+  if (result instanceof Error) {
+    return result;
+  }
+
+  const description = result?.description || 'AdsGram show failed';
+  const state = result?.state ? ` [${result.state}]` : '';
+  const error = new Error(`${description}${state}`);
+  error.adsgram = result;
+  return error;
 }

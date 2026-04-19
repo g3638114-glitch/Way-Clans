@@ -46,7 +46,8 @@ export async function collectResources(buildingId) {
       try {
         await showRewardAd('buildingCollect');
       } catch (adError) {
-        window.tg.showAlert('Просмотрите рекламу, чтобы собрать ресурсы.');
+        const message = adError?.message || 'Реклама не была просмотрена до конца';
+        window.tg.showAlert(`Реклама не запущена: ${message}`);
         return;
       }
 

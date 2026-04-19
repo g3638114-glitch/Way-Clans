@@ -237,8 +237,6 @@ export async function confirmBuyQuantity() {
       // Show different messages for different errors
       if (error.message.includes('warehouse') || error.message.includes('Warehouse')) {
         alert('❌ Недостаточно места в складе! Продайте ресурсы, чтобы продолжить.');
-      } else if (error.message.includes('treasury') || error.message.includes('Treasury')) {
-        alert('❌ Казна продавца переполнена. Попробуйте другое объявление.');
       } else {
         alert('Ошибка: ' + (error.message || 'Не удалось купить ресурсы'));
       }
@@ -310,12 +308,34 @@ export async function loadMyListings() {
   try {
     const result = await apiClient.getMyMarketListings(appState.userId);
     const listings = result.listings || [];
+    const pendingGold = Number(result.pendingGold || 0);
 
     const container = document.getElementById('market-listings-container');
     container.innerHTML = '';
 
+    const pendingBlock = document.createElement('div');
+    pendingBlock.className = 'market-pending-card';
+    pendingBlock.innerHTML = `
+      <div class="market-pending-header">
+        <div>
+          <div class="market-pending-title">Ожидает на рынке</div>
+          <div class="market-pending-value">${pendingGold.toLocaleString()} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" ${pendingGold <= 0 ? 'disabled' : ''} id="claim-market-gold-btn">Забрать</button>
+      </div>
+      <div class="market-pending-hint">Jamcoin от проданных ресурсов копятся здесь, пока вы не заберёте их в казну.</div>
+    `;
+    container.appendChild(pendingBlock);
+
+    document.getElementById('claim-market-gold-btn')?.addEventListener('click', claimPendingMarketGold);
+
     if (listings.length === 0) {
-      container.innerHTML = '<p style="text-align: center; padding: 20px; color: #999;">У вас нет активных объявлений</p>';
+      const empty = document.createElement('p');
+      empty.style.textAlign = 'center';
+      empty.style.padding = '20px';
+      empty.style.color = '#999';
+      empty.textContent = 'У вас нет активных объявлений';
+      container.appendChild(empty);
       return;
     }
 
@@ -353,6 +373,19 @@ export async function loadMyListings() {
       <p style="color: red; text-align: center; padding: 20px;">Ошибка: ${error.message}</p>
     `;
   }
+}
+
+async function claimPendingMarketGold() {
+  await withOperationLock('claimPendingMarketGold', async () => {
+    try {
+      const result = await apiClient.claimMarketPendingGold(appState.userId);
+      applyReturnedUser(result.user);
+      alert(`Забрано с рынка: ${result.claimedGold.toLocaleString()} Jamcoin`);
+      loadMyListings();
+    } catch (error) {
+      alert(error.message || 'Не удалось забрать Jamcoin с рынка');
+    }
+  });
 }
 
 /**

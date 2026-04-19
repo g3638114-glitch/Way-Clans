@@ -6,6 +6,7 @@ import {
   buyFromListing,
   deleteListing,
   editListing,
+  claimPendingGold,
 } from '../services/marketService.js';
 
 const router = express.Router();
@@ -40,10 +41,21 @@ router.get('/:userId/market/listings/:resourceType', async (req, res) => {
 router.get('/:userId/market/my-listings', async (req, res) => {
   try {
     const { userId } = req.params;
-    const listings = await getMyListings(userId);
-    res.json({ listings });
+    const result = await getMyListings(userId);
+    res.json(result);
   } catch (error) {
     console.error('Error getting my listings:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.post('/:userId/market/claim', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await claimPendingGold(userId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error claiming pending market gold:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

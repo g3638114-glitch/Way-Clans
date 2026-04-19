@@ -57,7 +57,6 @@ export async function createListing(telegramId, { resourceType, quantity, priceP
 
 /**
  * Get market listings for a specific resource, sorted by price (cheapest first)
- * Only show listings from sellers who haven't exceeded treasury capacity
  */
 export async function getListings(resourceType) {
   try {
@@ -85,7 +84,7 @@ export async function getListings(resourceType) {
 
     const { data: sellers, error: sellersError } = await supabase
       .from('users')
-      .select('id, telegram_id, first_name, username, gold, treasury_level')
+      .select('id, telegram_id, first_name, username')
       .in('id', sellerIds);
 
     if (sellersError) {
@@ -101,25 +100,12 @@ export async function getListings(resourceType) {
       });
     }
 
-    // Combine listings with seller data and filter by treasury capacity
-    const validListings = listings
+    return listings
       .map(listing => ({
         ...listing,
         users: sellerMap[listing.seller_id],
       }))
-      .filter((listing) => {
-        const seller = listing.users;
-        if (!seller) return false;
-
-        const treasuryLevel = seller.treasury_level || 1;
-        const capacity = getTreasuryCapacity(treasuryLevel);
-        const totalPrice = listing.quantity * listing.price_per_unit;
-
-        // Check if seller has room in treasury for payment (if they were to sell)
-        return (seller.gold + totalPrice) <= capacity;
-      });
-
-    return validListings;
+      .filter((listing) => Boolean(listing.users));
   } catch (error) {
     console.error('Error in getListings:', error);
     throw error;
@@ -141,7 +127,10 @@ export async function getMyListings(telegramId) {
 
   if (error) throw new Error('Failed to get listings');
 
-  return listings;
+  return {
+    listings,
+    pendingGold: Number(user.market_pending_gold || 0),
+  };
 }
 
 /**
@@ -205,13 +194,6 @@ export async function buyFromListing(buyerTelegramId, listingId, quantity) {
       throw new Error('Not enough warehouse space');
     }
 
-    const treasuryCapacity = getTreasuryCapacity(seller.treasury_level || 1);
-    const newSellerGold = Number(seller.gold) + totalPrice;
-
-    if (newSellerGold > treasuryCapacity) {
-      throw new Error('Seller treasury is full');
-    }
-
     const buyerUpdates = {
       gold: Number(buyer.gold) - totalPrice,
       [listing.resource_type]: currentResourceAmount + quantity,
@@ -225,8 +207,8 @@ export async function buyFromListing(buyerTelegramId, listingId, quantity) {
     );
 
     await client.query(
-      'UPDATE users SET gold = $1 WHERE id = $2',
-      [newSellerGold, seller.id]
+      'UPDATE users SET market_pending_gold = $1 WHERE id = $2',
+      [Number(seller.market_pending_gold || 0) + totalPrice, seller.id]
     );
 
     const newQuantity = Number(listing.quantity) - quantity;
@@ -323,5 +305,42 @@ export async function editListing(telegramId, listingId, { quantity, pricePerUni
     );
 
     return { success: true, listing: updatedListingResult.rows[0], user: updatedUser };
+  });
+}
+
+export async function claimPendingGold(telegramId) {
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+
+    const user = userResult.rows[0];
+    const pendingGold = Number(user.market_pending_gold || 0);
+    if (pendingGold <= 0) {
+      throw new Error('На рынке нет Jamcoin для вывода');
+    }
+
+    const treasuryCapacity = getTreasuryCapacity(user.treasury_level || 1);
+    const availableSpace = Math.max(0, treasuryCapacity - Number(user.gold || 0));
+
+    if (availableSpace <= 0) {
+      throw new Error(`Лимит казны достигнут. Вы не можете забрать Jamcoin с рынка. Вместимость казны: ${treasuryCapacity}, сейчас: ${user.gold || 0}.`);
+    }
+
+    const amountToClaim = Math.min(availableSpace, pendingGold);
+
+    const updatedUserResult = await client.query(
+      `UPDATE users
+       SET gold = $1, market_pending_gold = $2
+       WHERE id = $3
+       RETURNING *`,
+      [Number(user.gold || 0) + amountToClaim, pendingGold - amountToClaim, user.id]
+    );
+
+    return {
+      success: true,
+      claimedGold: amountToClaim,
+      remainingPendingGold: pendingGold - amountToClaim,
+      user: updatedUserResult.rows[0],
+    };
   });
 }

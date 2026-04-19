@@ -152,6 +152,12 @@ const migrations = [
     sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by_telegram_id BIGINT;
           CREATE INDEX IF NOT EXISTS idx_users_referred_by_telegram_id ON users(referred_by_telegram_id);`,
   },
+  {
+    name: 'Add pending market gold',
+    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS market_pending_gold BIGINT DEFAULT 0;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_market_pending_gold_non_negative;
+          ALTER TABLE users ADD CONSTRAINT chk_users_market_pending_gold_non_negative CHECK (market_pending_gold >= 0);`,
+  },
 ];
 
 async function executeMigrations(client) {

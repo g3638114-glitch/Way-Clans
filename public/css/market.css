@@ -46,6 +46,41 @@
   gap: 12px;
 }
 
+.market-pending-card {
+  padding: 14px;
+  background: linear-gradient(180deg, rgba(55, 44, 14, 0.92) 0%, rgba(31, 25, 10, 0.96) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 14px;
+}
+
+.market-pending-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.market-pending-title {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.market-pending-value {
+  color: #ffd666;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.market-pending-hint {
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 /* ========================================
    MARKET LISTING ITEM
    ======================================== */

@@ -37,7 +37,7 @@ export async function activateBuilding(userId, buildingId) {
 
 /**
  * Collect resources from a building
- * Can only collect if building is at full capacity
+ * Collects as much as fits into treasury/warehouse and leaves the rest in the building
  */
 export async function collectResourcesFromBuilding(userId, buildingId) {
   return withTransaction(async (client) => {
@@ -69,30 +69,36 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
     const now = new Date();
     const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
     const totalAccumulated = Number(building.collected_amount || 0) + (hoursPassed * productionRate);
-    const collectedAmount = Math.floor(Math.min(totalAccumulated, capacity));
+    const accumulatedAmount = Math.floor(Math.min(totalAccumulated, capacity));
     const resourceType = getResourceType(building.building_type);
+    let collectedAmount = accumulatedAmount;
+    let availableSpace = 0;
 
     if (resourceType === 'gold') {
       const treasuryCapacity = getTreasuryCapacity(user.treasury_level || 1);
-      const newGoldAmount = Number(user.gold || 0) + collectedAmount;
-      if (newGoldAmount > treasuryCapacity) {
-        throw new Error(`Лимит казны достигнут. Вы не можете собрать ${collectedAmount} Jamcoin. Вместимость казны: ${treasuryCapacity}, сейчас: ${user.gold || 0}. Освободите место и попробуйте снова.`);
+      availableSpace = Math.max(0, treasuryCapacity - Number(user.gold || 0));
+      if (availableSpace <= 0) {
+        throw new Error(`Лимит казны достигнут. Вы не можете собрать Jamcoin. Вместимость казны: ${treasuryCapacity}, сейчас: ${user.gold || 0}. Освободите место и попробуйте снова.`);
       }
+      collectedAmount = Math.min(accumulatedAmount, availableSpace);
     } else {
       const warehouseCapacity = getWarehouseCapacity(user.warehouse_level || 1);
-      const newResourceAmount = Number(user[resourceType] || 0) + collectedAmount;
-      if (newResourceAmount > warehouseCapacity) {
-        const resourceNames = { wood: 'дерева', stone: 'камня', meat: 'мяса' };
-        throw new Error(`Лимит склада достигнут. Вы не можете собрать ${collectedAmount} ${resourceNames[resourceType]}. Вместимость склада: ${warehouseCapacity}, сейчас: ${user[resourceType] || 0}. Освободите место и попробуйте снова.`);
+      availableSpace = Math.max(0, warehouseCapacity - Number(user[resourceType] || 0));
+      if (availableSpace <= 0) {
+        const resourceNames = { wood: 'дерево', stone: 'камень', meat: 'мясо' };
+        throw new Error(`Лимит склада достигнут. Вы не можете собрать ${resourceNames[resourceType]}. Вместимость склада: ${warehouseCapacity}, сейчас: ${user[resourceType] || 0}. Освободите место и попробуйте снова.`);
       }
+      collectedAmount = Math.min(accumulatedAmount, availableSpace);
     }
+
+    const remainingAmount = Math.max(0, accumulatedAmount - collectedAmount);
 
     const updatedBuildingResult = await client.query(
       `UPDATE user_buildings
-       SET collected_amount = 0, last_activated = $1
-       WHERE id = $2
+       SET collected_amount = $1, last_activated = $2
+       WHERE id = $3
        RETURNING *`,
-      [new Date().toISOString(), buildingId]
+      [remainingAmount, new Date().toISOString(), buildingId]
     );
 
     const updatedUserResult = await client.query(
@@ -100,12 +106,15 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
        SET ${resourceType} = $1
        WHERE id = $2
        RETURNING *`,
-      [Number(user[resourceType] || 0) + collectedAmount, user.id]
+       [Number(user[resourceType] || 0) + collectedAmount, user.id]
     );
 
     return {
       success: true,
       collectedAmount,
+      accumulatedAmount,
+      remainingAmount,
+      partialCollection: remainingAmount > 0,
       resourceType,
       user: updatedUserResult.rows[0],
       building: updatedBuildingResult.rows[0],

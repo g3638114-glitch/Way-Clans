@@ -60,6 +60,8 @@ export async function collectResources(buildingId) {
         buildingName: config.name,
         resourceType: config.resource,
         collectedAmount: result.collectedAmount,
+        partialCollection: result.partialCollection,
+        remainingAmount: result.remainingAmount,
       });
     } catch (error) {
       console.error('Error collecting resources:', error);
@@ -77,7 +79,7 @@ export async function collectResources(buildingId) {
   });
 }
 
-function renderCollectionResultModal({ buildingName, resourceType, collectedAmount }) {
+function renderCollectionResultModal({ buildingName, resourceType, collectedAmount, partialCollection = false, remainingAmount = 0 }) {
   const modal = document.getElementById('game-result-modal');
   const title = document.getElementById('game-result-title');
   const body = document.getElementById('game-result-body');
@@ -98,6 +100,7 @@ function renderCollectionResultModal({ buildingName, resourceType, collectedAmou
             <span>${getResourceIconHtml(resourceType, 'resource-inline-icon-lg', getResourceLabel(resourceType))}</span>
             <span>${collectedAmount} ${getResourceLabel(resourceType)}</span>
           </div>
+          ${partialCollection ? `<div style="margin-top:8px; color: rgba(255,255,255,0.7);">В здании осталось: ${remainingAmount} ${getResourceLabel(resourceType)}</div>` : ''}
         </div>
       </div>
     </div>

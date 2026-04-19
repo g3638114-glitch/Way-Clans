@@ -452,7 +452,7 @@
   position: absolute;
   left: 50%;
   top: 52%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   color: #ffd966;
   font-size: 24px;
   font-weight: 900;
@@ -465,14 +465,14 @@
 @keyframes coinRewardFloat {
   0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(10px) scale(0.92);
+    transform: translate(-50%, -38%) scale(0.92);
   }
   15% {
     opacity: 1;
   }
   100% {
     opacity: 0;
-    transform: translateX(calc(-50% + var(--float-x, 0px))) translateY(-96px) scale(1.05);
+    transform: translate(-50%, -180%) scale(1.05);
   }
 }
 

@@ -37,7 +37,7 @@ function scheduleMiningUiUpdate() {
   }, MINING_UI_UPDATE_DELAY_MS);
 }
 
-function showFloatingCoinReward(totalAmount, touchCount = 1) {
+function showFloatingCoinReward(totalAmount, point = null) {
   const wrapper = document.querySelector('.coin-wrapper');
   if (!wrapper || totalAmount <= 0) return;
 
@@ -45,15 +45,17 @@ function showFloatingCoinReward(totalAmount, touchCount = 1) {
   reward.className = 'coin-floating-reward';
   reward.textContent = `+${totalAmount}`;
 
-  const spread = Math.min(28, 10 + ((touchCount - 1) * 8));
-  const offsetX = Math.round((Math.random() * spread * 2) - spread);
-  reward.style.setProperty('--float-x', `${offsetX}px`);
+  if (point?.x != null && point?.y != null) {
+    const wrapperRect = wrapper.getBoundingClientRect();
+    reward.style.left = `${point.x - wrapperRect.left}px`;
+    reward.style.top = `${point.y - wrapperRect.top}px`;
+  }
 
   wrapper.appendChild(reward);
   setTimeout(() => reward.remove(), 900);
 }
 
-function applyOptimisticCoinClicks(clickCount) {
+function applyOptimisticCoinClicks(clickCount, points = []) {
   if (!appState.currentUser || clickCount <= 0) return;
 
   const amount = clickCount * COIN_VALUE;
@@ -63,7 +65,13 @@ function applyOptimisticCoinClicks(clickCount) {
     gold: Number(appState.currentUser.gold || 0) + amount,
     jamcoins_from_clicks: Number(appState.currentUser.jamcoins_from_clicks || 0) + amount,
   };
-  showFloatingCoinReward(amount, clickCount);
+
+  if (points.length > 0) {
+    points.slice(0, clickCount).forEach((point) => showFloatingCoinReward(COIN_VALUE, point));
+  } else {
+    showFloatingCoinReward(amount);
+  }
+
   scheduleMiningUiUpdate();
 }
 
@@ -122,12 +130,12 @@ async function flushCoinClicks() {
   }
 }
 
-function queueCoinClicks(clickCount) {
+function queueCoinClicks(clickCount, points = []) {
   if (!appState.currentUser || clickCount <= 0) return;
 
   const acceptedClicks = Math.min(MAX_SIMULTANEOUS_TOUCHES, clickCount);
   queuedCoinClicks += acceptedClicks;
-  applyOptimisticCoinClicks(acceptedClicks);
+  applyOptimisticCoinClicks(acceptedClicks, points);
 
   const coinBtn = document.getElementById('coin-btn');
   if (coinBtn) {
@@ -163,7 +171,12 @@ export function setupEventListeners() {
   coinBtn.addEventListener('touchstart', (event) => {
     event.preventDefault();
     ignoreSyntheticClickUntil = Date.now() + 700;
-    queueCoinClicks(event.changedTouches?.length || 1);
+
+    const points = Array.from(event.changedTouches || [])
+      .slice(0, MAX_SIMULTANEOUS_TOUCHES)
+      .map((touch) => ({ x: touch.clientX, y: touch.clientY }));
+
+    queueCoinClicks(points.length || 1, points);
   }, { passive: false });
 
   coinBtn.addEventListener('click', (event) => {
@@ -172,7 +185,7 @@ export function setupEventListeners() {
       return;
     }
 
-    queueCoinClicks(1);
+    queueCoinClicks(1, [{ x: event.clientX, y: event.clientY }]);
   });
 
   document.getElementById('nav-main').addEventListener('click', () => showPage('main'));

@@ -9,6 +9,7 @@ let adsgramScriptPromise = null;
 
 function ensureAdsgramScript() {
   if (window.Adsgram?.init) {
+    console.log('[AdsGram] SDK already available');
     return Promise.resolve(window.Adsgram);
   }
 
@@ -19,6 +20,7 @@ function ensureAdsgramScript() {
   adsgramScriptPromise = new Promise((resolve, reject) => {
     const existingScript = document.querySelector(`script[src="${ADSGRAM_SCRIPT_SRC}"]`);
     if (existingScript) {
+      console.log('[AdsGram] Removing stale SDK script and reloading');
       existingScript.remove();
     }
 
@@ -26,17 +28,22 @@ function ensureAdsgramScript() {
     script.src = ADSGRAM_SCRIPT_SRC;
     script.async = true;
     script.onload = () => {
+      console.log('[AdsGram] SDK script loaded', { hasAdsgram: Boolean(window.Adsgram), hasInit: Boolean(window.Adsgram?.init) });
       if (window.Adsgram?.init) {
         resolve(window.Adsgram);
       } else {
         reject(new Error('AdsGram SDK loaded, but window.Adsgram.init is missing'));
       }
     };
-    script.onerror = () => reject(new Error('AdsGram SDK failed to load'));
+    script.onerror = () => {
+      console.error('[AdsGram] SDK script failed to load');
+      reject(new Error('AdsGram SDK failed to load'));
+    };
     document.head.appendChild(script);
 
     setTimeout(() => {
       if (!window.Adsgram?.init) {
+        console.error('[AdsGram] SDK load timeout');
         reject(new Error('AdsGram SDK load timeout'));
       }
     }, 8000);
@@ -48,7 +55,7 @@ function ensureAdsgramScript() {
 }
 
 async function waitForAdsgramSdk(timeoutMs = 10000) {
-  await ensureAdsgramScript().catch(() => null);
+  await ensureAdsgramScript();
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {
@@ -81,6 +88,7 @@ export async function showRewardAd(placement) {
   }
 
   const controller = await getAdsgramController(blockId);
+  console.log('[AdsGram] Showing rewarded ad', { placement, blockId });
 
   return controller.show()
     .then((result) => {

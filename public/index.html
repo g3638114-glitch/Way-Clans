@@ -231,40 +231,47 @@
       </div>
       <div class="modal-body">
         <div class="upgrade-building-info">
-          <div class="upgrade-building-name" id="upgrade-building-name">Здание</div>
-          <div class="upgrade-stats-row">
-            <div class="upgrade-stat-item">
-              <span class="stat-label">Уровень</span>
-              <span class="stat-value" id="upgrade-current-level">1</span>
-            </div>
-            <div class="upgrade-stat-item arrow-separator">→</div>
-            <div class="upgrade-stat-item">
-              <span class="stat-label">Уровень</span>
-              <span class="stat-value" id="upgrade-new-level">2</span>
+          <div class="upgrade-building-name upgrade-building-hero">
+            <div class="upgrade-hero-icon">⬆️</div>
+            <div class="upgrade-hero-copy">
+              <div class="upgrade-hero-kicker">Улучшение здания</div>
+              <div class="upgrade-hero-title" id="upgrade-building-name">Здание</div>
             </div>
           </div>
-          <div class="upgrade-production-info">
-            <div class="production-row">
-              <span>Производство</span>
-              <div class="production-values">
+
+          <div class="upgrade-level-hero">
+            <div class="upgrade-level-card">
+              <span class="upgrade-level-label">Сейчас</span>
+              <span class="upgrade-level-value">Ур. <span id="upgrade-current-level">1</span></span>
+            </div>
+            <div class="upgrade-level-arrow">→</div>
+            <div class="upgrade-level-card upgrade-level-card-next">
+              <span class="upgrade-level-label">После улучшения</span>
+              <span class="upgrade-level-value">Ур. <span id="upgrade-new-level">2</span></span>
+            </div>
+          </div>
+
+          <div class="upgrade-delta-card">
+            <div class="upgrade-section-title">Что улучшится</div>
+            <div class="upgrade-delta-row">
+              <span class="upgrade-delta-label">Производство</span>
+              <div class="upgrade-delta-values">
                 <span class="current" id="upgrade-current-production">0/час</span>
                 <span class="arrow">→</span>
                 <span class="new" id="upgrade-new-production">0/час</span>
               </div>
             </div>
           </div>
-          <div class="upgrade-cost-section">
-            <h3>Стоимость улучшения</h3>
-            <div class="cost-display">
-              <span class="cost-value" id="upgrade-cost-value">0</span>
-              <span class="cost-icon">💰</span>
-            </div>
-            <p class="player-gold-info"></p>
+
+          <div class="upgrade-cost-section upgrade-cost-shell">
+            <div class="upgrade-section-title">Нужно для улучшения</div>
+            <div class="upgrade-cost-grid" id="upgrade-cost-value"></div>
+            <p class="player-gold-info" id="upgrade-action-state"></p>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary" id="upgrade-confirm-btn" onclick="window.confirmUpgrade()">Улучшить</button>
+        <button class="btn btn-primary" id="upgrade-confirm-btn" onclick="window.confirmUpgrade()">Улучшить до следующего уровня</button>
       </div>
     </div>
   </div>

@@ -143,26 +143,33 @@ function renderWarehouseUpgradeInfo(currentLevel, warehouse) {
   const hasJamcoins = (user.gold || 0) >= costData.jamcoins;
   const hasStone = (user.stone || 0) >= costData.stone;
   const hasWood = (user.wood || 0) >= costData.wood;
-  const canUpgrade = hasJamcoins && hasStone && hasWood;
-
   return `
     <div class="upgrade-building-info">
-      <div class="upgrade-stats-row">
-        <div class="upgrade-stat-item">
-          <span class="stat-label">Текущий уровень</span>
-          <span class="stat-value">${currentLevel}</span>
-        </div>
-        <div class="upgrade-stat-item arrow-separator">→</div>
-        <div class="upgrade-stat-item">
-          <span class="stat-label">Следующий уровень</span>
-          <span class="stat-value">${nextLevel}</span>
+      <div class="upgrade-building-name upgrade-building-hero">
+        <div class="upgrade-hero-icon">🏭</div>
+        <div class="upgrade-hero-copy">
+          <div class="upgrade-hero-kicker">Улучшение склада</div>
+          <div class="upgrade-hero-title">Склад ресурсов</div>
         </div>
       </div>
 
-      <div class="upgrade-production-info">
-        <div class="production-row">
-          <span>Вместимость ресурса</span>
-          <div class="production-values">
+      <div class="upgrade-level-hero">
+        <div class="upgrade-level-card">
+          <span class="upgrade-level-label">Сейчас</span>
+          <span class="upgrade-level-value">Ур. ${currentLevel}</span>
+        </div>
+        <div class="upgrade-level-arrow">→</div>
+        <div class="upgrade-level-card upgrade-level-card-next">
+          <span class="upgrade-level-label">После улучшения</span>
+          <span class="upgrade-level-value">Ур. ${nextLevel}</span>
+        </div>
+      </div>
+
+      <div class="upgrade-delta-card">
+        <div class="upgrade-section-title">Что улучшится</div>
+        <div class="upgrade-delta-row">
+          <span class="upgrade-delta-label">Вместимость ресурса</span>
+          <div class="upgrade-delta-values">
             <span class="current">${currentCapacity}</span>
             <span class="arrow">→</span>
             <span class="new">${nextCapacity}</span>
@@ -170,22 +177,29 @@ function renderWarehouseUpgradeInfo(currentLevel, warehouse) {
         </div>
       </div>
 
-      <div class="upgrade-cost-section">
-        <h3>Стоимость улучшения</h3>
-        <div class="cost-items-row">
-          <div class="cost-item-upgrade ${hasJamcoins ? 'sufficient' : 'insufficient'}">
-            <span class="cost-value">${costData.jamcoins}</span>
-            <span class="cost-icon">${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</span>
-          </div>
-          <div class="cost-item-upgrade ${hasStone ? 'sufficient' : 'insufficient'}">
-            <span class="cost-value">${costData.stone}</span>
-            <span class="cost-icon">${getResourceIconHtml('stone', 'resource-inline-icon', 'Камень')}</span>
-          </div>
-          <div class="cost-item-upgrade ${hasWood ? 'sufficient' : 'insufficient'}">
-            <span class="cost-value">${costData.wood}</span>
-            <span class="cost-icon">${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}</span>
-          </div>
+      <div class="upgrade-cost-section upgrade-cost-shell">
+        <div class="upgrade-section-title">Нужно для улучшения</div>
+        <div class="upgrade-cost-grid">
+          ${renderCostItem('gold', 'Jamcoin', costData.jamcoins, user.gold || 0, hasJamcoins)}
+          ${renderCostItem('stone', 'Камень', costData.stone, user.stone || 0, hasStone)}
+          ${renderCostItem('wood', 'Дерево', costData.wood, user.wood || 0, hasWood)}
         </div>
+        <p class="player-gold-info ${hasJamcoins && hasStone && hasWood ? 'upgrade-action-ok' : 'upgrade-action-bad'}">${hasJamcoins && hasStone && hasWood ? 'Ресурсов хватает, улучшение доступно' : 'Не хватает ресурсов для улучшения'}</p>
+      </div>
+    </div>
+  `;
+}
+
+function renderCostItem(resourceType, label, need, have, isSufficient) {
+  return `
+    <div class="upgrade-cost-item ${isSufficient ? 'sufficient' : 'insufficient'}">
+      <div class="upgrade-cost-item-top">
+        <span class="upgrade-cost-resource">${getResourceIconHtml(resourceType, 'resource-inline-icon-lg', label)} ${label}</span>
+        <span class="upgrade-cost-status">${isSufficient ? 'Хватает' : 'Не хватает'}</span>
+      </div>
+      <div class="upgrade-cost-item-values">
+        <span class="upgrade-cost-need">Нужно: ${need}</span>
+        <span class="upgrade-cost-have">Есть: ${have}</span>
       </div>
     </div>
   `;

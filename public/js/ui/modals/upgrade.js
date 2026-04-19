@@ -38,6 +38,7 @@ export function openUpgradeModal(buildingId, currentLevel) {
   // Get upgrade cost
   const costData = getUpgradeCost(building.building_type, nextLevel);
   const upgradeBtn = document.getElementById('upgrade-confirm-btn');
+  const actionStateEl = document.getElementById('upgrade-action-state');
 
   if (!costData) {
     upgradeBtn.disabled = true;
@@ -48,57 +49,53 @@ export function openUpgradeModal(buildingId, currentLevel) {
   // Update cost display based on building type
   let canAfford = true;
   const costValueEl = document.getElementById('upgrade-cost-value');
-  const costIconEl = document.querySelector('.cost-icon');
-  const playerGoldInfoEl = document.querySelector('.player-gold-info');
+  const costItems = [];
 
   if (building.building_type === 'mine') {
-    // Mine costs stone + wood
     const hasStone = appState.currentUser.stone >= costData.stone;
     const hasWood = appState.currentUser.wood >= costData.wood;
     canAfford = hasStone && hasWood;
 
-    costValueEl.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-        <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
-          <span>Камень:</span>
-          <span style="color: ${!hasStone ? '#ff6b6b' : '#d4af37'}; font-weight: bold;">
-            ${formatNumber(costData.stone)} / ${formatNumber(appState.currentUser.stone || 0)}
-          </span>
-        </div>
-        <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
-          <span>Дерево:</span>
-          <span style="color: ${!hasWood ? '#ff6b6b' : '#d4af37'}; font-weight: bold;">
-            ${formatNumber(costData.wood)} / ${formatNumber(appState.currentUser.wood || 0)}
-          </span>
-        </div>
-      </div>
-    `;
-    if (costIconEl) costIconEl.style.display = 'none';
-    playerGoldInfoEl.textContent = '';
+    costItems.push(
+      renderCostItem('stone', 'Камень', costData.stone, appState.currentUser.stone || 0, hasStone),
+      renderCostItem('wood', 'Дерево', costData.wood, appState.currentUser.wood || 0, hasWood)
+    );
   } else {
-    // Others cost gold
     const hasGold = appState.currentUser.gold >= costData.gold;
     canAfford = hasGold;
-
-    costValueEl.textContent = formatNumber(costData.gold);
-    costValueEl.style.color = hasGold ? '#d4af37' : '#ff6b6b';
-    if (costIconEl) {
-      costIconEl.style.display = 'inline';
-      costIconEl.innerHTML = getResourceIconHtml('gold', 'resource-inline-icon-lg', 'Jamcoin');
-    }
-    playerGoldInfoEl.innerHTML = `Ваши Jamcoins: <span style="color: #d4af37; font-weight: bold;">${formatNumber(appState.currentUser.gold)} ${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</span>`;
+    costItems.push(renderCostItem('gold', 'Jamcoin', costData.gold, appState.currentUser.gold || 0, hasGold));
   }
 
-  // Enable/disable upgrade button
+  costValueEl.innerHTML = costItems.join('');
+  actionStateEl.textContent = canAfford ? 'Ресурсов хватает, улучшение доступно' : 'Не хватает ресурсов для улучшения';
+  actionStateEl.className = `player-gold-info ${canAfford ? 'upgrade-action-ok' : 'upgrade-action-bad'}`;
+
   if (canAfford) {
     upgradeBtn.classList.remove('disabled');
     upgradeBtn.disabled = false;
+    upgradeBtn.textContent = `Улучшить до ур. ${nextLevel}`;
   } else {
     upgradeBtn.classList.add('disabled');
     upgradeBtn.disabled = true;
+    upgradeBtn.textContent = 'Не хватает ресурсов';
   }
 
   document.getElementById('upgrade-modal').classList.add('active');
+}
+
+function renderCostItem(resourceType, label, need, have, isSufficient) {
+  return `
+    <div class="upgrade-cost-item ${isSufficient ? 'sufficient' : 'insufficient'}">
+      <div class="upgrade-cost-item-top">
+        <span class="upgrade-cost-resource">${getResourceIconHtml(resourceType, 'resource-inline-icon-lg', label)} ${label}</span>
+        <span class="upgrade-cost-status">${isSufficient ? 'Хватает' : 'Не хватает'}</span>
+      </div>
+      <div class="upgrade-cost-item-values">
+        <span class="upgrade-cost-need">Нужно: ${formatNumber(need)}</span>
+        <span class="upgrade-cost-have">Есть: ${formatNumber(have)}</span>
+      </div>
+    </div>
+  `;
 }
 
 export function closeUpgradeModal() {

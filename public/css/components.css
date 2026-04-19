@@ -125,6 +125,125 @@
   border-left: 4px solid #d4af37;
 }
 
+.upgrade-building-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  text-align: left;
+  background: linear-gradient(135deg, rgba(57, 79, 129, 0.24) 0%, rgba(29, 38, 69, 0.72) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-left-width: 1px;
+}
+
+.upgrade-hero-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.upgrade-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upgrade-hero-kicker {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 214, 102, 0.7);
+}
+
+.upgrade-hero-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.upgrade-level-hero {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.upgrade-level-card {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.upgrade-level-card-next {
+  border-color: rgba(86, 196, 116, 0.2);
+  background: rgba(86, 196, 116, 0.08);
+}
+
+.upgrade-level-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.upgrade-level-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.upgrade-level-arrow {
+  align-self: center;
+  color: #d4af37;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.upgrade-section-title {
+  margin-bottom: 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+}
+
+.upgrade-delta-card {
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(31, 41, 74, 0.76) 0%, rgba(20, 26, 49, 0.92) 100%);
+  border: 1px solid rgba(97, 125, 195, 0.2);
+}
+
+.upgrade-delta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.upgrade-delta-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.upgrade-delta-values {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+}
+
 .upgrade-stats-row {
   display: flex;
   align-items: center;
@@ -226,6 +345,72 @@
   border-radius: 10px;
 }
 
+.upgrade-cost-shell {
+  padding: 14px;
+  border-width: 1px;
+  background: linear-gradient(180deg, rgba(44, 34, 11, 0.52) 0%, rgba(28, 23, 12, 0.82) 100%);
+}
+
+.upgrade-cost-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.upgrade-cost-item {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.upgrade-cost-item.sufficient {
+  border-color: rgba(86, 196, 116, 0.2);
+  background: rgba(86, 196, 116, 0.08);
+}
+
+.upgrade-cost-item.insufficient {
+  border-color: rgba(255, 120, 120, 0.24);
+  background: rgba(255, 120, 120, 0.08);
+}
+
+.upgrade-cost-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.upgrade-cost-resource {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.upgrade-cost-status {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.upgrade-cost-item.sufficient .upgrade-cost-status {
+  color: #78db9d;
+}
+
+.upgrade-cost-item.insufficient .upgrade-cost-status {
+  color: #ff8b8b;
+}
+
+.upgrade-cost-item-values {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .upgrade-cost-section h3 {
   margin: 0 0 8px 0;
   font-size: 13px;
@@ -259,6 +444,16 @@
   text-align: center;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.7);
+}
+
+.upgrade-action-ok {
+  color: #85e0a3;
+  font-weight: 700;
+}
+
+.upgrade-action-bad {
+  color: #ff8b8b;
+  font-weight: 700;
 }
 
 .attack-result-card {

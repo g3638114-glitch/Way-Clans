@@ -3,9 +3,46 @@ const ADSGRAM_BLOCKS = {
   miningThreshold: '28167',
 };
 
+const ADSGRAM_SCRIPT_SRC = 'https://sad.adsgram.ai/js/sad.min.js';
 const controllerCache = new Map();
+let adsgramScriptPromise = null;
+
+function ensureAdsgramScript() {
+  if (window.Adsgram?.init) {
+    return Promise.resolve(window.Adsgram);
+  }
+
+  if (adsgramScriptPromise) {
+    return adsgramScriptPromise;
+  }
+
+  adsgramScriptPromise = new Promise((resolve, reject) => {
+    const existingScript = document.querySelector(`script[src="${ADSGRAM_SCRIPT_SRC}"]`);
+
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(window.Adsgram), { once: true });
+      existingScript.addEventListener('error', () => reject(new Error('AdsGram SDK failed to load')), { once: true });
+      setTimeout(() => {
+        if (window.Adsgram?.init) {
+          resolve(window.Adsgram);
+        }
+      }, 0);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = ADSGRAM_SCRIPT_SRC;
+    script.async = true;
+    script.onload = () => resolve(window.Adsgram);
+    script.onerror = () => reject(new Error('AdsGram SDK failed to load'));
+    document.head.appendChild(script);
+  });
+
+  return adsgramScriptPromise;
+}
 
 async function waitForAdsgramSdk(timeoutMs = 10000) {
+  await ensureAdsgramScript().catch(() => null);
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {

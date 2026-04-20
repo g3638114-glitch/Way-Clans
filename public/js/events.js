@@ -179,31 +179,14 @@ async function requireMiningAd() {
       return;
     }
 
-    const updatedUser = await waitForMiningAdConfirmation();
-    appState.currentUser = { ...appState.currentUser, ...updatedUser };
+    const result = await apiClient.confirmMiningAd(appState.userId);
+    appState.currentUser = { ...appState.currentUser, ...(result.user || {}) };
     updateUI(appState.currentUser);
   } catch (error) {
     tg.showAlert(error.message || 'Не удалось подтвердить просмотр рекламы');
   } finally {
     miningAdBusy = false;
   }
-}
-
-async function waitForMiningAdConfirmation() {
-  const startedAt = Date.now();
-  const timeoutMs = 12000;
-  const delayMs = 1200;
-
-  while (Date.now() - startedAt < timeoutMs) {
-    const status = await apiClient.getMiningAdStatus(appState.userId);
-    if (!status.mining_ad_required) {
-      return status;
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-  }
-
-  throw new Error('Просмотр рекламы ещё не подтверждён. Попробуйте снова через пару секунд.');
 }
 
 export function setupEventListeners() {

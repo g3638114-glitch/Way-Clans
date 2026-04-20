@@ -51,7 +51,7 @@ export async function collectResources(buildingId) {
         return;
       }
 
-      const result = await finalizeCollectAfterAd(buildingId, startResult.sessionId);
+      const result = await apiClient.finalizeCollectResources(appState.userId, buildingId, startResult.sessionId);
       appState.currentUser = result.user;
       updateUI(appState.currentUser);
 
@@ -86,26 +86,6 @@ export async function collectResources(buildingId) {
       window.tg.showAlert(error.message || 'Ошибка при сборе ресурсов');
     }
   });
-}
-
-async function finalizeCollectAfterAd(buildingId, sessionId) {
-  const startedAt = Date.now();
-  const timeoutMs = 12000;
-  const delayMs = 1200;
-
-  while (Date.now() - startedAt < timeoutMs) {
-    try {
-      return await apiClient.finalizeCollectResources(appState.userId, buildingId, sessionId);
-    } catch (error) {
-      if (!error.message.includes('Reward not confirmed yet')) {
-        throw error;
-      }
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-  }
-
-  throw new Error('Реклама просмотрена, но подтверждение ещё не пришло. Попробуйте снова через пару секунд.');
 }
 
 function renderCollectionResultModal({ buildingName, resourceType, collectedAmount, partialCollection = false, remainingAmount = 0 }) {

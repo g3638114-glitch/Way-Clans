@@ -128,6 +128,9 @@ function updateBuildingState(building) {
       mineShiftActive: Boolean(building.worker_count && building.work_ends_at && new Date(building.work_ends_at) > new Date()),
       mineWorkerCount: Number(building.worker_count || 0),
       mineWorkEndsAt: building.work_ends_at || null,
+      work_started_at: building.work_started_at || null,
+      work_ends_at: building.work_ends_at || null,
+      worker_count: Number(building.worker_count || 0),
     };
   }
 }

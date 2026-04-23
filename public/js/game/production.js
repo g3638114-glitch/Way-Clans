@@ -6,6 +6,46 @@ import { getResourceIconHtml } from '../utils/resourceIcons.js';
  * Calculate accumulated resources for a building
  */
 function calculateBuildingProgress(building) {
+  if (building.building_type === 'mine') {
+    const level = building.level || 1;
+    const capacity = getCapacity('mine', level);
+    const stored = Number(building.collected_amount || building.currentAccumulated || 0);
+    const workerCount = Number(building.worker_count || building.mineWorkerCount || 0);
+    const workStartedAt = building.work_started_at ? new Date(building.work_started_at) : null;
+    const workEndsAt = building.work_ends_at ? new Date(building.work_ends_at) : null;
+    const now = new Date();
+
+    if (!workerCount || !workStartedAt || !workEndsAt || now >= workEndsAt) {
+      const accumulated = Math.floor(Math.min(stored, capacity));
+      return {
+        accumulated,
+        capacity,
+        productionRate: 0,
+        isFull: accumulated >= capacity,
+        isMine: true,
+        shiftActive: false,
+        workerCount: 0,
+        remainingMs: 0,
+      };
+    }
+
+    const baseRate = getProductionRate('mine', level);
+    const ratePerHour = baseRate * (workerCount / 100);
+    const elapsedHours = Math.max(0, (now - workStartedAt) / (1000 * 60 * 60));
+    const accumulated = Math.floor(Math.min(stored + elapsedHours * ratePerHour, capacity));
+
+    return {
+      accumulated,
+      capacity,
+      productionRate: ratePerHour,
+      isFull: accumulated >= capacity,
+      isMine: true,
+      shiftActive: true,
+      workerCount,
+      remainingMs: Math.max(0, workEndsAt.getTime() - now.getTime()),
+    };
+  }
+
   if (!building.last_activated) {
     return {
       accumulated: 0,
@@ -53,6 +93,39 @@ function updateBuildingCardValues(building) {
         : 'meat';
   const resourceIcon = getResourceIconHtml(resourceType, 'resource-inline-icon', resourceType);
 
+  if (building.building_type === 'mine') {
+    const statRows = card.querySelectorAll('.stat-row');
+    if (statRows.length >= 3) {
+      const incomeStat = statRows[0].querySelector('.stat-value');
+      const capacityStat = statRows[1].querySelector('.stat-value');
+      const shiftStat = statRows[2].querySelector('.stat-value');
+      if (incomeStat) {
+        const shownRate = progress.shiftActive ? progress.productionRate : getProductionRate('mine', level);
+        incomeStat.innerHTML = `${shownRate}${resourceIcon}/час`;
+      }
+      if (capacityStat) {
+        capacityStat.innerHTML = `${progress.accumulated}/${capacity}${resourceIcon}`;
+      }
+      if (shiftStat) {
+        shiftStat.textContent = progress.shiftActive ? formatMineRemaining(progress.remainingMs) : 'Смена не активна';
+      }
+    }
+
+    const badge = card.querySelector('.mine-worker-badge');
+    if (badge) {
+      badge.textContent = progress.shiftActive ? `${progress.workerCount} рабочих` : 'Шахта ждёт рабочих';
+      badge.classList.toggle('is-active', progress.shiftActive);
+    }
+
+    const collectBtn = card.querySelector('[data-action="mine-collect"]');
+    if (collectBtn) {
+      collectBtn.disabled = progress.accumulated <= 0;
+      collectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`;
+    }
+
+    return updateProgressBar(card, progressPercent, progress.isFull);
+  }
+
   // ===== Update capacity stat row =====
   const statRows = card.querySelectorAll('.stat-row');
   if (statRows.length >= 2) {
@@ -64,17 +137,7 @@ function updateBuildingCardValues(building) {
   }
 
   // ===== Update progress bar =====
-  const progressFill = card.querySelector('.capacity-progress-fill');
-  if (progressFill) {
-    progressFill.style.width = `${Math.min(progressPercent, 100)}%`;
-
-    // Add full class when at capacity
-    if (progress.isFull) {
-      progressFill.classList.add('full');
-    } else {
-      progressFill.classList.remove('full');
-    }
-  }
+  updateProgressBar(card, progressPercent, progress.isFull);
 
   // ===== Update action buttons =====
   const actionsContainer = card.querySelector('.building-card-actions');
@@ -128,6 +191,15 @@ function updateBuildingCardValues(building) {
   }
 }
 
+function updateProgressBar(card, progressPercent, isFull) {
+  const progressFill = card.querySelector('.capacity-progress-fill');
+  if (!progressFill) return;
+
+  progressFill.style.width = `${Math.min(progressPercent, 100)}%`;
+  if (isFull) progressFill.classList.add('full');
+  else progressFill.classList.remove('full');
+}
+
 /**
  * Smooth production update - updates card values every second without full re-render
  */
@@ -138,6 +210,14 @@ export function smoothUpdateProduction() {
   appState.allBuildings.forEach((building) => {
     updateBuildingCardValues(building);
   });
+}
+
+function formatMineRemaining(ms) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes <= 0) return `${seconds}с осталось`;
+  return `${minutes}м ${seconds.toString().padStart(2, '0')}с осталось`;
 }
 
 /**

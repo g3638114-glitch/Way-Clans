@@ -174,15 +174,18 @@ function createMineCard(building, config, level, productionRate, capacity, curre
   const ratePerHour = Number(building.mineRatePerHour || 0);
   const remainingText = shiftActive ? formatMineRemaining(building.mineRemainingMs || 0) : 'Смена не активна';
   const canCollect = currentAccumulated > 0;
+  const collectButton = !shiftActive
+    ? `<button class="btn btn-collect mine-action-wide" ${canCollect ? '' : 'disabled'} data-action="mine-collect"><span>Собрать</span> ${currentAccumulated}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</button>`
+    : '';
   const actionButtons = shiftActive
     ? `
         <button class="btn btn-secondary mine-action-wide" data-action="mine-finish">Собрать сразу</button>
-        <button class="btn btn-collect mine-action-wide" ${canCollect ? '' : 'disabled'} data-action="mine-collect"><span>Собрать</span> ${currentAccumulated}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</button>
+        <button class="btn btn-upgrade mine-upgrade-full" data-action="mine-upgrade" disabled>Улучшение недоступно во время работы</button>
       `
     : `
         <button class="btn btn-activate mine-action-wide" data-action="mine-meat">${MINE_MEAT_WORKERS} рабочих за ${MINE_MEAT_COST} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}</button>
         <button class="btn btn-upgrade mine-action-wide" data-action="mine-ad">${MINE_AD_WORKERS} рабочих за рекламу</button>
-        <button class="btn btn-collect mine-action-wide" ${canCollect ? '' : 'disabled'} data-action="mine-collect"><span>Собрать</span> ${currentAccumulated}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</button>
+        ${collectButton}
       `;
 
   card.innerHTML = `
@@ -217,7 +220,7 @@ function createMineCard(building, config, level, productionRate, capacity, curre
     </div>
     <div class="building-card-actions mine-actions-grid">
       ${actionButtons}
-      ${level < getMaxBuildingLevel() ? `<button class="btn btn-upgrade mine-upgrade-full" data-action="mine-upgrade">Улучшить до уровня ${level + 1}</button>` : `<button class="btn btn-maxed mine-upgrade-full" disabled>Максимальный уровень</button>`}
+      ${!shiftActive ? (level < getMaxBuildingLevel() ? `<button class="btn btn-upgrade mine-upgrade-full" data-action="mine-upgrade">Улучшить до уровня ${level + 1}</button>` : `<button class="btn btn-maxed mine-upgrade-full" disabled>Максимальный уровень</button>`) : ''}
     </div>
   `;
 

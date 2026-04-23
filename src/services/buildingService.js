@@ -115,6 +115,10 @@ function collectStandardBuildingResources(client, user, building) {
 }
 
 function collectMineResources(client, user, building) {
+  if (isMineShiftActive(building)) {
+    throw new Error('Нельзя собирать Jamcoin, пока шахта работает');
+  }
+
   const resourceType = 'gold';
   const accumulatedAmount = Math.floor(Number(building.current_accumulated || building.collected_amount || 0));
   if (accumulatedAmount <= 0) {
@@ -285,6 +289,10 @@ export async function upgradeBuilding(userId, buildingId) {
     const nextLevel = currentLevel + 1;
     const costData = getUpgradeCost(building.building_type, nextLevel);
     if (!costData) throw new Error('Invalid level for upgrade');
+
+    if (building.building_type === 'mine' && isMineShiftActive(building)) {
+      throw new Error('Нельзя улучшить шахту, пока рабочие трудятся');
+    }
 
     let nextGold = Number(user.gold || 0);
     let nextStone = Number(user.stone || 0);

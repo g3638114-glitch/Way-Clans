@@ -121,8 +121,10 @@ export async function getOrCreateUser(telegramId, userInfo = null) {
 }
 
 async function resetEnergyIfNeeded(user) {
-  const today = new Date().toISOString().slice(0, 10);
-  if (user.last_energy_reset === today) {
+  const today = getMoscowDateString();
+  const lastReset = normalizeDateValue(user.last_energy_reset);
+
+  if (lastReset === today) {
     return null;
   }
 
@@ -139,6 +141,34 @@ async function resetEnergyIfNeeded(user) {
   }
 
   return updatedUser;
+}
+
+function getMoscowDateString(date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Moscow',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function normalizeDateValue(value) {
+  if (!value) return null;
+  if (value instanceof Date) {
+    return getMoscowDateString(value);
+  }
+
+  const raw = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return raw;
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return getMoscowDateString(parsed);
 }
 
 export function parseReferralStartParam(startParam) {

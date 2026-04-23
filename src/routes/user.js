@@ -1,7 +1,7 @@
 import express from 'express';
 import crypto from 'crypto';
 import { supabase } from '../bot.js';
-import { applyReferralIfEligible, getOrCreateUser, getReferralSummary } from '../services/userService.js';
+import { applyReferralIfEligible, ensureDailyEnergyResetByTelegramId, getOrCreateUser, getReferralSummary } from '../services/userService.js';
 
 const router = express.Router();
 
@@ -185,6 +185,7 @@ router.get('/:userId', async (req, res) => {
 
     let user = await getOrCreateUser(userId);
     user = await applyReferralIfEligible(user, startParam);
+    user = await ensureDailyEnergyResetByTelegramId(userId);
     res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -199,6 +200,7 @@ router.post('/:userId', async (req, res) => {
 
     let user = await getOrCreateUser(userId, userInfo);
     user = await applyReferralIfEligible(user, startParam);
+    user = await ensureDailyEnergyResetByTelegramId(userId);
     res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);

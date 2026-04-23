@@ -80,7 +80,10 @@ export async function addGold(userId, goldAmount) {
     if (userResult.rows.length === 0) throw new Error('User not found');
     const user = userResult.rows[0];
 
-    const energy = Number(user.energy ?? DEFAULT_ENERGY_CAPACITY);
+    const today = getMoscowDateString();
+    const shouldResetEnergy = normalizeDateValue(user.last_energy_reset) !== today;
+    const energyCapacity = Number(user.energy_capacity ?? DEFAULT_ENERGY_CAPACITY);
+    const energy = shouldResetEnergy ? energyCapacity : Number(user.energy ?? energyCapacity);
     const energyCost = Math.max(1, Math.floor(goldAmount / 100));
     if (energy < energyCost) {
       throw new Error('Энергия закончилась. Восполните её, чтобы продолжить майнинг.');
@@ -94,10 +97,10 @@ export async function addGold(userId, goldAmount) {
 
     const updatedUserResult = await client.query(
       `UPDATE users
-       SET gold = $1, jamcoins_from_clicks = $2, energy = $3
-       WHERE id = $4
+       SET gold = $1, jamcoins_from_clicks = $2, energy = $3, last_energy_reset = $4
+       WHERE id = $5
        RETURNING *`,
-      [newGoldAmount, Number(user.jamcoins_from_clicks || 0) + goldAmount, energy - energyCost, user.id]
+      [newGoldAmount, Number(user.jamcoins_from_clicks || 0) + goldAmount, energy - energyCost, shouldResetEnergy ? today : (user.last_energy_reset || today), user.id]
     );
 
     return { success: true, user: updatedUserResult.rows[0] };
@@ -110,19 +113,48 @@ export async function refillEnergy(userId) {
     if (userResult.rows.length === 0) throw new Error('User not found');
     const user = userResult.rows[0];
 
+    const today = getMoscowDateString();
     const capacity = Number(user.energy_capacity || DEFAULT_ENERGY_CAPACITY);
-    if (Number(user.energy || 0) >= capacity) {
+    const shouldResetEnergy = normalizeDateValue(user.last_energy_reset) !== today;
+    const currentEnergy = shouldResetEnergy ? capacity : Number(user.energy || 0);
+
+    if (currentEnergy >= capacity) {
+      if (shouldResetEnergy) {
+        const updatedUserResult = await client.query(
+          `UPDATE users SET energy = $1, last_energy_reset = $2 WHERE id = $3 RETURNING *`,
+          [capacity, today, user.id]
+        );
+        return { success: true, user: updatedUserResult.rows[0] };
+      }
       return { success: true, user };
     }
 
     const updatedUserResult = await client.query(
       `UPDATE users
-       SET energy = $1
-       WHERE id = $2
+       SET energy = $1, last_energy_reset = $2
+       WHERE id = $3
        RETURNING *`,
-      [capacity, user.id]
+      [capacity, shouldResetEnergy ? today : (user.last_energy_reset || today), user.id]
     );
 
     return { success: true, user: updatedUserResult.rows[0] };
   });
+}
+
+function getMoscowDateString(date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Moscow',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function normalizeDateValue(value) {
+  if (!value) return null;
+  const raw = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return getMoscowDateString(parsed);
 }

@@ -70,17 +70,16 @@ export async function getOrCreateUser(telegramId, userInfo = null) {
     .single();
 
   if (!error && user) {
-    const refreshedUser = (await resetEnergyIfNeeded(user)) || user;
-    const updates = buildUserUpdates(refreshedUser, userInfo);
+    const updates = buildUserUpdates(user, userInfo);
 
     if (!updates) {
-      return refreshedUser;
+      return user;
     }
 
     const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update(updates)
-      .eq('id', refreshedUser.id)
+      .eq('id', user.id)
       .select('*')
       .single();
 
@@ -141,6 +140,20 @@ async function resetEnergyIfNeeded(user) {
   }
 
   return updatedUser;
+}
+
+export async function ensureDailyEnergyResetByTelegramId(telegramId) {
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .single();
+
+  if (error || !user) {
+    throw new Error('User not found');
+  }
+
+  return (await resetEnergyIfNeeded(user)) || user;
 }
 
 function getMoscowDateString(date = new Date()) {
@@ -228,7 +241,7 @@ export async function getUserByTelegramId(telegramId, columns = '*') {
     throw new Error('User not found');
   }
 
-  return (await resetEnergyIfNeeded(user)) || user;
+  return user;
 }
 
 export async function getUserById(userId, columns = '*') {
@@ -242,7 +255,7 @@ export async function getUserById(userId, columns = '*') {
     throw new Error('User not found');
   }
 
-  return (await resetEnergyIfNeeded(user)) || user;
+  return user;
 }
 
 export async function getReferralSummary(telegramId) {

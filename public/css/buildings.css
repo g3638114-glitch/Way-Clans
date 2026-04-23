@@ -218,7 +218,11 @@
 }
 
 .mine-actions-grid {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
+}
+
+.mine-action-wide {
+  grid-column: 1 / -1;
 }
 
 .mine-upgrade-full {

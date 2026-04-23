@@ -174,6 +174,16 @@ function createMineCard(building, config, level, productionRate, capacity, curre
   const ratePerHour = Number(building.mineRatePerHour || 0);
   const remainingText = shiftActive ? formatMineRemaining(building.mineRemainingMs || 0) : 'Смена не активна';
   const canCollect = currentAccumulated > 0;
+  const actionButtons = shiftActive
+    ? `
+        <button class="btn btn-secondary mine-action-wide" data-action="mine-finish">Собрать сразу</button>
+        <button class="btn btn-collect mine-action-wide" ${canCollect ? '' : 'disabled'} data-action="mine-collect"><span>Собрать</span> ${currentAccumulated}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</button>
+      `
+    : `
+        <button class="btn btn-activate mine-action-wide" data-action="mine-meat">${MINE_MEAT_WORKERS} рабочих за ${MINE_MEAT_COST} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}</button>
+        <button class="btn btn-upgrade mine-action-wide" data-action="mine-ad">${MINE_AD_WORKERS} рабочих за рекламу</button>
+        <button class="btn btn-collect mine-action-wide" ${canCollect ? '' : 'disabled'} data-action="mine-collect"><span>Собрать</span> ${currentAccumulated}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</button>
+      `;
 
   card.innerHTML = `
     <div class="building-card-header">
@@ -189,7 +199,7 @@ function createMineCard(building, config, level, productionRate, capacity, curre
         <span class="stat-value">${ratePerHour || productionRate}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}/час</span>
       </div>
       <div class="stat-row">
-        <span class="stat-label">Накоплено:</span>
+        <span class="stat-label">Накоплено в шахте:</span>
         <span class="stat-value">${currentAccumulated}/${capacity}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</span>
       </div>
       <div class="stat-row">
@@ -206,10 +216,7 @@ function createMineCard(building, config, level, productionRate, capacity, curre
       </div>
     </div>
     <div class="building-card-actions mine-actions-grid">
-      <button class="btn btn-activate" ${shiftActive ? 'disabled' : ''} data-action="mine-meat">${MINE_MEAT_WORKERS} рабочих за ${MINE_MEAT_COST} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}</button>
-      <button class="btn btn-upgrade" ${shiftActive ? 'disabled' : ''} data-action="mine-ad">${MINE_AD_WORKERS} рабочих за рекламу</button>
-      <button class="btn btn-secondary" ${shiftActive ? '' : 'disabled'} data-action="mine-finish">Собрать сразу</button>
-      <button class="btn btn-collect" ${canCollect ? '' : 'disabled'} data-action="mine-collect"><span>Собрать</span> ${currentAccumulated}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</button>
+      ${actionButtons}
       ${level < getMaxBuildingLevel() ? `<button class="btn btn-upgrade mine-upgrade-full" data-action="mine-upgrade">Улучшить до уровня ${level + 1}</button>` : `<button class="btn btn-maxed mine-upgrade-full" disabled>Максимальный уровень</button>`}
     </div>
   `;

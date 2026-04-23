@@ -244,7 +244,7 @@ export async function startMineWorkers(userId, buildingId, mode) {
   });
 }
 
-export async function finishMineWorkNow(userId, buildingId) {
+export async function finishMineWorkNow(userId, buildingId, rewardMultiplier = 2) {
   return withTransaction(async (client) => {
     const userResult = await client.query('SELECT id FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
     if (userResult.rows.length === 0) throw new Error('User not found');
@@ -261,7 +261,7 @@ export async function finishMineWorkNow(userId, buildingId) {
       throw new Error('В шахте нет активной смены рабочих');
     }
 
-    const finalizedBuilding = await settleMineShiftImmediately(client, building);
+    const finalizedBuilding = await settleMineShiftImmediately(client, building, null, rewardMultiplier);
     return { success: true, building: finalizedBuilding };
   });
 }
@@ -435,7 +435,7 @@ async function syncMineShiftState(client, building) {
   return settleMineShiftImmediately(client, building, endsAt);
 }
 
-async function settleMineShiftImmediately(client, building, settleAt = null) {
+async function settleMineShiftImmediately(client, building, settleAt = null, rewardMultiplier = 1) {
   const effectiveEnd = settleAt || new Date();
   const level = building.level || 1;
   const baseProductionRate = getProductionRate('mine', level);
@@ -446,7 +446,7 @@ async function settleMineShiftImmediately(client, building, settleAt = null) {
   const cappedEnd = effectiveEnd < workEndsAt ? effectiveEnd : workEndsAt;
   const elapsedHours = Math.max(0, (cappedEnd.getTime() - startedAt.getTime()) / 3600000);
   const multiplier = Number(building.worker_count || 0) / MINE_MEAT_WORKERS;
-  const produced = elapsedHours * baseProductionRate * multiplier;
+  const produced = elapsedHours * baseProductionRate * multiplier * Math.max(1, Number(rewardMultiplier || 1));
   const nextCollected = Math.min(capacity, stored + produced);
 
   const updateResult = await client.query(

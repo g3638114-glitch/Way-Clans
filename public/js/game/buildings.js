@@ -108,10 +108,16 @@ export async function startMineWorkers(buildingId, mode) {
 export async function finishMineWorkNow(buildingId) {
   await withOperationLock(`finishMineWorkNow_${buildingId}`, async () => {
     try {
-      const result = await apiClient.finishMineWorkNow(appState.userId, buildingId);
+      const adShown = await showRewardedAd(getAdsgramBlockId('building'));
+      if (!adShown) {
+        window.tg.showAlert('Реклама не была просмотрена полностью. Мгновенный сбор не выполнен.');
+        return;
+      }
+
+      const result = await apiClient.finishMineWorkNow(appState.userId, buildingId, 2);
       updateBuildingState(result.building);
       renderBuildings();
-      window.tg.showAlert('✅ Работа шахты завершена мгновенно. Теперь можно собрать Jamcoin.');
+      window.tg.showAlert('✅ Работа шахты завершена мгновенно с x2. Теперь можно собрать Jamcoin.');
     } catch (error) {
       window.tg.showAlert(error.message || 'Ошибка при мгновенном завершении работы');
     }

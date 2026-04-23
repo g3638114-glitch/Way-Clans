@@ -41,8 +41,12 @@ export const apiClient = {
     return response.json();
   },
 
-  async finishMineWorkNow(userId, buildingId) {
-    const response = await fetch(`/api/user/${userId}/building/${buildingId}/mine/finish-now`, { method: 'POST' });
+  async finishMineWorkNow(userId, buildingId, rewardMultiplier = 2) {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/mine/finish-now`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rewardMultiplier }),
+    });
     if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to finish mine work'); }
     return response.json();
   },

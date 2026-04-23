@@ -94,7 +94,7 @@ export async function addGold(userId, goldAmount) {
     const updatedUserResult = await client.query(
       `UPDATE users
        SET gold = $1, jamcoins_from_clicks = $2, energy = $3
-       WHERE id = $5
+       WHERE id = $4
        RETURNING *`,
       [newGoldAmount, Number(user.jamcoins_from_clicks || 0) + goldAmount, energy - 1, user.id]
     );

@@ -179,7 +179,7 @@ function createMineCard(building, config, level, productionRate, capacity, curre
     : '';
   const actionButtons = shiftActive
     ? `
-        <button class="btn btn-secondary mine-action-wide" data-action="mine-finish">Собрать сразу</button>
+        <button class="btn btn-secondary mine-action-wide" data-action="mine-finish">Собрать сразу с x2</button>
         <button class="btn btn-upgrade mine-upgrade-full" data-action="mine-upgrade" disabled>Улучшение недоступно во время работы</button>
       `
     : `

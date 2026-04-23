@@ -60,7 +60,8 @@ router.post('/:userId/building/:buildingId/mine/start', async (req, res) => {
 router.post('/:userId/building/:buildingId/mine/finish-now', async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
-    const result = await finishMineWorkNow(userId, buildingId);
+    const { rewardMultiplier } = req.body || {};
+    const result = await finishMineWorkNow(userId, buildingId, rewardMultiplier);
     res.json(result);
   } catch (error) {
     console.error('Error finishing mine work now:', error);

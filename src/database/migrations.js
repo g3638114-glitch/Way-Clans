@@ -202,6 +202,16 @@ const migrations = [
           ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_worker_count_non_negative;
           ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_worker_count_non_negative CHECK (worker_count >= 0);`,
   },
+  {
+    name: 'Add mining energy fields',
+    sql: `ALTER TABLE users ADD COLUMN IF NOT EXISTS energy INT DEFAULT 600;
+          ALTER TABLE users ADD COLUMN IF NOT EXISTS energy_capacity INT DEFAULT 600;
+          ALTER TABLE users ADD COLUMN IF NOT EXISTS last_energy_reset DATE DEFAULT CURRENT_DATE;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_energy_non_negative;
+          ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_energy_capacity_positive;
+          ALTER TABLE users ADD CONSTRAINT chk_users_energy_non_negative CHECK (energy >= 0);
+          ALTER TABLE users ADD CONSTRAINT chk_users_energy_capacity_positive CHECK (energy_capacity > 0);`,
+  },
 ];
 
 async function executeMigrations(client) {

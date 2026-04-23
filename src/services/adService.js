@@ -2,8 +2,6 @@ import { withTransaction } from '../database/pg.js';
 import { getCapacity, getProductionRate, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
 
 const BUILDING_SESSION_TYPE = 'building_collect';
-const MINING_AD_THRESHOLD = 40000;
-
 export async function createBuildingCollectSession(telegramId, buildingId) {
   return withTransaction(async (client) => {
     const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
@@ -155,29 +153,9 @@ export async function confirmBuildingCollectReward(telegramId) {
 }
 
 export async function confirmMiningAdReward(telegramId) {
-  return withTransaction(async (client) => {
-    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
-    if (userResult.rows.length === 0) throw new Error('User not found');
-    const user = userResult.rows[0];
-    const nextProgress = Math.max(0, Number(user.mining_ad_progress || 0) - MINING_AD_THRESHOLD);
-
-    const updatedUserResult = await client.query(
-      `UPDATE users
-       SET mining_ad_required = FALSE, mining_ad_progress = $1
-       WHERE id = $2
-       RETURNING *`,
-      [nextProgress, user.id]
-    );
-
-    return { ok: true, user: updatedUserResult.rows[0] };
-  });
+  return { ok: true };
 }
 
 export async function getMiningAdStatus(telegramId) {
-  return withTransaction(async (client) => {
-    const userResult = await client.query('SELECT id, mining_ad_required, mining_ad_progress FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
-    if (userResult.rows.length === 0) throw new Error('User not found');
-    return userResult.rows[0];
-  });
+  return { mining_ad_required: false, mining_ad_progress: 0 };
 }
-export { MINING_AD_THRESHOLD };

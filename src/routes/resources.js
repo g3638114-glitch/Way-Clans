@@ -1,6 +1,5 @@
 import express from 'express';
-import { sellResources, exchangeGold, addGold } from '../services/resourceService.js';
-import { confirmMiningAdReward, getMiningAdStatus } from '../services/adService.js';
+import { sellResources, exchangeGold, addGold, refillEnergy } from '../services/resourceService.js';
 
 const router = express.Router();
 
@@ -44,24 +43,13 @@ router.post('/:userId/coin-click', async (req, res) => {
   }
 });
 
-router.get('/:userId/mining-ad-status', async (req, res) => {
+router.post('/:userId/refill-energy', async (req, res) => {
   try {
     const { userId } = req.params;
-    const result = await getMiningAdStatus(userId);
+    const result = await refillEnergy(userId);
     res.json(result);
   } catch (error) {
-    console.error('Error loading mining ad status:', error);
-    res.status(400).json({ error: error.message || 'Server error' });
-  }
-});
-
-router.post('/:userId/mining-ad/confirm', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const result = await confirmMiningAdReward(userId);
-    res.json(result);
-  } catch (error) {
-    console.error('Error confirming mining ad:', error);
+    console.error('Error refilling energy:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

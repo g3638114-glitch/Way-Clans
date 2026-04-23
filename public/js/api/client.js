@@ -93,15 +93,9 @@ export const apiClient = {
     return response.json();
   },
 
-  async getMiningAdStatus(userId) {
-    const response = await fetch(`/api/user/${userId}/mining-ad-status`);
-    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to load mining ad status'); }
-    return response.json();
-  },
-
-  async confirmMiningAd(userId) {
-    const response = await fetch(`/api/user/${userId}/mining-ad/confirm`, { method: 'POST' });
-    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to confirm mining ad'); }
+  async refillEnergy(userId) {
+    const response = await fetch(`/api/user/${userId}/refill-energy`, { method: 'POST' });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to refill energy'); }
     return response.json();
   },
 

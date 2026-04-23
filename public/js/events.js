@@ -28,7 +28,7 @@ let coinFlushTimer = null;
 let coinRequestInFlight = false;
 let ignoreSyntheticClickUntil = 0;
 let miningUiUpdateTimer = null;
-let miningAdBusy = false;
+let refillEnergyBusy = false;
 
 function scheduleMiningUiUpdate() {
   if (miningUiUpdateTimer) return;
@@ -115,18 +115,11 @@ async function flushCoinClicks() {
       }
 
       scheduleMiningUiUpdate();
-
-      if (result.adRequired) {
-        queuedCoinClicks = 0;
-        await requireMiningAd();
-      }
     }
   } catch (error) {
     await rollbackCoinClicksAndReload();
 
-    if (error.message.includes('Требуется просмотр рекламы')) {
-      await requireMiningAd();
-    } else if (error.message.includes('Лимит казны')) {
+    if (error.message.includes('Лимит казны') || error.message.includes('Энергия')) {
       tg.showAlert(error.message);
     } else {
       tg.showAlert(error.message || '❌ Ошибка');
@@ -141,8 +134,8 @@ async function flushCoinClicks() {
 
 function queueCoinClicks(clickCount, points = []) {
   if (!appState.currentUser || clickCount <= 0) return;
-  if (appState.currentUser.mining_ad_required) {
-    requireMiningAd();
+  if (Number(appState.currentUser.energy || 0) <= 0) {
+    tg.showAlert('Энергия закончилась. Восполните её за рекламу.');
     return;
   }
 
@@ -168,24 +161,24 @@ function queueCoinClicks(clickCount, points = []) {
   }, CLICK_FLUSH_DELAY_MS);
 }
 
-async function requireMiningAd() {
-  if (miningAdBusy) return;
-  miningAdBusy = true;
+async function refillEnergyByAd() {
+  if (refillEnergyBusy) return;
+  refillEnergyBusy = true;
 
   try {
     const adShown = await showRewardedAd(getAdsgramBlockId('mining'));
     if (!adShown) {
-      tg.showAlert('Реклама не была просмотрена полностью. Чтобы продолжить майнинг, досмотрите её.');
+      tg.showAlert('Реклама не была просмотрена полностью. Энергия не восстановлена.');
       return;
     }
 
-    const result = await apiClient.confirmMiningAd(appState.userId);
+    const result = await apiClient.refillEnergy(appState.userId);
     appState.currentUser = { ...appState.currentUser, ...(result.user || {}) };
     updateUI(appState.currentUser);
   } catch (error) {
-    tg.showAlert(error.message || 'Не удалось подтвердить просмотр рекламы');
+    tg.showAlert(error.message || 'Не удалось восстановить энергию');
   } finally {
-    miningAdBusy = false;
+    refillEnergyBusy = false;
   }
 }
 
@@ -201,6 +194,7 @@ export function setupEventListeners() {
   document.getElementById('attack-btn').addEventListener('click', openAttackMenu);
 
   const coinBtn = document.getElementById('coin-btn');
+  const refillEnergyBtn = document.getElementById('refill-energy-btn');
 
   coinBtn.addEventListener('touchstart', (event) => {
     event.preventDefault();
@@ -221,6 +215,8 @@ export function setupEventListeners() {
 
     queueCoinClicks(1, [{ x: event.clientX, y: event.clientY }]);
   });
+
+  refillEnergyBtn?.addEventListener('click', refillEnergyByAd);
 
   document.getElementById('nav-main').addEventListener('click', () => showPage('main'));
   document.getElementById('nav-mining').addEventListener('click', () => showPage('mining'));

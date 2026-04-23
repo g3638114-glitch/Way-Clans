@@ -6,6 +6,9 @@ const DEFAULT_USER_RESOURCES = {
   stone: 2500,
   meat: 500,
   jabcoins: 0,
+  energy: 600,
+  energy_capacity: 600,
+  last_energy_reset: new Date().toISOString().slice(0, 10),
 };
 
 const INITIAL_BUILDING_TYPES = ['mine', 'quarry', 'lumber_mill', 'farm'];
@@ -67,16 +70,17 @@ export async function getOrCreateUser(telegramId, userInfo = null) {
     .single();
 
   if (!error && user) {
-    const updates = buildUserUpdates(user, userInfo);
+    const refreshedUser = (await resetEnergyIfNeeded(user)) || user;
+    const updates = buildUserUpdates(refreshedUser, userInfo);
 
     if (!updates) {
-      return user;
+      return refreshedUser;
     }
 
     const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update(updates)
-      .eq('id', user.id)
+      .eq('id', refreshedUser.id)
       .select('*')
       .single();
 
@@ -114,6 +118,27 @@ export async function getOrCreateUser(telegramId, userInfo = null) {
 
   await createInitialBuildings(newUser);
   return newUser;
+}
+
+async function resetEnergyIfNeeded(user) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (user.last_energy_reset === today) {
+    return null;
+  }
+
+  const capacity = Number(user.energy_capacity || 600);
+  const { data: updatedUser, error } = await supabase
+    .from('users')
+    .update({ energy: capacity, last_energy_reset: today })
+    .eq('id', user.id)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to reset daily energy: ${error.message}`);
+  }
+
+  return updatedUser;
 }
 
 export function parseReferralStartParam(startParam) {
@@ -173,7 +198,7 @@ export async function getUserByTelegramId(telegramId, columns = '*') {
     throw new Error('User not found');
   }
 
-  return user;
+  return (await resetEnergyIfNeeded(user)) || user;
 }
 
 export async function getUserById(userId, columns = '*') {
@@ -187,7 +212,7 @@ export async function getUserById(userId, columns = '*') {
     throw new Error('User not found');
   }
 
-  return user;
+  return (await resetEnergyIfNeeded(user)) || user;
 }
 
 export async function getReferralSummary(telegramId) {

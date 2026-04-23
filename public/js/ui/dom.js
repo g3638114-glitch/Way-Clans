@@ -38,6 +38,8 @@ export function updateUI(currentUser) {
   const meatValue = Number(currentUser.meat || 0);
   const jabcoinsValue = Number(currentUser.jabcoins || 0);
   const jamcoinsFromClicksValue = Number(currentUser.jamcoins_from_clicks || 0);
+  const energyValue = Number(currentUser.energy ?? 600);
+  const energyCapacityValue = Number(currentUser.energy_capacity ?? 600);
 
   // Update resources - use short format for header to prevent wrapping
   const goldText = formatNumberShort(goldValue);
@@ -74,6 +76,11 @@ export function updateUI(currentUser) {
   if (jamcoinsFromClicksEl) {
     jamcoinsFromClicksEl.textContent = formatNumber(jamcoinsFromClicksValue);
   }
+
+  const energyEl = document.getElementById('energy-display');
+  const energyCapacityEl = document.getElementById('energy-capacity-display');
+  if (energyEl) energyEl.textContent = formatNumber(energyValue);
+  if (energyCapacityEl) energyCapacityEl.textContent = formatNumber(energyCapacityValue);
 
   // Update player card
   document.getElementById('player-name').textContent = currentUser.first_name || 'Player';

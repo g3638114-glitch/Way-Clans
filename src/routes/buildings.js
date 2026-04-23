@@ -1,10 +1,12 @@
 import express from 'express';
 import {
+  collectResourcesFromBuilding,
   upgradeBuilding,
   activateBuilding,
   getUserBuildings,
+  startMineWorkers,
+  finishMineWorkNow,
 } from '../services/buildingService.js';
-import { createBuildingCollectSession, finalizeBuildingCollectSession } from '../services/adService.js';
 
 const router = express.Router();
 
@@ -32,25 +34,36 @@ router.post('/:userId/building/:buildingId/activate', async (req, res) => {
   }
 });
 
-router.post('/:userId/building/:buildingId/collect/start', async (req, res) => {
+router.post('/:userId/building/:buildingId/collect', async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
-    const result = await createBuildingCollectSession(userId, buildingId);
+    const result = await collectResourcesFromBuilding(userId, buildingId);
     res.json(result);
   } catch (error) {
-    console.error('Error starting collect session:', error);
+    console.error('Error collecting resources:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });
 
-router.post('/:userId/building/:buildingId/collect/finalize', async (req, res) => {
+router.post('/:userId/building/:buildingId/mine/start', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { sessionId } = req.body || {};
-    const result = await finalizeBuildingCollectSession(userId, sessionId);
+    const { userId, buildingId } = req.params;
+    const { mode } = req.body || {};
+    const result = await startMineWorkers(userId, buildingId, mode);
     res.json(result);
   } catch (error) {
-    console.error('Error finalizing collect session:', error);
+    console.error('Error starting mine workers:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.post('/:userId/building/:buildingId/mine/finish-now', async (req, res) => {
+  try {
+    const { userId, buildingId } = req.params;
+    const result = await finishMineWorkNow(userId, buildingId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error finishing mine work now:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

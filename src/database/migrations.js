@@ -193,6 +193,15 @@ const migrations = [
           );
           CREATE INDEX IF NOT EXISTS idx_ad_reward_sessions_user_type ON ad_reward_sessions(user_id, session_type, created_at DESC);`,
   },
+  {
+    name: 'Add mine worker fields',
+    sql: `ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS worker_count INT DEFAULT 0;
+          ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS work_started_at TIMESTAMP WITH TIME ZONE;
+          ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS work_ends_at TIMESTAMP WITH TIME ZONE;
+          ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS work_mode TEXT;
+          ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_worker_count_non_negative;
+          ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_worker_count_non_negative CHECK (worker_count >= 0);`,
+  },
 ];
 
 async function executeMigrations(client) {

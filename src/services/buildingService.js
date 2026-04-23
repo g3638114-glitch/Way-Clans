@@ -1,26 +1,37 @@
 import { supabase } from '../bot.js';
-import { getProductionRate, getCapacity, getUpgradeCost, getResourceType, getTreasuryCapacity, getWarehouseCapacity, getMaxBuildingLevel } from '../config/buildings.js';
+import {
+  getProductionRate,
+  getCapacity,
+  getUpgradeCost,
+  getResourceType,
+  getTreasuryCapacity,
+  getWarehouseCapacity,
+  getMaxBuildingLevel,
+  MINE_SHIFT_HOURS,
+  MINE_MEAT_WORKERS,
+  MINE_AD_WORKERS,
+  MINE_MEAT_COST,
+} from '../config/buildings.js';
 import { getOrCreateUser } from './userService.js';
 import { withTransaction } from '../database/pg.js';
 
-/**
- * Activate a building to start production
- * Resources will accumulate from this point until capacity is reached
- */
 export async function activateBuilding(userId, buildingId) {
   return withTransaction(async (client) => {
     const userResult = await client.query('SELECT id FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
     if (userResult.rows.length === 0) throw new Error('User not found');
 
     const buildingResult = await client.query(
-      `SELECT * FROM user_buildings
-       WHERE id = $1 AND user_id = $2
-       FOR UPDATE`,
+      `SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE`,
       [buildingId, userResult.rows[0].id]
     );
 
     if (buildingResult.rows.length === 0) {
       throw new Error('Building not found');
+    }
+
+    const building = buildingResult.rows[0];
+    if (building.building_type === 'mine') {
+      throw new Error('Шахта запускается только через рабочих');
     }
 
     const updatedBuilding = await client.query(
@@ -35,10 +46,6 @@ export async function activateBuilding(userId, buildingId) {
   });
 }
 
-/**
- * Collect resources from a building
- * Collects as much as fits into treasury/warehouse and leaves the rest in the building
- */
 export async function collectResourcesFromBuilding(userId, buildingId) {
   return withTransaction(async (client) => {
     const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
@@ -46,9 +53,7 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
     const user = userResult.rows[0];
 
     const buildingResult = await client.query(
-      `SELECT * FROM user_buildings
-       WHERE id = $1 AND user_id = $2
-       FOR UPDATE`,
+      `SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE`,
       [buildingId, user.id]
     );
 
@@ -56,77 +61,207 @@ export async function collectResourcesFromBuilding(userId, buildingId) {
       throw new Error('Building not found');
     }
 
-    const building = buildingResult.rows[0];
-
-    if (!building.last_activated) {
-      throw new Error('Building must be activated first');
+    let building = buildingResult.rows[0];
+    if (building.building_type === 'mine') {
+      building = await syncMineShiftState(client, building);
     }
 
-    const level = building.level || 1;
-    const productionRate = getProductionRate(building.building_type, level);
-    const capacity = getCapacity(building.building_type, level);
-    const lastActivated = new Date(building.last_activated);
-    const now = new Date();
-    const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
-    const totalAccumulated = Number(building.collected_amount || 0) + (hoursPassed * productionRate);
-    const accumulatedAmount = Math.floor(Math.min(totalAccumulated, capacity));
-    const resourceType = getResourceType(building.building_type);
-    let collectedAmount = accumulatedAmount;
-    let availableSpace = 0;
+    if (building.building_type === 'mine') {
+      return collectMineResources(client, user, building);
+    }
 
-    if (resourceType === 'gold') {
-      const treasuryCapacity = getTreasuryCapacity(user.treasury_level || 1);
-      availableSpace = Math.max(0, treasuryCapacity - Number(user.gold || 0));
-      if (availableSpace <= 0) {
-        throw new Error(`Лимит казны достигнут. Вы не можете собрать Jamcoin. Вместимость казны: ${treasuryCapacity}, сейчас: ${user.gold || 0}. Освободите место и попробуйте снова.`);
+    return collectStandardBuildingResources(client, user, building);
+  });
+}
+
+function collectStandardBuildingResources(client, user, building) {
+  if (!building.last_activated) {
+    throw new Error('Building must be activated first');
+  }
+
+  const level = building.level || 1;
+  const productionRate = getProductionRate(building.building_type, level);
+  const capacity = getCapacity(building.building_type, level);
+  const lastActivated = new Date(building.last_activated);
+  const now = new Date();
+  const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
+  const totalAccumulated = Number(building.collected_amount || 0) + (hoursPassed * productionRate);
+  const accumulatedAmount = Math.floor(Math.min(totalAccumulated, capacity));
+  const resourceType = getResourceType(building.building_type);
+
+  let collectedAmount = accumulatedAmount;
+  if (resourceType === 'gold') {
+    const treasuryCapacity = getTreasuryCapacity(user.treasury_level || 1);
+    const availableSpace = Math.max(0, treasuryCapacity - Number(user.gold || 0));
+    if (availableSpace <= 0) {
+      throw new Error(`Лимит казны достигнут. Вы не можете собрать Jamcoin. Вместимость казны: ${treasuryCapacity}, сейчас: ${user.gold || 0}. Освободите место и попробуйте снова.`);
+    }
+    collectedAmount = Math.min(accumulatedAmount, availableSpace);
+  } else {
+    const warehouseCapacity = getWarehouseCapacity(user.warehouse_level || 1);
+    const availableSpace = Math.max(0, warehouseCapacity - Number(user[resourceType] || 0));
+    if (availableSpace <= 0) {
+      const resourceNames = { wood: 'дерево', stone: 'камень', meat: 'мясо' };
+      throw new Error(`Лимит склада достигнут. Вы не можете собрать ${resourceNames[resourceType]}. Вместимость склада: ${warehouseCapacity}, сейчас: ${user[resourceType] || 0}. Освободите место и попробуйте снова.`);
+    }
+    collectedAmount = Math.min(accumulatedAmount, availableSpace);
+  }
+
+  const remainingAmount = Math.max(0, accumulatedAmount - collectedAmount);
+  return finalizeCollect(client, user, building, resourceType, collectedAmount, remainingAmount, {
+    setLastActivatedNow: true,
+    partialCollection: remainingAmount > 0,
+  });
+}
+
+function collectMineResources(client, user, building) {
+  const resourceType = 'gold';
+  const accumulatedAmount = Math.floor(Number(building.current_accumulated || building.collected_amount || 0));
+  if (accumulatedAmount <= 0) {
+    throw new Error('В шахте пока нечего собирать');
+  }
+
+  const treasuryCapacity = getTreasuryCapacity(user.treasury_level || 1);
+  const availableSpace = Math.max(0, treasuryCapacity - Number(user.gold || 0));
+  if (availableSpace <= 0) {
+    throw new Error(`Лимит казны достигнут. Вы не можете собрать Jamcoin. Вместимость казны: ${treasuryCapacity}, сейчас: ${user.gold || 0}. Освободите место и попробуйте снова.`);
+  }
+
+  const collectedAmount = Math.min(accumulatedAmount, availableSpace);
+  const remainingAmount = Math.max(0, accumulatedAmount - collectedAmount);
+
+  const updateData = buildMineCollectUpdate(building, remainingAmount);
+  return finalizeCollect(client, user, building, resourceType, collectedAmount, remainingAmount, {
+    buildingUpdate: updateData,
+    partialCollection: remainingAmount > 0,
+  });
+}
+
+async function finalizeCollect(client, user, building, resourceType, collectedAmount, remainingAmount, options = {}) {
+  const buildingUpdate = options.buildingUpdate || {
+    collected_amount: remainingAmount,
+    last_activated: options.setLastActivatedNow ? new Date().toISOString() : building.last_activated,
+  };
+
+  const updatedBuildingResult = await client.query(
+    `UPDATE user_buildings
+     SET collected_amount = $1,
+         last_activated = $2,
+         worker_count = $3,
+         work_started_at = $4,
+         work_ends_at = $5,
+         work_mode = $6
+     WHERE id = $7
+     RETURNING *`,
+    [
+      Number(buildingUpdate.collected_amount || 0),
+      buildingUpdate.last_activated || null,
+      Number(buildingUpdate.worker_count || 0),
+      buildingUpdate.work_started_at || null,
+      buildingUpdate.work_ends_at || null,
+      buildingUpdate.work_mode || null,
+      building.id,
+    ]
+  );
+
+  const updatedUserResult = await client.query(
+    `UPDATE users SET ${resourceType} = $1 WHERE id = $2 RETURNING *`,
+    [Number(user[resourceType] || 0) + collectedAmount, user.id]
+  );
+
+  return {
+    success: true,
+    collectedAmount,
+    accumulatedAmount: Math.floor(Number(building.current_accumulated || building.collected_amount || 0)),
+    remainingAmount,
+    partialCollection: Boolean(options.partialCollection),
+    resourceType,
+    user: updatedUserResult.rows[0],
+    building: updatedBuildingResult.rows[0],
+  };
+}
+
+export async function startMineWorkers(userId, buildingId, mode) {
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
+
+    const buildingResult = await client.query('SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE', [buildingId, user.id]);
+    if (buildingResult.rows.length === 0) throw new Error('Building not found');
+
+    let building = buildingResult.rows[0];
+    if (building.building_type !== 'mine') {
+      throw new Error('Рабочие доступны только для шахты');
+    }
+
+    building = await syncMineShiftState(client, building);
+
+    if (isMineShiftActive(building)) {
+      throw new Error('Рабочие уже трудятся в шахте');
+    }
+
+    let workerCount = 0;
+    let nextMeat = Number(user.meat || 0);
+
+    if (mode === 'meat_100') {
+      if (nextMeat < MINE_MEAT_COST) {
+        throw new Error(`Недостаточно мяса. Нужно ${MINE_MEAT_COST}, у вас ${nextMeat}`);
       }
-      collectedAmount = Math.min(accumulatedAmount, availableSpace);
+      workerCount = MINE_MEAT_WORKERS;
+      nextMeat -= MINE_MEAT_COST;
+    } else if (mode === 'ad_300') {
+      workerCount = MINE_AD_WORKERS;
     } else {
-      const warehouseCapacity = getWarehouseCapacity(user.warehouse_level || 1);
-      availableSpace = Math.max(0, warehouseCapacity - Number(user[resourceType] || 0));
-      if (availableSpace <= 0) {
-        const resourceNames = { wood: 'дерево', stone: 'камень', meat: 'мясо' };
-        throw new Error(`Лимит склада достигнут. Вы не можете собрать ${resourceNames[resourceType]}. Вместимость склада: ${warehouseCapacity}, сейчас: ${user[resourceType] || 0}. Освободите место и попробуйте снова.`);
-      }
-      collectedAmount = Math.min(accumulatedAmount, availableSpace);
+      throw new Error('Invalid mine mode');
     }
 
-    const remainingAmount = Math.max(0, accumulatedAmount - collectedAmount);
+    const startAt = new Date();
+    const endAt = new Date(startAt.getTime() + MINE_SHIFT_HOURS * 60 * 60 * 1000);
+
+    const updatedUserResult = await client.query(
+      'UPDATE users SET meat = $1 WHERE id = $2 RETURNING *',
+      [nextMeat, user.id]
+    );
 
     const updatedBuildingResult = await client.query(
       `UPDATE user_buildings
-       SET collected_amount = $1, last_activated = $2
-       WHERE id = $3
+       SET worker_count = $1, work_started_at = $2, work_ends_at = $3, work_mode = $4
+       WHERE id = $5
        RETURNING *`,
-      [remainingAmount, new Date().toISOString(), buildingId]
-    );
-
-    const updatedUserResult = await client.query(
-      `UPDATE users
-       SET ${resourceType} = $1
-       WHERE id = $2
-       RETURNING *`,
-       [Number(user[resourceType] || 0) + collectedAmount, user.id]
+      [workerCount, startAt.toISOString(), endAt.toISOString(), mode, building.id]
     );
 
     return {
       success: true,
-      collectedAmount,
-      accumulatedAmount,
-      remainingAmount,
-      partialCollection: remainingAmount > 0,
-      resourceType,
       user: updatedUserResult.rows[0],
       building: updatedBuildingResult.rows[0],
     };
   });
 }
 
-/**
- * Upgrade a building to the next level
- * Mine requires stone + wood
- * Others require gold
- */
+export async function finishMineWorkNow(userId, buildingId) {
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT id FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const userIdDb = userResult.rows[0].id;
+
+    const buildingResult = await client.query('SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE', [buildingId, userIdDb]);
+    if (buildingResult.rows.length === 0) throw new Error('Building not found');
+
+    const building = buildingResult.rows[0];
+    if (building.building_type !== 'mine') {
+      throw new Error('Собрать сразу доступно только для шахты');
+    }
+    if (!isMineShiftActive(building)) {
+      throw new Error('В шахте нет активной смены рабочих');
+    }
+
+    const finalizedBuilding = await settleMineShiftImmediately(client, building);
+    return { success: true, building: finalizedBuilding };
+  });
+}
+
 export async function upgradeBuilding(userId, buildingId) {
   return withTransaction(async (client) => {
     const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
@@ -134,16 +269,11 @@ export async function upgradeBuilding(userId, buildingId) {
     const user = userResult.rows[0];
 
     const buildingResult = await client.query(
-      `SELECT * FROM user_buildings
-       WHERE id = $1 AND user_id = $2
-       FOR UPDATE`,
+      `SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE`,
       [buildingId, user.id]
     );
 
-    if (buildingResult.rows.length === 0) {
-      throw new Error('Building not found');
-    }
-
+    if (buildingResult.rows.length === 0) throw new Error('Building not found');
     const building = buildingResult.rows[0];
     const currentLevel = building.level || 1;
 
@@ -153,18 +283,14 @@ export async function upgradeBuilding(userId, buildingId) {
     }
 
     const nextLevel = currentLevel + 1;
-    const buildingType = building.building_type;
-    const costData = getUpgradeCost(buildingType, nextLevel);
-
-    if (!costData) {
-      throw new Error('Invalid level for upgrade');
-    }
+    const costData = getUpgradeCost(building.building_type, nextLevel);
+    if (!costData) throw new Error('Invalid level for upgrade');
 
     let nextGold = Number(user.gold || 0);
     let nextStone = Number(user.stone || 0);
     let nextWood = Number(user.wood || 0);
 
-    if (buildingType === 'mine') {
+    if (building.building_type === 'mine') {
       if (nextStone < costData.stone) throw new Error(`Not enough stone. Need ${costData.stone}, have ${nextStone}`);
       if (nextWood < costData.wood) throw new Error(`Not enough wood. Need ${costData.wood}, have ${nextWood}`);
       nextStone -= costData.stone;
@@ -174,33 +300,21 @@ export async function upgradeBuilding(userId, buildingId) {
       nextGold -= costData.gold;
     }
 
-    await client.query(
-      'UPDATE users SET gold = $1, stone = $2, wood = $3 WHERE id = $4',
-      [nextGold, nextStone, nextWood, user.id]
-    );
+    await client.query('UPDATE users SET gold = $1, stone = $2, wood = $3 WHERE id = $4', [nextGold, nextStone, nextWood, user.id]);
 
     const updatedBuildingResult = await client.query(
       `UPDATE user_buildings
        SET level = $1, production_rate = $2
        WHERE id = $3
        RETURNING *`,
-      [nextLevel, getProductionRate(buildingType, nextLevel), buildingId]
+      [nextLevel, getProductionRate(building.building_type, nextLevel), building.id]
     );
 
     const updatedUserResult = await client.query('SELECT * FROM users WHERE id = $1', [user.id]);
-
-    return {
-      success: true,
-      cost: costData,
-      user: updatedUserResult.rows[0],
-      building: updatedBuildingResult.rows[0],
-    };
+    return { success: true, cost: costData, user: updatedUserResult.rows[0], building: updatedBuildingResult.rows[0] };
   });
 }
 
-/**
- * Get all buildings for a user with current progress
- */
 export async function getUserBuildings(userId) {
   const user = await getOrCreateUser(userId);
 
@@ -211,39 +325,164 @@ export async function getUserBuildings(userId) {
     .order('building_type', { ascending: true })
     .order('building_number', { ascending: true });
 
-  if (error) {
-    throw new Error('Failed to fetch buildings');
-  }
+  if (error) throw new Error('Failed to fetch buildings');
 
-  // Calculate current production progress for each building
   const now = new Date();
-  const buildingsWithProgress = buildings.map(building => {
-    const level = building.level || 1;
-    const productionRate = getProductionRate(building.building_type, level);
-    const capacity = getCapacity(building.building_type, level);
+  const buildingsWithProgress = buildings.map((building) => buildBuildingViewModel(building, now));
+  return buildingsWithProgress;
+}
 
-    let currentAccumulated = building.collected_amount || 0;
+function buildBuildingViewModel(building, now = new Date()) {
+  const level = building.level || 1;
+  const productionRate = getProductionRate(building.building_type, level);
+  const capacity = getCapacity(building.building_type, level);
 
-    if (building.last_activated) {
-      const lastActivated = new Date(building.last_activated);
-      const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
-      currentAccumulated = Math.min(
-        currentAccumulated + hoursPassed * productionRate,
-        capacity
-      );
-    }
-
+  if (building.building_type === 'mine') {
+    const mineState = calculateMineState(building, now);
     return {
       ...building,
-      currentAccumulated: currentAccumulated,
-      capacity: capacity,
-      productionRate: productionRate,
-      level: level,
-      isAtCapacity: currentAccumulated >= capacity,
-      isFull: currentAccumulated >= capacity,
-      progress: capacity > 0 ? (currentAccumulated / capacity) * 100 : 0,
+      currentAccumulated: mineState.currentAccumulated,
+      capacity,
+      productionRate,
+      level,
+      isAtCapacity: mineState.currentAccumulated >= capacity,
+      isFull: mineState.currentAccumulated >= capacity,
+      progress: capacity > 0 ? (mineState.currentAccumulated / capacity) * 100 : 0,
+      mineShiftActive: mineState.shiftActive,
+      mineWorkerCount: mineState.workerCount,
+      mineWorkEndsAt: mineState.workEndsAt,
+      mineRemainingMs: mineState.remainingMs,
+      mineRatePerHour: mineState.ratePerHour,
+      mineStoredAmount: mineState.currentAccumulated,
     };
-  });
+  }
 
-  return buildingsWithProgress;
+  let currentAccumulated = Number(building.collected_amount || 0);
+  if (building.last_activated) {
+    const lastActivated = new Date(building.last_activated);
+    const hoursPassed = (now - lastActivated) / 3600000;
+    currentAccumulated = Math.min(currentAccumulated + hoursPassed * productionRate, capacity);
+  }
+
+  return {
+    ...building,
+    currentAccumulated,
+    capacity,
+    productionRate,
+    level,
+    isAtCapacity: currentAccumulated >= capacity,
+    isFull: currentAccumulated >= capacity,
+    progress: capacity > 0 ? (currentAccumulated / capacity) * 100 : 0,
+  };
+}
+
+function calculateMineState(building, now = new Date()) {
+  const level = building.level || 1;
+  const baseProductionRate = getProductionRate('mine', level);
+  const capacity = getCapacity('mine', level);
+  const stored = Number(building.collected_amount || 0);
+  const workerCount = Number(building.worker_count || 0);
+  const startedAt = building.work_started_at ? new Date(building.work_started_at) : null;
+  const endsAt = building.work_ends_at ? new Date(building.work_ends_at) : null;
+
+  if (!workerCount || !startedAt || !endsAt) {
+    return {
+      currentAccumulated: Math.min(stored, capacity),
+      shiftActive: false,
+      workerCount: 0,
+      workEndsAt: null,
+      remainingMs: 0,
+      ratePerHour: 0,
+    };
+  }
+
+  const effectiveEnd = now < endsAt ? now : endsAt;
+  const elapsedHours = Math.max(0, (effectiveEnd.getTime() - startedAt.getTime()) / 3600000);
+  const multiplier = workerCount / MINE_MEAT_WORKERS;
+  const produced = elapsedHours * baseProductionRate * multiplier;
+  const currentAccumulated = Math.min(capacity, stored + produced);
+  const shiftActive = now < endsAt;
+
+  return {
+    currentAccumulated,
+    shiftActive,
+    workerCount: shiftActive ? workerCount : 0,
+    workEndsAt: shiftActive ? endsAt.toISOString() : null,
+    remainingMs: shiftActive ? Math.max(0, endsAt.getTime() - now.getTime()) : 0,
+    ratePerHour: baseProductionRate * multiplier,
+  };
+}
+
+async function syncMineShiftState(client, building) {
+  if (building.building_type !== 'mine' || !building.worker_count || !building.work_ends_at || !building.work_started_at) {
+    return building;
+  }
+
+  const now = new Date();
+  const endsAt = new Date(building.work_ends_at);
+  if (now < endsAt) {
+    return building;
+  }
+
+  return settleMineShiftImmediately(client, building, endsAt);
+}
+
+async function settleMineShiftImmediately(client, building, settleAt = null) {
+  const effectiveEnd = settleAt || new Date();
+  const level = building.level || 1;
+  const baseProductionRate = getProductionRate('mine', level);
+  const capacity = getCapacity('mine', level);
+  const stored = Number(building.collected_amount || 0);
+  const startedAt = new Date(building.work_started_at);
+  const workEndsAt = new Date(building.work_ends_at);
+  const cappedEnd = effectiveEnd < workEndsAt ? effectiveEnd : workEndsAt;
+  const elapsedHours = Math.max(0, (cappedEnd.getTime() - startedAt.getTime()) / 3600000);
+  const multiplier = Number(building.worker_count || 0) / MINE_MEAT_WORKERS;
+  const produced = elapsedHours * baseProductionRate * multiplier;
+  const nextCollected = Math.min(capacity, stored + produced);
+
+  const updateResult = await client.query(
+    `UPDATE user_buildings
+     SET collected_amount = $1,
+         worker_count = 0,
+         work_started_at = NULL,
+         work_ends_at = NULL,
+         work_mode = NULL
+     WHERE id = $2
+     RETURNING *`,
+    [Math.floor(nextCollected), building.id]
+  );
+
+  return updateResult.rows[0];
+}
+
+function buildMineCollectUpdate(building, remainingAmount) {
+  if (!isMineShiftActive(building)) {
+    return {
+      collected_amount: remainingAmount,
+      last_activated: building.last_activated,
+      worker_count: 0,
+      work_started_at: null,
+      work_ends_at: null,
+      work_mode: null,
+    };
+  }
+
+  return {
+    collected_amount: remainingAmount,
+    last_activated: building.last_activated,
+    worker_count: Number(building.worker_count || 0),
+    work_started_at: new Date().toISOString(),
+    work_ends_at: building.work_ends_at,
+    work_mode: building.work_mode,
+  };
+}
+
+function isMineShiftActive(building) {
+  return Boolean(
+    building.worker_count &&
+    building.work_started_at &&
+    building.work_ends_at &&
+    new Date(building.work_ends_at) > new Date()
+  );
 }

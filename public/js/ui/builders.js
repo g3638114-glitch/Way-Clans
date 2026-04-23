@@ -5,8 +5,11 @@ import {
   getCapacity,
   getBuildingConfig,
   getMaxBuildingLevel,
+  MINE_MEAT_COST,
+  MINE_MEAT_WORKERS,
+  MINE_AD_WORKERS,
 } from '../game/config.js';
-import { activateBuilding, collectResources, upgradeBuilding } from '../game/buildings.js';
+import { activateBuilding, collectResources, finishMineWorkNow, startMineWorkers, upgradeBuilding } from '../game/buildings.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 // Make functions available globally for onclick handlers
@@ -68,6 +71,10 @@ export function createBuildingCard(building) {
 
   const resourceType = config.resource;
   const resourceIcon = getResourceIconHtml(resourceType, 'resource-inline-icon', config.name);
+
+  if (building.building_type === 'mine') {
+    return createMineCard(building, config, level, productionRate, capacity, currentAccumulated, progressPercent, isFull);
+  }
 
   // ========== Card Header ==========
   const header = document.createElement('div');
@@ -157,6 +164,65 @@ export function createBuildingCard(building) {
   return card;
 }
 
+function createMineCard(building, config, level, productionRate, capacity, currentAccumulated, progressPercent, isFull) {
+  const card = document.createElement('div');
+  card.className = 'building-card mine-card';
+  card.dataset.buildingId = building.id;
+
+  const workerCount = Number(building.mineWorkerCount || 0);
+  const shiftActive = Boolean(building.mineShiftActive);
+  const ratePerHour = Number(building.mineRatePerHour || 0);
+  const remainingText = shiftActive ? formatMineRemaining(building.mineRemainingMs || 0) : 'Смена не активна';
+  const canCollect = currentAccumulated > 0;
+
+  card.innerHTML = `
+    <div class="building-card-header">
+      <div class="building-card-title">
+        <span class="building-icon">${config.icon}</span>
+        <h3 class="building-name">${config.name} (Уровень ${level})</h3>
+      </div>
+      <span class="mine-worker-badge ${shiftActive ? 'is-active' : ''}">${shiftActive ? `${workerCount} рабочих` : 'Шахта ждёт рабочих'}</span>
+    </div>
+    <div class="building-card-stats">
+      <div class="stat-row">
+        <span class="stat-label">Доход / час:</span>
+        <span class="stat-value">${ratePerHour || productionRate}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}/час</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Накоплено:</span>
+        <span class="stat-value">${currentAccumulated}/${capacity}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Смена:</span>
+        <span class="stat-value">${remainingText}</span>
+      </div>
+      <div class="stat-row mine-helper-row">
+        <span class="stat-time">100 рабочих: ${productionRate}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}/ч, 300 рабочих: ${productionRate * 3}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}/ч</span>
+      </div>
+    </div>
+    <div class="capacity-progress-container">
+      <div class="capacity-progress-bar">
+        <div class="capacity-progress-fill ${isFull ? 'full' : ''}" style="width:${Math.min(progressPercent, 100)}%"></div>
+      </div>
+    </div>
+    <div class="building-card-actions mine-actions-grid">
+      <button class="btn btn-activate" ${shiftActive ? 'disabled' : ''} data-action="mine-meat">${MINE_MEAT_WORKERS} рабочих за ${MINE_MEAT_COST} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}</button>
+      <button class="btn btn-upgrade" ${shiftActive ? 'disabled' : ''} data-action="mine-ad">${MINE_AD_WORKERS} рабочих за рекламу</button>
+      <button class="btn btn-secondary" ${shiftActive ? '' : 'disabled'} data-action="mine-finish">Собрать сразу</button>
+      <button class="btn btn-collect" ${canCollect ? '' : 'disabled'} data-action="mine-collect"><span>Собрать</span> ${currentAccumulated}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</button>
+      ${level < getMaxBuildingLevel() ? `<button class="btn btn-upgrade mine-upgrade-full" data-action="mine-upgrade">Улучшить до уровня ${level + 1}</button>` : `<button class="btn btn-maxed mine-upgrade-full" disabled>Максимальный уровень</button>`}
+    </div>
+  `;
+
+  card.querySelector('[data-action="mine-meat"]')?.addEventListener('click', () => startMineWorkers(building.id, 'meat_100'));
+  card.querySelector('[data-action="mine-ad"]')?.addEventListener('click', () => startMineWorkers(building.id, 'ad_300'));
+  card.querySelector('[data-action="mine-finish"]')?.addEventListener('click', () => finishMineWorkNow(building.id));
+  card.querySelector('[data-action="mine-collect"]')?.addEventListener('click', () => collectResources(building.id));
+  card.querySelector('[data-action="mine-upgrade"]')?.addEventListener('click', () => upgradeBuilding(building.id));
+
+  return card;
+}
+
 /**
  * Format time remaining (hours/minutes)
  */
@@ -175,4 +241,14 @@ function formatTimeToFill(hours) {
   }
   const days = Math.ceil(hours / 24);
   return `~${days}д`;
+}
+
+function formatMineRemaining(ms) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes <= 0) {
+    return `${seconds}с осталось`;
+  }
+  return `${minutes}м ${seconds.toString().padStart(2, '0')}с осталось`;
 }

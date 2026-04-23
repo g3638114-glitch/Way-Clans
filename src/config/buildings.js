@@ -61,11 +61,16 @@ export const PRODUCTION_PER_LEVEL = {
 // CAPACITY PER LEVEL (max resources that can accumulate)
 // ============================================================================
 export const CAPACITY_PER_LEVEL = {
-  mine: [2000, 3000, 4500, 6750, 10124, 20248],
+  mine: [120000, 170000, 220000, 270000, 320000, 400000],
   quarry: [1600, 2400, 3600, 5400, 8100, 16200],
   lumber_mill: [1800, 2700, 4050, 6074, 9112, 18224],
   farm: [1400, 2100, 3150, 4724, 7086, 14172],
 };
+
+export const MINE_SHIFT_HOURS = 1;
+export const MINE_MEAT_WORKERS = 100;
+export const MINE_AD_WORKERS = 300;
+export const MINE_MEAT_COST = 1000;
 
 // ============================================================================
 // UPGRADE COSTS

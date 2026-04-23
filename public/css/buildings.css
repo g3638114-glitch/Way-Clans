@@ -192,6 +192,39 @@
   gap: 8px;
 }
 
+.mine-card {
+  border-color: rgba(212, 175, 55, 0.24);
+  background: linear-gradient(180deg, rgba(36, 31, 12, 0.98) 0%, rgba(18, 17, 10, 0.98) 100%);
+}
+
+.mine-worker-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mine-worker-badge.is-active {
+  background: rgba(76, 175, 80, 0.12);
+  border-color: rgba(76, 175, 80, 0.22);
+  color: #8fe39c;
+}
+
+.mine-helper-row {
+  align-items: flex-start;
+}
+
+.mine-actions-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.mine-upgrade-full {
+  grid-column: 1 / -1;
+}
+
 /* Base button styles */
 .btn {
   padding: 10px 14px;

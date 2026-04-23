@@ -25,25 +25,25 @@ export const apiClient = {
     return response.json();
   },
 
-  async startCollectResources(userId, buildingId) {
-    const response = await fetch(`/api/user/${userId}/building/${buildingId}/collect/start`, { method: 'POST' });
-    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to start collecting resources'); }
-    return response.json();
-  },
-
-  async finalizeCollectResources(userId, buildingId, sessionId) {
-    const response = await fetch(`/api/user/${userId}/building/${buildingId}/collect/finalize`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId }),
-    });
-    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to finalize collecting resources'); }
-    return response.json();
-  },
-
   async collectResources(userId, buildingId) {
     const response = await fetch(`/api/user/${userId}/building/${buildingId}/collect`, { method: 'POST' });
     if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to collect resources'); }
+    return response.json();
+  },
+
+  async startMineWorkers(userId, buildingId, mode) {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/mine/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode }),
+    });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to start mine workers'); }
+    return response.json();
+  },
+
+  async finishMineWorkNow(userId, buildingId) {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/mine/finish-now`, { method: 'POST' });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to finish mine work'); }
     return response.json();
   },
 

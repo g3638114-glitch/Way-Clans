@@ -436,13 +436,13 @@ async function syncMineShiftState(client, building) {
 }
 
 async function settleMineShiftImmediately(client, building, settleAt = null, rewardMultiplier = 1) {
-  const effectiveEnd = settleAt || new Date();
+  const workEndsAt = new Date(building.work_ends_at);
+  const effectiveEnd = settleAt || workEndsAt;
   const level = building.level || 1;
   const baseProductionRate = getProductionRate('mine', level);
   const capacity = getCapacity('mine', level);
   const stored = Number(building.collected_amount || 0);
   const startedAt = new Date(building.work_started_at);
-  const workEndsAt = new Date(building.work_ends_at);
   const cappedEnd = effectiveEnd < workEndsAt ? effectiveEnd : workEndsAt;
   const elapsedHours = Math.max(0, (cappedEnd.getTime() - startedAt.getTime()) / 3600000);
   const multiplier = Number(building.worker_count || 0) / MINE_MEAT_WORKERS;

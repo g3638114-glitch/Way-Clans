@@ -81,7 +81,8 @@ export async function addGold(userId, goldAmount) {
     const user = userResult.rows[0];
 
     const energy = Number(user.energy ?? DEFAULT_ENERGY_CAPACITY);
-    if (energy <= 0) {
+    const energyCost = Math.max(1, Math.floor(goldAmount / 100));
+    if (energy < energyCost) {
       throw new Error('Энергия закончилась. Восполните её, чтобы продолжить майнинг.');
     }
 
@@ -96,7 +97,7 @@ export async function addGold(userId, goldAmount) {
        SET gold = $1, jamcoins_from_clicks = $2, energy = $3
        WHERE id = $4
        RETURNING *`,
-      [newGoldAmount, Number(user.jamcoins_from_clicks || 0) + goldAmount, energy - 1, user.id]
+      [newGoldAmount, Number(user.jamcoins_from_clicks || 0) + goldAmount, energy - energyCost, user.id]
     );
 
     return { success: true, user: updatedUserResult.rows[0] };

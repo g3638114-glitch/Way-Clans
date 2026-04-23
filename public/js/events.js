@@ -66,6 +66,7 @@ function applyOptimisticCoinClicks(clickCount, points = []) {
     ...appState.currentUser,
     gold: Number(appState.currentUser.gold || 0) + amount,
     jamcoins_from_clicks: Number(appState.currentUser.jamcoins_from_clicks || 0) + amount,
+    energy: Math.max(0, Number(appState.currentUser.energy || 0) - clickCount),
   };
 
   if (points.length > 0) {
@@ -111,6 +112,7 @@ async function flushCoinClicks() {
           ...appState.currentUser,
           gold: Number(appState.currentUser.gold || 0) + optimisticAmount,
           jamcoins_from_clicks: Number(appState.currentUser.jamcoins_from_clicks || 0) + optimisticAmount,
+          energy: Math.max(0, Number(appState.currentUser.energy || 0) - pendingOptimisticCoinClicks),
         };
       }
 
@@ -134,14 +136,15 @@ async function flushCoinClicks() {
 
 function queueCoinClicks(clickCount, points = []) {
   if (!appState.currentUser || clickCount <= 0) return;
-  if (Number(appState.currentUser.energy || 0) <= 0) {
+  const availableEnergy = Number(appState.currentUser.energy || 0);
+  if (availableEnergy <= 0) {
     tg.showAlert('Энергия закончилась. Восполните её за рекламу.');
     return;
   }
 
-  const acceptedClicks = Math.min(MAX_SIMULTANEOUS_TOUCHES, clickCount);
+  const acceptedClicks = Math.min(MAX_SIMULTANEOUS_TOUCHES, clickCount, availableEnergy);
   queuedCoinClicks += acceptedClicks;
-  applyOptimisticCoinClicks(acceptedClicks, points);
+  applyOptimisticCoinClicks(acceptedClicks, points.slice(0, acceptedClicks));
 
   const coinBtn = document.getElementById('coin-btn');
   if (coinBtn) {

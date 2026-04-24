@@ -4,7 +4,7 @@
 
 .barracks-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   padding: 12px 15px 10px;
   background: linear-gradient(180deg, rgba(16, 21, 40, 0.98) 0%, rgba(10, 14, 27, 0.98) 100%);
@@ -32,6 +32,9 @@
   justify-content: center;
   gap: 8px;
   min-height: 64px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .barracks-tab-icon {
@@ -65,8 +68,14 @@
 }
 
 .barracks-tab-btn-my-soldiers {
-  font-size: 14px;
-  padding-inline: 10px;
+  font-size: 12px;
+  padding-inline: 6px;
+  gap: 6px;
+}
+
+.barracks-tab-btn-my-soldiers .barracks-tab-icon {
+  width: 34px;
+  height: 34px;
 }
 
 .barracks-tab-icon-group {
@@ -74,7 +83,7 @@
 }
 
 .barracks-tab-group-glyph {
-  font-size: 24px;
+  font-size: 19px;
   line-height: 1;
 }
 

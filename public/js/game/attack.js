@@ -3,6 +3,7 @@ import { apiClient } from '../api/client.js';
 import { formatNumber } from '../utils/formatters.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
 import { getAdsgramBlockId, showRewardedAd } from '../services/adsgram.js';
+import { getTroopIconHtml } from '../utils/troopIcons.js';
 
 let currentTargetId = null;
 const TARGET_SEARCH_DELAY_MS = 1400;
@@ -124,8 +125,9 @@ function renderAttackTarget(data) {
     defendersHtml = '<p style="color: #4caf50;">Без защиты!</p>';
   } else {
     defendersHtml = defenders.map(d => `
-      <div class="soldier-item" style="margin-bottom: 5px; border-left-color: #ff6b6b;">
-        <span>Защитник ур. ${d.level}</span>
+      <div class="soldier-item soldier-item-defender" style="margin-bottom: 5px; border-left-color: #ff6b6b;">
+        <div class="soldier-item-accent soldier-item-accent-defender"></div>
+        <span class="soldier-name-row">${getTroopIconHtml('defender', d.level, 'troop-list-icon', 'Защитник')}<span>Защитник ур. ${d.level}</span></span>
         <span class="soldier-count">${d.count}</span>
       </div>
     `).join('');
@@ -215,11 +217,11 @@ function renderLossesBlock(result) {
       <div class="attack-loss-grid">
         <div class="attack-loss-card">
           <div class="attack-loss-title">Ваши</div>
-          ${renderLevelCountRows(result.attackerLossesByLevel, 'Никто не погиб')}
+          ${renderLevelCountRows(result.attackerLossesByLevel, 'attacker', 'Никто не погиб')}
         </div>
         <div class="attack-loss-card">
           <div class="attack-loss-title">Врага</div>
-          ${renderLevelCountRows(result.defenderLossesByLevel, 'Потерь нет')}
+          ${renderLevelCountRows(result.defenderLossesByLevel, 'defender', 'Потерь нет')}
         </div>
       </div>
     </div>
@@ -234,8 +236,9 @@ function renderLootBlock(result) {
     const levelLoot = result.actualLootByLevel?.[level] || { gold: 0, wood: 0, stone: 0, meat: 0 };
 
     rows.push(`
-      <div class="soldier-item" style="margin-bottom: 5px; border-left-color: #4caf50; display:block;">
-        <div style="font-weight:700; margin-bottom:4px;">Ур. ${level}: ${count} выживших</div>
+      <div class="soldier-item soldier-item-attacker soldier-item-survivor" style="margin-bottom: 5px; border-left-color: #4caf50; display:block;">
+        <div class="soldier-item-accent soldier-item-accent-attacker"></div>
+        <div class="attack-survivor-title">${getTroopIconHtml('attacker', level, 'troop-list-icon', 'Атакующий')}<span>Ур. ${level}: ${count} выживших</span></div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
           <span>${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}${formatNumber(levelLoot.gold)}</span>
           <span>${getResourceIconHtml('wood', 'resource-inline-icon', 'Дерево')}${formatNumber(levelLoot.wood)}</span>
@@ -263,7 +266,7 @@ function renderLootBlock(result) {
   `;
 }
 
-function renderLevelCountRows(levelMap = {}, emptyText) {
+function renderLevelCountRows(levelMap = {}, troopType, emptyText) {
   const rows = [];
 
   for (let level = 1; level <= 6; level++) {
@@ -271,7 +274,7 @@ function renderLevelCountRows(levelMap = {}, emptyText) {
     if (!count) continue;
     rows.push(`
       <div class="attack-level-row">
-        <span class="attack-level-chip">Ур. ${level}</span>
+        <span class="attack-level-chip">${getTroopIconHtml(troopType, level, 'troop-badge-icon', 'Воин')} Ур. ${level}</span>
         <span class="attack-level-count">${count}</span>
       </div>
     `);

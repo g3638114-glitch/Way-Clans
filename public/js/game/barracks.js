@@ -4,6 +4,7 @@ import { updateUI } from '../ui/dom.js';
 import { TROOP_STATS, HIRE_COSTS } from './config.js';
 import { formatNumber } from '../utils/formatters.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
+import { getTroopIconHtml } from '../utils/troopIcons.js';
 
 export async function loadBarracksData() {
   try {
@@ -33,6 +34,7 @@ export function renderBarracks() {
   
   const card = document.createElement('div');
   card.className = 'troop-card';
+  card.classList.add(type === 'attacker' ? 'troop-card-attacker' : 'troop-card-defender');
   
   let lootHtml = '';
   if (type === 'attacker') {
@@ -67,7 +69,10 @@ export function renderBarracks() {
 
   card.innerHTML = `
     <div class="troop-header">
-      <span class="troop-title">${type === 'attacker' ? '⚔️ Атакующий' : '🛡 Защищающий'}</span>
+      <div class="troop-title-wrap">
+        ${getTroopIconHtml(type, level, 'troop-hero-icon', type === 'attacker' ? 'Атакующий' : 'Защищающий')}
+        <span class="troop-title">${type === 'attacker' ? '⚔️ Атакующий' : '🛡 Защищающий'}</span>
+      </div>
       <span class="troop-level-badge">Уровень ${level}</span>
     </div>
     <div class="troop-stats-grid">
@@ -111,8 +116,12 @@ function renderMySoldiers(container) {
       attackers.forEach(t => {
         list.innerHTML += `
           <div class="soldier-item">
+            <div class="soldier-item-accent soldier-item-accent-attacker"></div>
             <div class="soldier-info-main">
-              <span class="soldier-name">Воин ур. ${t.level}</span>
+              <div class="soldier-name-row">
+                ${getTroopIconHtml('attacker', t.level, 'troop-list-icon', 'Атакующий')}
+                <span class="soldier-name">Воин ур. ${t.level}</span>
+              </div>
             </div>
             <span class="soldier-count">${t.count}</span>
           </div>
@@ -125,8 +134,12 @@ function renderMySoldiers(container) {
       defenders.forEach(t => {
         list.innerHTML += `
           <div class="soldier-item" style="border-left-color: #4c6fa6;">
+            <div class="soldier-item-accent soldier-item-accent-defender"></div>
             <div class="soldier-info-main">
-              <span class="soldier-name">Защитник ур. ${t.level}</span>
+              <div class="soldier-name-row">
+                ${getTroopIconHtml('defender', t.level, 'troop-list-icon', 'Защитник')}
+                <span class="soldier-name">Защитник ур. ${t.level}</span>
+              </div>
             </div>
             <span class="soldier-count">${t.count}</span>
           </div>
@@ -168,7 +181,10 @@ window.openHireTroopsModal = (type) => {
   const stats = TROOP_STATS[type][level];
   let infoHtml = `
     <div class="troop-hire-info">
-      <div class="troop-type-header">${type === 'attacker' ? '⚔️ Атакующий' : '🛡 Защищающий'} (ур. ${level})</div>
+      <div class="troop-type-header troop-type-header-rich">
+        ${getTroopIconHtml(type, level, 'troop-hire-icon', type === 'attacker' ? 'Атакующий' : 'Защищающий')}
+        <span>${type === 'attacker' ? '⚔️ Атакующий' : '🛡 Защищающий'} (ур. ${level})</span>
+      </div>
       <div class="troop-hire-stats">
         <div class="stat-line"><span class="stat-name">Урон:</span><span class="stat-value">${formatNumber(stats.damage)}</span></div>
         <div class="stat-line"><span class="stat-name">Здоровье:</span><span class="stat-value">${formatNumber(stats.health)}</span></div>

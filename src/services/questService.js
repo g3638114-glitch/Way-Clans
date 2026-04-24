@@ -1,6 +1,7 @@
 import { supabase, bot } from '../bot.js';
 import { getProductionRate } from '../config/buildings.js';
 import { getOrCreateUser } from './userService.js';
+import { withTransaction } from '../database/pg.js';
 
 const QUEST_DEFINITIONS = [
   {
@@ -101,82 +102,72 @@ export async function getQuests(userId) {
 }
 
 export async function claimQuestReward(userId, questId) {
-  // Get user (creates if doesn't exist)
   const user = await getOrCreateUser(userId);
-
-  // Find quest definition
   const questDef = QUEST_DEFINITIONS.find(q => q.id === questId);
   if (!questDef) {
     throw new Error('Invalid quest');
   }
 
-  // Check if quest is already completed
-  const { data: existingCompletion } = await supabase
-    .from('completed_quests')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('quest_id', questId)
-    .single();
-
-  if (existingCompletion) {
-    throw new Error('You have already received the reward for this quest!');
+  let completed = false;
+  if (questDef.id === 'subscribe_channel') {
+    completed = await isUserSubscribed(userId);
+  } else if (questDef.id.startsWith('referral_')) {
+    completed = Number(user.referral_count || 0) >= Number(questDef.threshold || 0);
   }
 
-  // Add mines to user
-  const minesToAdd = questDef.rewardMines;
-  const buildingsAdded = [];
+  if (!completed) {
+    throw new Error('Quest requirements are not met yet');
+  }
 
-  for (let i = 0; i < minesToAdd; i++) {
-    // Get current max building number
-    const { data: maxBuilding } = await supabase
-      .from('user_buildings')
-      .select('building_number')
-      .eq('user_id', user.id)
-      .eq('building_type', 'mine')
-      .order('building_number', { ascending: false })
-      .limit(1);
+  return withTransaction(async (client) => {
+    const completionResult = await client.query(
+      `INSERT INTO completed_quests (user_id, quest_id, completed_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id, quest_id) DO NOTHING
+       RETURNING id`,
+      [user.id, questId, new Date().toISOString()]
+    );
 
-    const nextBuildingNumber = (maxBuilding && maxBuilding.length > 0)
-      ? maxBuilding[0].building_number + 1
-      : 1;
-
-    // Get correct production rate for level 1
-    const productionRate = getProductionRate('mine', 1);
-
-    const { data: newBuilding, error: createError } = await supabase
-      .from('user_buildings')
-      .insert({
-        user_id: user.id,
-        building_type: 'mine',
-        building_number: nextBuildingNumber,
-        level: 1,
-        collected_amount: 0,
-        production_rate: productionRate,
-        last_activated: null,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (!createError) {
-      buildingsAdded.push(newBuilding);
+    if (completionResult.rows.length === 0) {
+      throw new Error('You have already received the reward for this quest!');
     }
-  }
 
-  // Mark quest as completed
-  await supabase
-    .from('completed_quests')
-    .insert({
-      user_id: user.id,
-      quest_id: questId,
-      completed_at: new Date().toISOString(),
-    });
+    const minesToAdd = Number(questDef.rewardMines || 0);
+    const buildingsAdded = [];
+    let nextBuildingNumber = 1;
 
-  return {
-    success: true,
-    questId,
-    minesAdded: minesToAdd,
-    buildings: buildingsAdded,
-    message: `✅ Received ${minesToAdd} mines!`,
-  };
+    const maxBuildingResult = await client.query(
+      `SELECT building_number
+       FROM user_buildings
+       WHERE user_id = $1 AND building_type = 'mine'
+       ORDER BY building_number DESC
+       LIMIT 1
+       FOR UPDATE`,
+      [user.id]
+    );
+
+    if (maxBuildingResult.rows.length > 0) {
+      nextBuildingNumber = Number(maxBuildingResult.rows[0].building_number || 0) + 1;
+    }
+
+    const productionRate = getProductionRate('mine', 1);
+    for (let index = 0; index < minesToAdd; index += 1) {
+      const newBuildingResult = await client.query(
+        `INSERT INTO user_buildings (
+          user_id, building_type, building_number, level, collected_amount, production_rate, last_activated, created_at
+        ) VALUES ($1, 'mine', $2, 1, 0, $3, NULL, $4)
+        RETURNING *`,
+        [user.id, nextBuildingNumber + index, productionRate, new Date().toISOString()]
+      );
+      buildingsAdded.push(newBuildingResult.rows[0]);
+    }
+
+    return {
+      success: true,
+      questId,
+      minesAdded: minesToAdd,
+      buildings: buildingsAdded,
+      message: `✅ Received ${minesToAdd} mines!`,
+    };
+  });
 }

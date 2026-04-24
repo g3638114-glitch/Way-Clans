@@ -1,5 +1,6 @@
 import express from 'express';
 import { getUserWarehouse, upgradeWarehouse } from '../services/warehouseService.js';
+import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get('/:userId/warehouse', async (req, res) => {
 });
 
 // POST /api/user/:userId/warehouse/upgrade
-router.post('/:userId/warehouse/upgrade', async (req, res) => {
+router.post('/:userId/warehouse/upgrade', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const result = await upgradeWarehouse(userId);

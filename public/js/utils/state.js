@@ -4,6 +4,7 @@ export const appState = {
   currentUser: null,
   userId: null,
   userInfo: null, // Telegram user info (username, first_name, etc.)
+  telegramInitData: null,
   startParam: null,
 
   // Game data
@@ -88,6 +89,9 @@ export async function initializeUserId() {
     }
 
     const tg = window.Telegram.WebApp;
+    if (tg.initData) {
+      appState.telegramInitData = tg.initData;
+    }
 
     if (tg.initDataUnsafe?.start_param) {
       appState.startParam = tg.initDataUnsafe.start_param;

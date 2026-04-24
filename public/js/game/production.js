@@ -2,6 +2,18 @@ import { appState } from '../utils/state.js';
 import { getProductionRate, getCapacity } from './config.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
+function setElementHtml(element, nextHtml) {
+  if (element && element.innerHTML !== nextHtml) {
+    element.innerHTML = nextHtml;
+  }
+}
+
+function setElementText(element, nextText) {
+  if (element && element.textContent !== nextText) {
+    element.textContent = nextText;
+  }
+}
+
 /**
  * Calculate accumulated resources for a building
  */
@@ -101,26 +113,26 @@ function updateBuildingCardValues(building) {
       const shiftStat = statRows[2].querySelector('.stat-value');
       if (incomeStat) {
         const shownRate = progress.shiftActive ? progress.productionRate : getProductionRate('mine', level);
-        incomeStat.innerHTML = `${shownRate}${resourceIcon}/час`;
+        setElementHtml(incomeStat, `${shownRate}${resourceIcon}/час`);
       }
       if (capacityStat) {
-        capacityStat.innerHTML = `${progress.accumulated}/${capacity}${resourceIcon}`;
+        setElementHtml(capacityStat, `${progress.accumulated}/${capacity}${resourceIcon}`);
       }
       if (shiftStat) {
-        shiftStat.textContent = progress.shiftActive ? formatMineRemaining(progress.remainingMs) : 'Смена не активна';
+        setElementText(shiftStat, progress.shiftActive ? formatMineRemaining(progress.remainingMs) : 'Смена не активна');
       }
     }
 
     const badge = card.querySelector('.mine-worker-badge');
     if (badge) {
-      badge.textContent = progress.shiftActive ? `${progress.workerCount} рабочих` : 'Шахта ждёт рабочих';
+      setElementText(badge, progress.shiftActive ? `${progress.workerCount} рабочих` : 'Шахта ждёт рабочих');
       badge.classList.toggle('is-active', progress.shiftActive);
     }
 
     const collectBtn = card.querySelector('[data-action="mine-collect"]');
     if (collectBtn) {
       collectBtn.disabled = progress.accumulated <= 0;
-      collectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`;
+      setElementHtml(collectBtn, `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`);
     }
 
     return updateProgressBar(card, progressPercent, progress.isFull);
@@ -132,7 +144,7 @@ function updateBuildingCardValues(building) {
     // Second stat row is capacity
     const capacityStatValue = statRows[1].querySelector('.stat-value');
     if (capacityStatValue) {
-      capacityStatValue.innerHTML = `${progress.accumulated}/${capacity}${resourceIcon}`;
+      setElementHtml(capacityStatValue, `${progress.accumulated}/${capacity}${resourceIcon}`);
     }
   }
 
@@ -183,11 +195,11 @@ function updateBuildingCardValues(building) {
         actionsContainer.insertBefore(newCollectBtn, actionsContainer.firstChild);
       } else {
         // Update collect button text with current accumulated amount
-        collectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`;
+        setElementHtml(collectBtn, `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`);
       }
 
       if (collectX2Btn) {
-        collectX2Btn.innerHTML = `<span>Собрать x2 [реклама]</span> ${progress.accumulated * 2}${resourceIcon}`;
+        setElementHtml(collectX2Btn, `<span>Собрать x2 [реклама]</span> ${progress.accumulated * 2}${resourceIcon}`);
       }
 
       if (speedUpBtn) {

@@ -8,11 +8,12 @@ import {
   editListing,
   claimPendingGold,
 } from '../services/marketService.js';
+import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 
 const router = express.Router();
 
 // POST /api/user/:userId/market/create - Create a listing
-router.post('/:userId/market/create', async (req, res) => {
+router.post('/:userId/market/create', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const { resourceType, quantity, pricePerUnit } = req.body;
@@ -49,7 +50,7 @@ router.get('/:userId/market/my-listings', async (req, res) => {
   }
 });
 
-router.post('/:userId/market/claim', async (req, res) => {
+router.post('/:userId/market/claim', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const result = await claimPendingGold(userId);
@@ -61,7 +62,7 @@ router.post('/:userId/market/claim', async (req, res) => {
 });
 
 // POST /api/user/:userId/market/buy - Buy from a listing
-router.post('/:userId/market/buy', async (req, res) => {
+router.post('/:userId/market/buy', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const { listingId, quantity } = req.body;
@@ -75,7 +76,7 @@ router.post('/:userId/market/buy', async (req, res) => {
 });
 
 // DELETE /api/user/:userId/market/:listingId - Delete a listing
-router.delete('/:userId/market/:listingId', async (req, res) => {
+router.delete('/:userId/market/:listingId', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, listingId } = req.params;
 
@@ -88,7 +89,7 @@ router.delete('/:userId/market/:listingId', async (req, res) => {
 });
 
 // PATCH /api/user/:userId/market/:listingId - Edit a listing
-router.patch('/:userId/market/:listingId', async (req, res) => {
+router.patch('/:userId/market/:listingId', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, listingId } = req.params;
     const { quantity, pricePerUnit } = req.body;

@@ -1,5 +1,6 @@
 import express from 'express';
 import { getRandomTarget, performAttack } from '../services/attackService.js';
+import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.get('/:userId/attack/target', async (req, res) => {
   }
 });
 
-router.post('/:userId/attack', async (req, res) => {
+router.post('/:userId/attack', requireTelegramAuth, async (req, res) => {
   try {
     const { targetId } = req.body;
     if (!targetId) {

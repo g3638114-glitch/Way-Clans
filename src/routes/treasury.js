@@ -1,5 +1,6 @@
 import express from 'express';
 import { getUserTreasury, upgradeTreasury } from '../services/treasuryService.js';
+import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get('/:userId/treasury', async (req, res) => {
 });
 
 // POST /api/user/:userId/treasury/upgrade
-router.post('/:userId/treasury/upgrade', async (req, res) => {
+router.post('/:userId/treasury/upgrade', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const result = await upgradeTreasury(userId);

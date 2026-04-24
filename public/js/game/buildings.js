@@ -85,12 +85,24 @@ export async function collectResources(buildingId, rewardMultiplier = 1) {
 }
 
 async function collectResourcesWithBoost(buildingId) {
+  const session = await apiClient.collectResourcesX2(appState.userId, buildingId);
   const adShown = await showRewardedAd(getAdsgramBlockId('building'));
   if (!adShown) {
     throw new Error('Реклама не была просмотрена полностью. Сбор x2 не выполнен.');
   }
 
-  return apiClient.collectResourcesX2(appState.userId, buildingId);
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      return await apiClient.finalizeCollectResourcesX2(appState.userId, buildingId, session.sessionId);
+    } catch (error) {
+      if (!String(error.message || '').includes('ещё не подтверждена') || attempt === 4) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    }
+  }
+
+  throw new Error('Не удалось подтвердить рекламную награду');
 }
 
 export async function speedUpBuildingProduction(buildingId) {

@@ -1,5 +1,6 @@
 import express from 'express';
 import { getUserTroops, hireTroop, upgradeTroopType } from '../services/troopService.js';
+import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.get('/:userId/troops', async (req, res) => {
   }
 });
 
-router.post('/:userId/troops/hire', async (req, res) => {
+router.post('/:userId/troops/hire', requireTelegramAuth, async (req, res) => {
   try {
     const result = await hireTroop(req.params.userId, req.body.type, req.body.quantity || 1);
     res.json(result);
@@ -21,7 +22,7 @@ router.post('/:userId/troops/hire', async (req, res) => {
   }
 });
 
-router.post('/:userId/troops/upgrade', async (req, res) => {
+router.post('/:userId/troops/upgrade', requireTelegramAuth, async (req, res) => {
   try {
     const result = await upgradeTroopType(req.params.userId, req.body.type);
     res.json(result);

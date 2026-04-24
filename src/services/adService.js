@@ -89,6 +89,12 @@ export async function finalizeBuildingCollectSession(telegramId, sessionId) {
     if (session.claimed_at) {
       throw new Error('Reward session already claimed');
     }
+    if (!session.ad_confirmed_at) {
+      throw new Error('Рекламная награда ещё не подтверждена');
+    }
+    if (new Date(session.expires_at) <= new Date()) {
+      throw new Error('Reward session expired');
+    }
 
     const buildingResult = await client.query(
       'SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE',

@@ -1,5 +1,6 @@
 import express from 'express';
 import { getQuests, claimQuestReward } from '../services/questService.js';
+import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get('/:userId/quests', async (req, res) => {
 });
 
 // POST /api/user/:userId/quest/:questId/claim
-router.post('/:userId/quest/:questId/claim', async (req, res) => {
+router.post('/:userId/quest/:questId/claim', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, questId } = req.params;
     const result = await claimQuestReward(userId, questId);

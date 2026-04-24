@@ -1,10 +1,11 @@
 import express from 'express';
 import { sellResources, exchangeGold, addGold, refillEnergy } from '../services/resourceService.js';
+import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 
 const router = express.Router();
 
 // POST /api/user/:userId/sell
-router.post('/:userId/sell', async (req, res) => {
+router.post('/:userId/sell', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const { wood, stone, meat } = req.body;
@@ -17,7 +18,7 @@ router.post('/:userId/sell', async (req, res) => {
 });
 
 // POST /api/user/:userId/exchange
-router.post('/:userId/exchange', async (req, res) => {
+router.post('/:userId/exchange', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const { goldAmount } = req.body;
@@ -30,7 +31,7 @@ router.post('/:userId/exchange', async (req, res) => {
 });
 
 // POST /api/user/:userId/coin-click
-router.post('/:userId/coin-click', async (req, res) => {
+router.post('/:userId/coin-click', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const requestedCount = Number(req.body?.count || 1);
@@ -43,7 +44,7 @@ router.post('/:userId/coin-click', async (req, res) => {
   }
 });
 
-router.post('/:userId/refill-energy', async (req, res) => {
+router.post('/:userId/refill-energy', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const result = await refillEnergy(userId);

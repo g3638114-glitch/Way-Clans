@@ -1,4 +1,5 @@
 import { supabase } from '../bot.js';
+import { withTransaction } from '../database/pg.js';
 
 const DEFAULT_USER_RESOURCES = {
   gold: 5000,
@@ -200,34 +201,35 @@ export async function applyReferralIfEligible(user, startParam) {
   if (Number(user.telegram_id) === referrerTelegramId) return user;
   if (user.referred_by_telegram_id) return user;
 
-  const { data: referrer, error: referrerError } = await supabase
-    .from('users')
-    .select('id, telegram_id, referral_count')
-    .eq('telegram_id', referrerTelegramId)
-    .single();
+  return withTransaction(async (client) => {
+    const referrerResult = await client.query(
+      'SELECT id, telegram_id FROM users WHERE telegram_id = $1 FOR UPDATE',
+      [referrerTelegramId]
+    );
 
-  if (referrerError || !referrer) {
-    return user;
-  }
+    if (referrerResult.rows.length === 0) {
+      return user;
+    }
 
-  const { data: updatedUser, error: updateUserError } = await supabase
-    .from('users')
-    .update({ referred_by_telegram_id: referrerTelegramId })
-    .eq('id', user.id)
-    .is('referred_by_telegram_id', null)
-    .select('*')
-    .single();
+    const updatedUserResult = await client.query(
+      `UPDATE users
+       SET referred_by_telegram_id = $1
+       WHERE id = $2 AND referred_by_telegram_id IS NULL
+       RETURNING *`,
+      [referrerTelegramId, user.id]
+    );
 
-  if (updateUserError || !updatedUser) {
-    return user;
-  }
+    if (updatedUserResult.rows.length === 0) {
+      return user;
+    }
 
-  await supabase
-    .from('users')
-    .update({ referral_count: Number(referrer.referral_count || 0) + 1 })
-    .eq('id', referrer.id);
+    await client.query(
+      'UPDATE users SET referral_count = COALESCE(referral_count, 0) + 1 WHERE id = $1',
+      [referrerResult.rows[0].id]
+    );
 
-  return updatedUser;
+    return updatedUserResult.rows[0];
+  });
 }
 
 export async function getUserByTelegramId(telegramId, columns = '*') {

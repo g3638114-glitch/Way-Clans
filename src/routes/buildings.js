@@ -9,6 +9,8 @@ import {
   finishMineWorkNow,
   speedUpBuildingProduction,
 } from '../services/buildingService.js';
+import { requireTelegramAuth } from '../middleware/telegramAuth.js';
+import { createBuildingCollectSession, finalizeBuildingCollectSession } from '../services/adService.js';
 
 const router = express.Router();
 
@@ -25,7 +27,7 @@ router.get('/:userId/buildings', async (req, res) => {
 });
 
 // POST /api/user/:userId/building/:buildingId/activate
-router.post('/:userId/building/:buildingId/activate', async (req, res) => {
+router.post('/:userId/building/:buildingId/activate', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
     const result = await activateBuilding(userId, buildingId);
@@ -36,7 +38,7 @@ router.post('/:userId/building/:buildingId/activate', async (req, res) => {
   }
 });
 
-router.post('/:userId/building/:buildingId/collect', async (req, res) => {
+router.post('/:userId/building/:buildingId/collect', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
     const result = await collectResourcesFromBuilding(userId, buildingId);
@@ -47,10 +49,10 @@ router.post('/:userId/building/:buildingId/collect', async (req, res) => {
   }
 });
 
-router.post('/:userId/building/:buildingId/collect-x2', async (req, res) => {
+router.post('/:userId/building/:buildingId/collect-x2', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
-    const result = await collectBuildingResources(userId, buildingId, 2);
+    const result = await createBuildingCollectSession(userId, buildingId);
     res.json(result);
   } catch (error) {
     console.error('Error collecting resources x2:', error);
@@ -58,7 +60,19 @@ router.post('/:userId/building/:buildingId/collect-x2', async (req, res) => {
   }
 });
 
-router.post('/:userId/building/:buildingId/speed-up', async (req, res) => {
+router.post('/:userId/building/:buildingId/collect-x2/finalize', requireTelegramAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { sessionId } = req.body || {};
+    const result = await finalizeBuildingCollectSession(userId, sessionId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error finalizing resources x2:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.post('/:userId/building/:buildingId/speed-up', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
     const result = await speedUpBuildingProduction(userId, buildingId, 2);
@@ -69,7 +83,7 @@ router.post('/:userId/building/:buildingId/speed-up', async (req, res) => {
   }
 });
 
-router.post('/:userId/building/:buildingId/mine/start', async (req, res) => {
+router.post('/:userId/building/:buildingId/mine/start', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
     const { mode } = req.body || {};
@@ -81,11 +95,10 @@ router.post('/:userId/building/:buildingId/mine/start', async (req, res) => {
   }
 });
 
-router.post('/:userId/building/:buildingId/mine/finish-now', async (req, res) => {
+router.post('/:userId/building/:buildingId/mine/finish-now', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
-    const { rewardMultiplier } = req.body || {};
-    const result = await finishMineWorkNow(userId, buildingId, rewardMultiplier);
+    const result = await finishMineWorkNow(userId, buildingId, 2);
     res.json(result);
   } catch (error) {
     console.error('Error finishing mine work now:', error);
@@ -94,7 +107,7 @@ router.post('/:userId/building/:buildingId/mine/finish-now', async (req, res) =>
 });
 
 // POST /api/user/:userId/building/:buildingId/upgrade
-router.post('/:userId/building/:buildingId/upgrade', async (req, res) => {
+router.post('/:userId/building/:buildingId/upgrade', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
     const result = await upgradeBuilding(userId, buildingId);

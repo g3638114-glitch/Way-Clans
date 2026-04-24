@@ -9,7 +9,7 @@ import {
   MINE_MEAT_WORKERS,
   MINE_AD_WORKERS,
 } from '../game/config.js';
-import { activateBuilding, collectResources, finishMineWorkNow, startMineWorkers, upgradeBuilding } from '../game/buildings.js';
+import { activateBuilding, collectResources, finishMineWorkNow, speedUpBuildingProduction, startMineWorkers, upgradeBuilding } from '../game/buildings.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
 
 // Make functions available globally for onclick handlers
@@ -132,12 +132,34 @@ export function createBuildingCard(building) {
   if (isActivated) {
     const collectBtn = document.createElement('button');
     collectBtn.className = 'btn btn-collect';
+    collectBtn.dataset.action = 'collect';
     collectBtn.innerHTML = `<span>Собрать</span> ${currentAccumulated}${resourceIcon}`;
     collectBtn.addEventListener('click', () => {
       collectResources(building.id);
       collectBtn.blur();
     });
     actions.appendChild(collectBtn);
+
+    const collectX2Btn = document.createElement('button');
+    collectX2Btn.className = 'btn btn-secondary';
+    collectX2Btn.dataset.action = 'collect-x2';
+    collectX2Btn.innerHTML = `<span>Собрать x2</span> ${currentAccumulated * 2}${resourceIcon}`;
+    collectX2Btn.addEventListener('click', () => {
+      collectResources(building.id, 2);
+      collectX2Btn.blur();
+    });
+    actions.appendChild(collectX2Btn);
+
+    const speedUpBtn = document.createElement('button');
+    speedUpBtn.className = 'btn btn-secondary';
+    speedUpBtn.dataset.action = 'speed-up';
+    speedUpBtn.textContent = 'Ускорить в 2 раза';
+    speedUpBtn.disabled = isFull;
+    speedUpBtn.addEventListener('click', () => {
+      speedUpBuildingProduction(building.id);
+      speedUpBtn.blur();
+    });
+    actions.appendChild(speedUpBtn);
   }
 
   // Upgrade button

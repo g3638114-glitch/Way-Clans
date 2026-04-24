@@ -14,6 +14,8 @@ export const TREASURY_CAPACITY_PER_LEVEL = [
   250000,   // Level 4
   500000,   // Level 5
   1000000,  // Level 6
+  5000000,  // Level 7
+  10000000, // Level 8
 ];
 
 // Upgrade costs: [jamcoins (gold), stone, wood] for each level (starting from level 2)
@@ -23,6 +25,8 @@ export const TREASURY_UPGRADE_COSTS = {
   4: [2500, 2500, 2500],
   5: [5000, 5000, 5000],
   6: [10000, 10000, 10000],
+  7: [20000, 20000, 20000],
+  8: [40000, 40000, 40000],
 };
 
 // ============================================================================
@@ -61,10 +65,10 @@ export const PRODUCTION_PER_LEVEL = {
 // CAPACITY PER LEVEL (max resources that can accumulate)
 // ============================================================================
 export const CAPACITY_PER_LEVEL = {
-  mine: [120000, 170000, 220000, 270000, 320000, 400000],
+  mine: [120000, 120000, 120000, 120000, 120000, 120000],
   quarry: [1600, 2400, 3600, 5400, 8100, 16200],
   lumber_mill: [1800, 2700, 4050, 6074, 9112, 18224],
-  farm: [1400, 2100, 3150, 4724, 7086, 14172],
+  farm: [2000, 2000, 2000, 2000, 2000, 2000],
 };
 
 export const MINE_SHIFT_HOURS = 1;

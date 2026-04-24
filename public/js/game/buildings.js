@@ -38,12 +38,15 @@ export async function activateBuilding(buildingId) {
 }
 
 /**
- * Collect resources from a building (when at full capacity)
+ * Collect resources from a building
  */
-export async function collectResources(buildingId) {
-  await withOperationLock(`collectResources_${buildingId}`, async () => {
+export async function collectResources(buildingId, rewardMultiplier = 1) {
+  const lockKey = rewardMultiplier > 1 ? `collectResourcesX2_${buildingId}` : `collectResources_${buildingId}`;
+  await withOperationLock(lockKey, async () => {
     try {
-      const result = await apiClient.collectResources(appState.userId, buildingId);
+      const result = rewardMultiplier > 1
+        ? await collectResourcesWithBoost(buildingId)
+        : await apiClient.collectResources(appState.userId, buildingId);
       appState.currentUser = result.user;
       updateUI(appState.currentUser);
 
@@ -63,6 +66,7 @@ export async function collectResources(buildingId) {
         collectedAmount: result.collectedAmount,
         partialCollection: result.partialCollection,
         remainingAmount: result.remainingAmount,
+        rewardMultiplier,
       });
     } catch (error) {
       console.error('Error collecting resources:', error);
@@ -76,6 +80,34 @@ export async function collectResources(buildingId) {
       }
 
       window.tg.showAlert(error.message || 'Ошибка при сборе ресурсов');
+    }
+  });
+}
+
+async function collectResourcesWithBoost(buildingId) {
+  const adShown = await showRewardedAd(getAdsgramBlockId('building'));
+  if (!adShown) {
+    throw new Error('Реклама не была просмотрена полностью. Сбор x2 не выполнен.');
+  }
+
+  return apiClient.collectResourcesX2(appState.userId, buildingId);
+}
+
+export async function speedUpBuildingProduction(buildingId) {
+  await withOperationLock(`speedUpBuilding_${buildingId}`, async () => {
+    try {
+      const adShown = await showRewardedAd(getAdsgramBlockId('building'));
+      if (!adShown) {
+        window.tg.showAlert('Реклама не была просмотрена полностью. Ускорение x2 не выполнено.');
+        return;
+      }
+
+      const result = await apiClient.speedUpBuilding(appState.userId, buildingId);
+      updateBuildingState(result.building);
+      renderBuildings();
+      window.tg.showAlert('✅ Производство ускорено в 2 раза. Оставшееся время сокращено вдвое.');
+    } catch (error) {
+      window.tg.showAlert(error.message || 'Ошибка при ускорении здания');
     }
   });
 }
@@ -141,7 +173,7 @@ function updateBuildingState(building) {
   }
 }
 
-function renderCollectionResultModal({ buildingName, resourceType, collectedAmount, partialCollection = false, remainingAmount = 0 }) {
+function renderCollectionResultModal({ buildingName, resourceType, collectedAmount, partialCollection = false, remainingAmount = 0, rewardMultiplier = 1 }) {
   const modal = document.getElementById('game-result-modal');
   const title = document.getElementById('game-result-title');
   const body = document.getElementById('game-result-body');
@@ -162,6 +194,7 @@ function renderCollectionResultModal({ buildingName, resourceType, collectedAmou
             <span>${getResourceIconHtml(resourceType, 'resource-inline-icon-lg', getResourceLabel(resourceType))}</span>
             <span>${collectedAmount} ${getResourceLabel(resourceType)}</span>
           </div>
+          ${rewardMultiplier > 1 ? `<div style="margin-top:8px; color:#8fe39c; font-weight:700;">Бонус x${rewardMultiplier} применён</div>` : ''}
           ${partialCollection ? `<div style="margin-top:8px; color: rgba(255,255,255,0.7);">В здании осталось: ${remainingAmount} ${getResourceLabel(resourceType)}</div>` : ''}
         </div>
       </div>

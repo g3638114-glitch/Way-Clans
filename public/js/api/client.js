@@ -31,6 +31,18 @@ export const apiClient = {
     return response.json();
   },
 
+  async collectResourcesX2(userId, buildingId) {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/collect-x2`, { method: 'POST' });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to collect resources x2'); }
+    return response.json();
+  },
+
+  async speedUpBuilding(userId, buildingId) {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/speed-up`, { method: 'POST' });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to speed up building'); }
+    return response.json();
+  },
+
   async startMineWorkers(userId, buildingId, mode) {
     const response = await fetch(`/api/user/${userId}/building/${buildingId}/mine/start`, {
       method: 'POST',

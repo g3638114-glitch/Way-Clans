@@ -1,11 +1,13 @@
 import express from 'express';
 import {
+  collectBuildingResources,
   collectResourcesFromBuilding,
   upgradeBuilding,
   activateBuilding,
   getUserBuildings,
   startMineWorkers,
   finishMineWorkNow,
+  speedUpBuildingProduction,
 } from '../services/buildingService.js';
 
 const router = express.Router();
@@ -41,6 +43,28 @@ router.post('/:userId/building/:buildingId/collect', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error collecting resources:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.post('/:userId/building/:buildingId/collect-x2', async (req, res) => {
+  try {
+    const { userId, buildingId } = req.params;
+    const result = await collectBuildingResources(userId, buildingId, 2);
+    res.json(result);
+  } catch (error) {
+    console.error('Error collecting resources x2:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.post('/:userId/building/:buildingId/speed-up', async (req, res) => {
+  try {
+    const { userId, buildingId } = req.params;
+    const result = await speedUpBuildingProduction(userId, buildingId, 2);
+    res.json(result);
+  } catch (error) {
+    console.error('Error speeding up building production:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

@@ -143,7 +143,9 @@ function updateBuildingCardValues(building) {
   const actionsContainer = card.querySelector('.building-card-actions');
   if (actionsContainer) {
     const activateBtn = actionsContainer.querySelector('.btn-activate');
-    const collectBtn = actionsContainer.querySelector('.btn-collect');
+    const collectBtn = actionsContainer.querySelector('[data-action="collect"]');
+    const collectX2Btn = actionsContainer.querySelector('[data-action="collect-x2"]');
+    const speedUpBtn = actionsContainer.querySelector('[data-action="speed-up"]');
 
     const isActivated = building.last_activated !== null && building.last_activated !== undefined;
 
@@ -172,6 +174,7 @@ function updateBuildingCardValues(building) {
       if (!collectBtn) {
         const newCollectBtn = document.createElement('button');
         newCollectBtn.className = 'btn btn-collect';
+        newCollectBtn.dataset.action = 'collect';
         newCollectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`;
         newCollectBtn.addEventListener('click', () => {
           window.collectResources(building.id);
@@ -182,10 +185,26 @@ function updateBuildingCardValues(building) {
         // Update collect button text with current accumulated amount
         collectBtn.innerHTML = `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`;
       }
+
+      if (collectX2Btn) {
+        collectX2Btn.innerHTML = `<span>Собрать x2</span> ${progress.accumulated * 2}${resourceIcon}`;
+      }
+
+      if (speedUpBtn) {
+        speedUpBtn.disabled = progress.isFull;
+      }
     } else {
       // Should not have collect button
       if (collectBtn) {
         collectBtn.remove();
+      }
+
+      if (collectX2Btn) {
+        collectX2Btn.remove();
+      }
+
+      if (speedUpBtn) {
+        speedUpBtn.remove();
       }
     }
   }

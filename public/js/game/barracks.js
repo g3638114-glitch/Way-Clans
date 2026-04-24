@@ -71,9 +71,11 @@ export function renderBarracks() {
     <div class="troop-header">
       <div class="troop-title-wrap">
         ${getTroopIconHtml(type, level, 'troop-hero-icon', type === 'attacker' ? 'Атакующий' : 'Защищающий')}
-        <span class="troop-title">${type === 'attacker' ? 'Атакующий' : 'Защищающий'}</span>
+        <div class="troop-title-block">
+          <span class="troop-title">${type === 'attacker' ? 'Атакующий' : 'Защищающий'}</span>
+          <span class="troop-title-level">Уровень ${level}</span>
+        </div>
       </div>
-      <span class="troop-level-badge">Уровень ${level}</span>
     </div>
     <div class="troop-stats-grid">
       <div class="troop-stat-item">

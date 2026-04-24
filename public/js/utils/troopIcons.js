@@ -14,5 +14,5 @@ export function getTroopIconPath(type, level) {
 }
 
 export function getTroopIconHtml(type, level, className = 'troop-inline-icon', alt = 'Воин') {
-  return `<img class="${className}" src="${getTroopIconPath(type, level)}" alt="${alt}">`;
+  return `<span class="${className}"><img class="${className}-img" src="${getTroopIconPath(type, level)}" alt="${alt}"></span>`;
 }

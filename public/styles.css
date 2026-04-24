@@ -262,16 +262,16 @@ body {
 .nav-item.active {
   background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%);
   border-color: #d4af37;
-  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3);
-  animation: pulse 2s ease-in-out infinite;
+  box-shadow: none;
+  animation: none;
 }
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3);
+    box-shadow: none;
   }
   50% {
-    box-shadow: 0 4px 16px rgba(76, 111, 166, 0.5), 0 0 30px rgba(212, 175, 55, 0.5);
+    box-shadow: none;
   }
 }
 

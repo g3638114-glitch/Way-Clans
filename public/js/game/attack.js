@@ -5,15 +5,21 @@ import { getResourceIconHtml } from '../utils/resourceIcons.js';
 import { getAdsgramBlockId, showRewardedAd } from '../services/adsgram.js';
 
 let currentTargetId = null;
+const TARGET_SEARCH_DELAY_MS = 1400;
 
 export async function openAttackMenu() {
   await withOperationLock('findTarget', async () => {
     try {
+      document.getElementById('attack-modal').classList.add('active');
+      renderSearchState('Ищем противника', 'Подбираем цель для атаки...');
+      setAttackButtonsDisabled(true);
+      await wait(TARGET_SEARCH_DELAY_MS);
       const data = await apiClient.getAttackTarget(appState.userId, 'default');
       currentTargetId = data.targetId;
       renderAttackTarget(data);
-      document.getElementById('attack-modal').classList.add('active');
+      setAttackButtonsDisabled(false);
     } catch (error) {
+      setAttackButtonsDisabled(false);
       tg.showAlert(error.message);
     }
   });
@@ -22,15 +28,21 @@ export async function openAttackMenu() {
 export function closeAttackModal() {
   document.getElementById('attack-modal').classList.remove('active');
   currentTargetId = null;
+  setAttackButtonsDisabled(false);
 }
 
 async function searchNewTarget() {
   await withOperationLock('findTarget', async () => {
     try {
+      renderSearchState('Ищем противника', 'Смотрим, кто подойдёт для обычной атаки...');
+      setAttackButtonsDisabled(true);
+      await wait(TARGET_SEARCH_DELAY_MS);
       const data = await apiClient.getAttackTarget(appState.userId, 'default');
       currentTargetId = data.targetId;
       renderAttackTarget(data);
+      setAttackButtonsDisabled(false);
     } catch (error) {
+      setAttackButtonsDisabled(false);
       tg.showAlert(error.message);
     }
   });
@@ -39,19 +51,48 @@ async function searchNewTarget() {
 async function searchBestTarget() {
   await withOperationLock('findBestTarget', async () => {
     try {
+      renderSearchState('Ищем лучшую цель', 'После рекламы подбираем более выгодного противника...');
+      setAttackButtonsDisabled(true);
       const adShown = await showRewardedAd(getAdsgramBlockId('building'));
       if (!adShown) {
+        setAttackButtonsDisabled(false);
         tg.showAlert('Реклама не была просмотрена полностью. Лучшая цель не найдена.');
         return;
       }
 
+      await wait(TARGET_SEARCH_DELAY_MS);
       const data = await apiClient.getAttackTarget(appState.userId, 'best');
       currentTargetId = data.targetId;
       renderAttackTarget(data);
+      setAttackButtonsDisabled(false);
     } catch (error) {
+      setAttackButtonsDisabled(false);
       tg.showAlert(error.message);
     }
   });
+}
+
+function renderSearchState(title, subtitle) {
+  const body = document.getElementById('attack-modal-body');
+  if (!body) return;
+
+  body.innerHTML = `
+    <div class="attack-search-state">
+      <div class="attack-search-spinner"></div>
+      <div class="attack-search-title">${title}</div>
+      <div class="attack-search-subtitle">${subtitle}</div>
+    </div>
+  `;
+}
+
+function setAttackButtonsDisabled(disabled) {
+  document.getElementById('confirm-attack-btn').disabled = disabled;
+  document.getElementById('search-target-btn').disabled = disabled;
+  document.getElementById('best-target-btn').disabled = disabled;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function confirmAttack() {

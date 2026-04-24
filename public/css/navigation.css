@@ -38,7 +38,7 @@
 .nav-item.active {
   background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%);
   border-color: #d4af37;
-  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3);
+  box-shadow: none;
 }
 
 .nav-item:active,
@@ -46,10 +46,8 @@
 .nav-item:focus-visible,
 .nav-item:focus-within {
   outline: none !important;
-  border-color: #d4af37 !important;
-  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 20px rgba(212, 175, 55, 0.3) !important;
-  background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%) !important;
-  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .nav-item:active {

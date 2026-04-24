@@ -34,11 +34,11 @@
 }
 
 .barracks-tab-icon {
-  width: 28px;
-  height: 28px;
+  width: 42px;
+  height: 42px;
   object-fit: contain;
-  border-radius: 8px;
-  padding: 2px;
+  border-radius: 10px;
+  padding: 3px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
@@ -58,6 +58,23 @@
   box-shadow: none;
 }
 
+.barracks-tab-btn[data-type="attacker"].active {
+  background: linear-gradient(135deg, rgba(160, 52, 67, 0.98) 0%, rgba(84, 26, 34, 0.98) 100%);
+  border-color: rgba(255, 168, 94, 0.95);
+  color: #fff3e7;
+}
+
+.barracks-tab-btn[data-type="defender"].active {
+  background: linear-gradient(135deg, rgba(55, 92, 168, 0.98) 0%, rgba(32, 50, 102, 0.98) 100%);
+  border-color: rgba(134, 197, 255, 0.95);
+  color: #eef7ff;
+}
+
+.barracks-tab-btn[data-type="my-soldiers"].active {
+  background: linear-gradient(135deg, #4f73b8 0%, #2b3d66 100%);
+  border-color: #d4af37;
+}
+
 .barracks-tab-btn:focus,
 .barracks-tab-btn:focus-visible,
 .barracks-tab-btn:focus-within,
@@ -73,6 +90,20 @@
 .barracks-tab-btn.active:active {
   border-color: #d4af37 !important;
   box-shadow: none !important;
+}
+
+.barracks-tab-btn[data-type="attacker"].active:focus,
+.barracks-tab-btn[data-type="attacker"].active:focus-visible,
+.barracks-tab-btn[data-type="attacker"].active:focus-within,
+.barracks-tab-btn[data-type="attacker"].active:active {
+  border-color: rgba(255, 168, 94, 0.95) !important;
+}
+
+.barracks-tab-btn[data-type="defender"].active:focus,
+.barracks-tab-btn[data-type="defender"].active:focus-visible,
+.barracks-tab-btn[data-type="defender"].active:focus-within,
+.barracks-tab-btn[data-type="defender"].active:active {
+  border-color: rgba(134, 197, 255, 0.95) !important;
 }
 
 .barracks-container {
@@ -132,22 +163,22 @@
 .troop-title-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .troop-title {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: bold;
   color: #fff;
 }
 
 .troop-hero-icon {
-  width: 56px;
-  height: 56px;
+  width: 84px;
+  height: 84px;
   object-fit: contain;
-  border-radius: 14px;
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.05);
-  padding: 6px;
+  padding: 9px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
@@ -272,7 +303,7 @@
 .soldier-name-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .soldier-name {
@@ -281,12 +312,12 @@
 }
 
 .troop-list-icon {
-  width: 34px;
-  height: 34px;
+  width: 51px;
+  height: 51px;
   object-fit: contain;
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
-  padding: 4px;
+  padding: 6px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
@@ -364,31 +395,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .troop-hire-icon {
-  width: 48px;
-  height: 48px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
-  border-radius: 12px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.05);
-  padding: 5px;
+  padding: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .troop-badge-icon {
-  width: 22px;
-  height: 22px;
+  width: 33px;
+  height: 33px;
   object-fit: contain;
-  vertical-align: -5px;
-  margin-right: 6px;
+  vertical-align: -8px;
+  margin-right: 8px;
 }
 
 .attack-survivor-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-weight: 700;
   margin-bottom: 4px;
 }

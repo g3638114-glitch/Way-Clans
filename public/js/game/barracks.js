@@ -71,7 +71,7 @@ export function renderBarracks() {
     <div class="troop-header">
       <div class="troop-title-wrap">
         ${getTroopIconHtml(type, level, 'troop-hero-icon', type === 'attacker' ? 'Атакующий' : 'Защищающий')}
-        <span class="troop-title">${type === 'attacker' ? '⚔️ Атакующий' : '🛡 Защищающий'}</span>
+        <span class="troop-title">${type === 'attacker' ? 'Атакующий' : 'Защищающий'}</span>
       </div>
       <span class="troop-level-badge">Уровень ${level}</span>
     </div>
@@ -175,7 +175,7 @@ window.openHireTroopsModal = (type) => {
 
   // Set modal title
   document.getElementById('hire-troops-title').textContent =
-    type === 'attacker' ? '⚔️ Нанять атакующих' : '🛡 Нанять защищающих';
+    type === 'attacker' ? 'Нанять атакующих' : 'Нанять защищающих';
 
   // Display troop info
   const stats = TROOP_STATS[type][level];
@@ -183,7 +183,7 @@ window.openHireTroopsModal = (type) => {
     <div class="troop-hire-info">
       <div class="troop-type-header troop-type-header-rich">
         ${getTroopIconHtml(type, level, 'troop-hire-icon', type === 'attacker' ? 'Атакующий' : 'Защищающий')}
-        <span>${type === 'attacker' ? '⚔️ Атакующий' : '🛡 Защищающий'} (ур. ${level})</span>
+        <span>${type === 'attacker' ? 'Атакующий' : 'Защищающий'} (ур. ${level})</span>
       </div>
       <div class="troop-hire-stats">
         <div class="stat-line"><span class="stat-name">Урон:</span><span class="stat-value">${formatNumber(stats.damage)}</span></div>

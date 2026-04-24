@@ -187,7 +187,7 @@ function updateBuildingCardValues(building) {
       }
 
       if (collectX2Btn) {
-        collectX2Btn.innerHTML = `<span>Собрать x2</span> ${progress.accumulated * 2}${resourceIcon}`;
+        collectX2Btn.innerHTML = `<span>Собрать x2 [реклама]</span> ${progress.accumulated * 2}${resourceIcon}`;
       }
 
       if (speedUpBtn) {

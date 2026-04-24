@@ -576,8 +576,8 @@ body {
 .tab-btn.active {
   background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%);
   border-color: #d4af37;
-  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 15px rgba(212, 175, 55, 0.2);
-  animation: tab-highlight 0.4s ease;
+  box-shadow: none;
+  animation: none;
 }
 
 @keyframes tab-highlight {

@@ -141,9 +141,9 @@ export function createBuildingCard(building) {
     actions.appendChild(collectBtn);
 
     const collectX2Btn = document.createElement('button');
-    collectX2Btn.className = 'btn btn-secondary';
+    collectX2Btn.className = 'btn btn-reward';
     collectX2Btn.dataset.action = 'collect-x2';
-    collectX2Btn.innerHTML = `<span>Собрать x2</span> ${currentAccumulated * 2}${resourceIcon}`;
+    collectX2Btn.innerHTML = `<span>Собрать x2 [реклама]</span> ${currentAccumulated * 2}${resourceIcon}`;
     collectX2Btn.addEventListener('click', () => {
       collectResources(building.id, 2);
       collectX2Btn.blur();
@@ -153,7 +153,7 @@ export function createBuildingCard(building) {
     const speedUpBtn = document.createElement('button');
     speedUpBtn.className = 'btn btn-secondary';
     speedUpBtn.dataset.action = 'speed-up';
-    speedUpBtn.textContent = 'Ускорить в 2 раза';
+    speedUpBtn.textContent = 'Ускорить в 2 раза [реклама]';
     speedUpBtn.disabled = isFull;
     speedUpBtn.addEventListener('click', () => {
       speedUpBuildingProduction(building.id);
@@ -201,12 +201,12 @@ function createMineCard(building, config, level, productionRate, capacity, curre
     : '';
   const actionButtons = shiftActive
     ? `
-        <button class="btn btn-secondary mine-action-wide" data-action="mine-finish">Собрать сразу с x2</button>
+        <button class="btn btn-secondary mine-action-wide" data-action="mine-finish">Собрать сразу x2 [реклама]</button>
         <button class="btn btn-upgrade mine-upgrade-full" data-action="mine-upgrade" disabled>Улучшение недоступно во время работы</button>
       `
     : `
         <button class="btn btn-activate mine-action-wide" data-action="mine-meat">${MINE_MEAT_WORKERS} рабочих за ${MINE_MEAT_COST} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}</button>
-        <button class="btn btn-upgrade mine-action-wide" data-action="mine-ad">${MINE_AD_WORKERS} рабочих за рекламу</button>
+        <button class="btn btn-upgrade mine-action-wide" data-action="mine-ad">${MINE_AD_WORKERS} рабочих [реклама]</button>
         ${collectButton}
       `;
 

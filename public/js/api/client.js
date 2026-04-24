@@ -209,8 +209,8 @@ export const apiClient = {
   },
 
   // === ATTACK ENDPOINTS ===
-  async getAttackTarget(userId) {
-    const response = await fetch(`/api/user/${userId}/attack/target`);
+  async getAttackTarget(userId, mode = 'default') {
+    const response = await fetch(`/api/user/${userId}/attack/target?mode=${encodeURIComponent(mode)}`);
     if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to find target'); }
     return response.json();
   },

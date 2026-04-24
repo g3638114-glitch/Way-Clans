@@ -5,7 +5,8 @@ const router = express.Router();
 
 router.get('/:userId/attack/target', async (req, res) => {
   try {
-    const result = await getRandomTarget(req.params.userId);
+    const mode = req.query.mode === 'best' ? 'best' : 'default';
+    const result = await getRandomTarget(req.params.userId, mode);
     res.json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });

@@ -188,6 +188,30 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.btn-reward {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  background: linear-gradient(135deg, #33b864 0%, #1e8a47 100%);
+  color: #fff;
+}
+
+.btn-reward:focus,
+.btn-reward:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.btn-reward:active {
+  transform: scale(0.95);
+}
+
 .btn-secondary:active {
   transform: scale(0.95);
 }
@@ -357,7 +381,7 @@
 .tab-btn.active {
   background: linear-gradient(135deg, #4c6fa6 0%, #2a3f57 100%);
   border-color: #d4af37;
-  box-shadow: 0 4px 12px rgba(76, 111, 166, 0.4), 0 0 15px rgba(212, 175, 55, 0.2);
+  box-shadow: none;
 }
 
 .tab-btn:hover:not(.active) {

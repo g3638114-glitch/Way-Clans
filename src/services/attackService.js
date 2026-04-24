@@ -2,8 +2,19 @@ import { supabase } from '../bot.js';
 import { withTransaction } from '../database/pg.js';
 import { computeLootFromSurvivors, simulateBattle } from '../domain/battleMath.js';
 
-export async function getRandomTarget(userId) {
+export async function getRandomTarget(userId, mode = 'default') {
   const { data: currentUser } = await supabase.from('users').select('id').eq('telegram_id', userId).single();
+
+  const { data: attackerTroops } = await supabase
+    .from('user_troops')
+    .select('level, count')
+    .eq('user_id', currentUser.id)
+    .eq('troop_type', 'attacker')
+    .gt('count', 0);
+
+  if (!attackerTroops || attackerTroops.length === 0) {
+    throw new Error('У вас нет атакующих воинов');
+  }
   
   const now = new Date().toISOString();
   
@@ -18,14 +29,34 @@ export async function getRandomTarget(userId) {
     throw new Error('Нет доступных целей для атаки');
   }
 
-  const target = targets[Math.floor(Math.random() * targets.length)];
-
-  const { data: defenders } = await supabase
+  const targetIds = targets.map((target) => target.id);
+  const { data: allDefenders } = await supabase
     .from('user_troops')
-    .select('level, count')
-    .eq('user_id', target.id)
+    .select('user_id, level, count')
+    .in('user_id', targetIds)
     .eq('troop_type', 'defender')
     .gt('count', 0);
+
+  const defendersByUserId = new Map();
+  for (const defender of allDefenders || []) {
+    const defenders = defendersByUserId.get(defender.user_id) || [];
+    defenders.push({ level: defender.level, count: defender.count });
+    defendersByUserId.set(defender.user_id, defenders);
+  }
+
+  const scoredTargets = targets.map((target) => {
+    const defenders = defendersByUserId.get(target.id) || [];
+    return {
+      target,
+      defenders,
+      score: calculateTargetScore(attackerTroops, defenders, target),
+    };
+  });
+
+  const selected = pickTargetForMode(scoredTargets, mode);
+  const target = selected.target;
+  const defenders = selected.defenders;
+
 
   return {
     targetId: target.id,
@@ -37,8 +68,68 @@ export async function getRandomTarget(userId) {
       stone: target.stone,
       meat: target.meat
     },
-    defenders: defenders || []
+    defenders,
+    searchMode: mode,
   };
+}
+
+function calculateTargetScore(attackerTroops, defenders, target) {
+  const battle = simulateBattle(attackerTroops, defenders);
+  const availableResources = {
+    gold: Number(target.gold || 0),
+    wood: Number(target.wood || 0),
+    stone: Number(target.stone || 0),
+    meat: Number(target.meat || 0),
+  };
+
+  const lootPotential = battle.defendersRemaining === 0
+    ? computeLootFromSurvivors(battle.attackersByLevel)
+    : { gold: 0, wood: 0, stone: 0, meat: 0 };
+
+  const actualLootValue = Math.min(lootPotential.gold, availableResources.gold)
+    + Math.min(lootPotential.wood, availableResources.wood)
+    + Math.min(lootPotential.stone, availableResources.stone)
+    + Math.min(lootPotential.meat, availableResources.meat);
+
+  const attackerCount = Math.max(1, Number(battle.attackerCount || 0));
+  const lossesPenalty = (Number(battle.attackerKills || 0) / attackerCount) * 4000;
+  const defenderPenalty = Number(battle.defendersRemaining || 0) * 40;
+  const failedAttackPenalty = battle.defendersRemaining === 0 ? 0 : 6000;
+
+  return actualLootValue - lossesPenalty - defenderPenalty - failedAttackPenalty;
+}
+
+function pickTargetForMode(scoredTargets, mode) {
+  const sortedBestFirst = [...scoredTargets].sort((left, right) => right.score - left.score);
+  if (sortedBestFirst.length === 1) {
+    return sortedBestFirst[0];
+  }
+
+  if (mode === 'best') {
+    const topPoolSize = Math.max(1, Math.ceil(sortedBestFirst.length * 0.3));
+    return pickWeightedRandom(sortedBestFirst.slice(0, topPoolSize), (item) => item.score);
+  }
+
+  const sortedWorstFirst = [...sortedBestFirst].reverse();
+  const weakPoolSize = Math.max(1, Math.ceil(sortedWorstFirst.length * 0.7));
+  return pickWeightedRandom(sortedWorstFirst.slice(0, weakPoolSize), (item) => -item.score);
+}
+
+function pickWeightedRandom(items, scoreGetter) {
+  const rawScores = items.map((item) => Number(scoreGetter(item) || 0));
+  const minScore = Math.min(...rawScores);
+  const weights = rawScores.map((score) => (score - minScore) + 1);
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let threshold = Math.random() * totalWeight;
+
+  for (let index = 0; index < items.length; index += 1) {
+    threshold -= weights[index];
+    if (threshold <= 0) {
+      return items[index];
+    }
+  }
+
+  return items[items.length - 1];
 }
 
 export async function performAttack(userId, targetId) {

@@ -100,7 +100,7 @@
 }
 
 .tab-btn.active {
-  animation: tab-highlight 0.4s ease;
+  animation: none;
 }
 
 /* Production Bar Shimmer Animation */

@@ -26,7 +26,7 @@
 .barracks-tab-btn.active {
   background: linear-gradient(135deg, #4f73b8 0%, #2b3d66 100%);
   border-color: #d4af37;
-  box-shadow: 0 10px 20px rgba(60, 96, 170, 0.24), 0 0 18px rgba(212, 175, 55, 0.14);
+  box-shadow: none;
 }
 
 .barracks-container {

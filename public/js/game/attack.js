@@ -2,13 +2,14 @@ import { appState, withOperationLock } from '../utils/state.js';
 import { apiClient } from '../api/client.js';
 import { formatNumber } from '../utils/formatters.js';
 import { getResourceIconHtml } from '../utils/resourceIcons.js';
+import { getAdsgramBlockId, showRewardedAd } from '../services/adsgram.js';
 
 let currentTargetId = null;
 
 export async function openAttackMenu() {
   await withOperationLock('findTarget', async () => {
     try {
-      const data = await apiClient.getAttackTarget(appState.userId);
+      const data = await apiClient.getAttackTarget(appState.userId, 'default');
       currentTargetId = data.targetId;
       renderAttackTarget(data);
       document.getElementById('attack-modal').classList.add('active');
@@ -26,7 +27,25 @@ export function closeAttackModal() {
 async function searchNewTarget() {
   await withOperationLock('findTarget', async () => {
     try {
-      const data = await apiClient.getAttackTarget(appState.userId);
+      const data = await apiClient.getAttackTarget(appState.userId, 'default');
+      currentTargetId = data.targetId;
+      renderAttackTarget(data);
+    } catch (error) {
+      tg.showAlert(error.message);
+    }
+  });
+}
+
+async function searchBestTarget() {
+  await withOperationLock('findBestTarget', async () => {
+    try {
+      const adShown = await showRewardedAd(getAdsgramBlockId('building'));
+      if (!adShown) {
+        tg.showAlert('Реклама не была просмотрена полностью. Лучшая цель не найдена.');
+        return;
+      }
+
+      const data = await apiClient.getAttackTarget(appState.userId, 'best');
       currentTargetId = data.targetId;
       renderAttackTarget(data);
     } catch (error) {
@@ -55,6 +74,9 @@ async function confirmAttack() {
 function renderAttackTarget(data) {
   const body = document.getElementById('attack-modal-body');
   const { target, defenders } = data;
+  const searchHint = data.searchMode === 'best'
+    ? 'Подобрана более выгодная цель после просмотра рекламы.'
+    : 'Обычный поиск чаще показывает менее выгодные цели.';
   
   let defendersHtml = '';
   if (defenders.length === 0) {
@@ -71,6 +93,7 @@ function renderAttackTarget(data) {
   body.innerHTML = `
     <div class="target-card">
       <div class="target-name">${target.first_name} (@${target.username || '???'})</div>
+      <div class="attack-empty-row" style="margin-bottom: 12px;">${searchHint}</div>
       <div class="target-resources">
         <div class="troop-stat-item">
           <span class="troop-stat-label">Jamcoin</span>
@@ -98,14 +121,17 @@ function renderAttackTarget(data) {
 
   document.getElementById('confirm-attack-btn').onclick = confirmAttack;
   document.getElementById('search-target-btn').onclick = searchNewTarget;
+  document.getElementById('best-target-btn').onclick = searchBestTarget;
   document.getElementById('confirm-attack-btn').textContent = 'Атаковать';
   document.getElementById('search-target-btn').textContent = 'Искать';
+  document.getElementById('best-target-btn').textContent = 'Найти лучшую цель [реклама]';
 }
 
 function renderAttackResult(result) {
   const body = document.getElementById('attack-modal-body');
   const confirmBtn = document.getElementById('confirm-attack-btn');
   const searchBtn = document.getElementById('search-target-btn');
+  const bestBtn = document.getElementById('best-target-btn');
 
   body.innerHTML = `
     <div class="target-card attack-result-card ${result.won ? 'attack-result-win' : 'attack-result-lose'}">
@@ -137,6 +163,8 @@ function renderAttackResult(result) {
   confirmBtn.onclick = searchNewTarget;
   searchBtn.textContent = 'Закрыть';
   searchBtn.onclick = closeAttackModal;
+  bestBtn.textContent = 'Найти лучшую цель [реклама]';
+  bestBtn.onclick = searchBestTarget;
 }
 
 function renderLossesBlock(result) {

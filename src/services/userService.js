@@ -16,7 +16,7 @@ const INITIAL_PRODUCTION_RATES = {
   mine: 100,
   quarry: 80,
   lumber_mill: 90,
-  farm: 70,
+  farm: 31,
 };
 
 export async function createInitialBuildings(userRecord) {

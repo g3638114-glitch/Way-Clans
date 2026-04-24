@@ -25,7 +25,7 @@ export const WAREHOUSE_UPGRADE_COSTS = {
 };
 
 export const PRODUCTION_PER_LEVEL = {
-  mine: [625, 1250, 2500, 5000, 10000, 20000], quarry: [312, 625, 1250, 2500, 5000, 10000], lumber_mill: [312, 625, 1250, 2500, 5000, 10000], farm: [10, 20, 40, 80, 160, 320],
+  mine: [625, 1250, 2500, 5000, 10000, 20000], quarry: [312, 625, 1250, 2500, 5000, 10000], lumber_mill: [312, 625, 1250, 2500, 5000, 10000], farm: [31, 62, 125, 250, 500, 1000],
 };
 
 export const CAPACITY_PER_LEVEL = {

@@ -376,6 +376,12 @@
   font-weight: 600;
   transition: all 0.3s ease;
   position: relative;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  background-clip: padding-box;
 }
 
 .tab-btn.active {
@@ -391,6 +397,23 @@
 
 .tab-btn:active {
   transform: scale(0.95);
+}
+
+.tab-btn:focus,
+.tab-btn:focus-visible,
+.tab-btn:focus-within,
+.tab-btn:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: rgba(76, 111, 166, 0.4) !important;
+}
+
+.tab-btn.active:focus,
+.tab-btn.active:focus-visible,
+.tab-btn.active:focus-within,
+.tab-btn.active:active {
+  border-color: #d4af37 !important;
+  box-shadow: none !important;
 }
 
 /* Quest Buttons */

@@ -27,7 +27,7 @@ async function createInitialBuildings(userRecord) {
       mine: 100,
       quarry: 80,
       lumber_mill: 90,
-      farm: 70,
+      farm: 31,
     };
 
     const buildingsToCreate = buildingTypes.map((type) => ({

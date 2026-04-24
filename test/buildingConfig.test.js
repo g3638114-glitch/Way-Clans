@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 
 import {
   CAPACITY_PER_LEVEL as serverCapacityPerLevel,
+  PRODUCTION_PER_LEVEL as serverProductionPerLevel,
   TREASURY_CAPACITY_PER_LEVEL as serverTreasuryCapacityPerLevel,
   TREASURY_UPGRADE_COSTS as serverTreasuryUpgradeCosts,
 } from '../src/config/buildings.js';
 import {
   CAPACITY_PER_LEVEL as clientCapacityPerLevel,
+  PRODUCTION_PER_LEVEL as clientProductionPerLevel,
   TREASURY_CAPACITY_PER_LEVEL as clientTreasuryCapacityPerLevel,
   TREASURY_UPGRADE_COSTS as clientTreasuryUpgradeCosts,
 } from '../public/js/game/config.js';
@@ -17,6 +19,11 @@ test('farm and mine capacities match new limits on client and server', () => {
   assert.deepEqual(serverCapacityPerLevel.mine, [120000, 120000, 120000, 120000, 120000, 120000]);
   assert.deepEqual(clientCapacityPerLevel.farm, serverCapacityPerLevel.farm);
   assert.deepEqual(clientCapacityPerLevel.mine, serverCapacityPerLevel.mine);
+});
+
+test('farm production matches requested values on client and server', () => {
+  assert.deepEqual(serverProductionPerLevel.farm, [31, 62, 125, 250, 500, 1000]);
+  assert.deepEqual(clientProductionPerLevel.farm, serverProductionPerLevel.farm);
 });
 
 test('treasury supports levels 7 and 8 on client and server', () => {

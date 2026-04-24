@@ -21,12 +21,35 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  background-clip: padding-box;
 }
 
 .barracks-tab-btn.active {
   background: linear-gradient(135deg, #4f73b8 0%, #2b3d66 100%);
   border-color: #d4af37;
   box-shadow: none;
+}
+
+.barracks-tab-btn:focus,
+.barracks-tab-btn:focus-visible,
+.barracks-tab-btn:focus-within,
+.barracks-tab-btn:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: rgba(95, 120, 190, 0.18) !important;
+}
+
+.barracks-tab-btn.active:focus,
+.barracks-tab-btn.active:focus-visible,
+.barracks-tab-btn.active:focus-within,
+.barracks-tab-btn.active:active {
+  border-color: #d4af37 !important;
+  box-shadow: none !important;
 }
 
 .barracks-container {

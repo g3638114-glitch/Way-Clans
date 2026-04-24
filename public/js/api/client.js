@@ -24,7 +24,7 @@ export const apiClient = {
   },
 
   async getReferrals(userId) {
-    const response = await fetch(`/api/user/${userId}/referrals`);
+    const response = await fetch(`/api/user/${userId}/referrals`, { headers: buildAuthHeaders() });
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new Error(error.error || 'Failed to load referrals');
@@ -33,7 +33,7 @@ export const apiClient = {
   },
 
   async getBuildings(userId) {
-    const response = await fetch(`/api/user/${userId}/buildings`);
+    const response = await fetch(`/api/user/${userId}/buildings`, { headers: buildAuthHeaders() });
     if (!response.ok) throw new Error('Failed to load buildings');
     return response.json();
   },
@@ -66,6 +66,16 @@ export const apiClient = {
     return response.json();
   },
 
+  async finalizeSpeedUpBuilding(userId, buildingId, sessionId) {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/speed-up/finalize`, {
+      method: 'POST',
+      headers: buildAuthHeaders(true),
+      body: JSON.stringify({ sessionId }),
+    });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to finalize building speed-up'); }
+    return response.json();
+  },
+
   async startMineWorkers(userId, buildingId, mode) {
     const response = await fetch(`/api/user/${userId}/building/${buildingId}/mine/start`, {
       method: 'POST',
@@ -83,6 +93,16 @@ export const apiClient = {
       body: JSON.stringify({}),
     });
     if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to finish mine work'); }
+    return response.json();
+  },
+
+  async finalizeMineWorkNow(userId, buildingId, sessionId) {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/mine/finish-now/finalize`, {
+      method: 'POST',
+      headers: buildAuthHeaders(true),
+      body: JSON.stringify({ sessionId }),
+    });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to finalize mine work'); }
     return response.json();
   },
 
@@ -111,7 +131,7 @@ export const apiClient = {
   },
 
   async getQuests(userId) {
-    const response = await fetch(`/api/user/${userId}/quests`);
+    const response = await fetch(`/api/user/${userId}/quests`, { headers: buildAuthHeaders() });
     if (!response.ok) throw new Error('Failed to load quests');
     return response.json();
   },
@@ -139,7 +159,7 @@ export const apiClient = {
   },
 
   async getTreasury(userId) {
-    const response = await fetch(`/api/user/${userId}/treasury`);
+    const response = await fetch(`/api/user/${userId}/treasury`, { headers: buildAuthHeaders() });
     if (!response.ok) throw new Error('Failed to load treasury data');
     return response.json();
   },
@@ -151,7 +171,7 @@ export const apiClient = {
   },
 
   async getWarehouse(userId) {
-    const response = await fetch(`/api/user/${userId}/warehouse`);
+    const response = await fetch(`/api/user/${userId}/warehouse`, { headers: buildAuthHeaders() });
     if (!response.ok) throw new Error('Failed to load warehouse data');
     return response.json();
   },
@@ -169,13 +189,13 @@ export const apiClient = {
   },
 
   async getMarketListings(userId, resourceType) {
-    const response = await fetch(`/api/user/${userId}/market/listings/${resourceType}`);
+    const response = await fetch(`/api/user/${userId}/market/listings/${resourceType}`, { headers: buildAuthHeaders() });
     if (!response.ok) throw new Error('Failed to load market listings');
     return response.json();
   },
 
   async getMyMarketListings(userId) {
-    const response = await fetch(`/api/user/${userId}/market/my-listings`);
+    const response = await fetch(`/api/user/${userId}/market/my-listings`, { headers: buildAuthHeaders() });
     if (!response.ok) throw new Error('Failed to load your listings');
     return response.json();
   },
@@ -206,7 +226,7 @@ export const apiClient = {
 
   // === TROOP ENDPOINTS ===
   async getTroops(userId) {
-    const response = await fetch(`/api/user/${userId}/troops`);
+    const response = await fetch(`/api/user/${userId}/troops`, { headers: buildAuthHeaders() });
     if (!response.ok) throw new Error('Failed to load troops');
     return response.json();
   },
@@ -233,7 +253,7 @@ export const apiClient = {
 
   // === ATTACK ENDPOINTS ===
   async getAttackTarget(userId, mode = 'default') {
-    const response = await fetch(`/api/user/${userId}/attack/target?mode=${encodeURIComponent(mode)}`);
+    const response = await fetch(`/api/user/${userId}/attack/target?mode=${encodeURIComponent(mode)}`, { headers: buildAuthHeaders() });
     if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to find target'); }
     return response.json();
   },

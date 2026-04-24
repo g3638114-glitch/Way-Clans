@@ -4,7 +4,7 @@ import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 
 const router = express.Router();
 
-router.get('/:userId/troops', async (req, res) => {
+router.get('/:userId/troops', requireTelegramAuth, async (req, res) => {
   try {
     const result = await getUserTroops(req.params.userId);
     res.json(result);

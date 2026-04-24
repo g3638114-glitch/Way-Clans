@@ -4,7 +4,7 @@ import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 
 const router = express.Router();
 
-router.get('/:userId/attack/target', async (req, res) => {
+router.get('/:userId/attack/target', requireTelegramAuth, async (req, res) => {
   try {
     const mode = req.query.mode === 'best' ? 'best' : 'default';
     const result = await getRandomTarget(req.params.userId, mode);

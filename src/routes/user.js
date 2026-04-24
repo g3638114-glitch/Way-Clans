@@ -125,7 +125,7 @@ router.post('/auth/verify', async (req, res) => {
 
 // GET/POST /api/user/:userId
 // Supports both GET (legacy) and POST (with userInfo from MiniApp)
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const startParam = req.query.startParam;
@@ -194,7 +194,7 @@ router.post('/:userId/fetch-photo', requireTelegramAuth, async (req, res) => {
   }
 });
 
-router.get('/:userId/referrals', async (req, res) => {
+router.get('/:userId/referrals', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const summary = await getReferralSummary(userId);

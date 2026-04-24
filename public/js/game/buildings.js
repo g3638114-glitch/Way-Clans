@@ -105,16 +105,32 @@ async function collectResourcesWithBoost(buildingId) {
   throw new Error('Не удалось подтвердить рекламную награду');
 }
 
+async function finalizeAdAction(finalizer) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      return await finalizer();
+    } catch (error) {
+      if (!String(error.message || '').includes('ещё не подтверждена') || attempt === 4) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    }
+  }
+
+  throw new Error('Не удалось подтвердить рекламную награду');
+}
+
 export async function speedUpBuildingProduction(buildingId) {
   await withOperationLock(`speedUpBuilding_${buildingId}`, async () => {
     try {
+      const session = await apiClient.speedUpBuilding(appState.userId, buildingId);
       const adShown = await showRewardedAd(getAdsgramBlockId('building'));
       if (!adShown) {
         window.tg.showAlert('Реклама не была просмотрена полностью. Ускорение x2 не выполнено.');
         return;
       }
 
-      const result = await apiClient.speedUpBuilding(appState.userId, buildingId);
+      const result = await finalizeAdAction(() => apiClient.finalizeSpeedUpBuilding(appState.userId, buildingId, session.sessionId));
       updateBuildingState(result.building);
       renderBuildings();
       window.tg.showAlert('✅ Производство ускорено в 2 раза. Оставшееся время сокращено вдвое.');
@@ -152,13 +168,14 @@ export async function startMineWorkers(buildingId, mode) {
 export async function finishMineWorkNow(buildingId) {
   await withOperationLock(`finishMineWorkNow_${buildingId}`, async () => {
     try {
+      const session = await apiClient.finishMineWorkNow(appState.userId, buildingId);
       const adShown = await showRewardedAd(getAdsgramBlockId('building'));
       if (!adShown) {
         window.tg.showAlert('Реклама не была просмотрена полностью. Мгновенный сбор не выполнен.');
         return;
       }
 
-      const result = await apiClient.finishMineWorkNow(appState.userId, buildingId, 2);
+      const result = await finalizeAdAction(() => apiClient.finalizeMineWorkNow(appState.userId, buildingId, session.sessionId));
       updateBuildingState(result.building);
       renderBuildings();
       window.tg.showAlert('✅ Работа шахты завершена мгновенно с x2. Теперь можно собрать Jamcoin.');

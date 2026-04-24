@@ -209,8 +209,35 @@ const migrations = [
           ALTER TABLE users ADD COLUMN IF NOT EXISTS last_energy_reset DATE DEFAULT CURRENT_DATE;
           ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_energy_non_negative;
           ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_energy_capacity_positive;
-          ALTER TABLE users ADD CONSTRAINT chk_users_energy_non_negative CHECK (energy >= 0);
-          ALTER TABLE users ADD CONSTRAINT chk_users_energy_capacity_positive CHECK (energy_capacity > 0);`,
+           ALTER TABLE users ADD CONSTRAINT chk_users_energy_non_negative CHECK (energy >= 0);
+           ALTER TABLE users ADD CONSTRAINT chk_users_energy_capacity_positive CHECK (energy_capacity > 0);`,
+  },
+  {
+    name: 'Add extra economy guardrails',
+    sql: `ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_referral_count_non_negative;
+          ALTER TABLE users ADD CONSTRAINT chk_users_referral_count_non_negative CHECK (referral_count >= 0);
+          ALTER TABLE user_troops DROP CONSTRAINT IF EXISTS chk_user_troops_level_positive;
+          ALTER TABLE user_troops DROP CONSTRAINT IF EXISTS chk_user_troops_type_valid;
+          ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_building_number_positive;
+          ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_type_valid;
+          ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_work_mode_valid;
+          ALTER TABLE ad_reward_sessions DROP CONSTRAINT IF EXISTS chk_ad_reward_sessions_collected_amount_non_negative;
+          ALTER TABLE ad_reward_sessions DROP CONSTRAINT IF EXISTS chk_ad_reward_sessions_remaining_amount_non_negative;
+          ALTER TABLE ad_reward_sessions DROP CONSTRAINT IF EXISTS chk_ad_reward_sessions_type_not_blank;
+          ALTER TABLE market_sales DROP CONSTRAINT IF EXISTS chk_market_sales_quantity_positive;
+          ALTER TABLE market_sales DROP CONSTRAINT IF EXISTS chk_market_sales_price_positive;
+          ALTER TABLE market_sales DROP CONSTRAINT IF EXISTS chk_market_sales_total_price_non_negative;
+          ALTER TABLE user_troops ADD CONSTRAINT chk_user_troops_level_positive CHECK (level >= 1);
+          ALTER TABLE user_troops ADD CONSTRAINT chk_user_troops_type_valid CHECK (troop_type IN ('attacker', 'defender'));
+          ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_building_number_positive CHECK (building_number >= 1);
+          ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_type_valid CHECK (building_type IN ('mine', 'quarry', 'lumber_mill', 'farm'));
+          ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_work_mode_valid CHECK (work_mode IS NULL OR work_mode IN ('meat_100', 'ad_300'));
+          ALTER TABLE ad_reward_sessions ADD CONSTRAINT chk_ad_reward_sessions_collected_amount_non_negative CHECK (collected_amount >= 0);
+          ALTER TABLE ad_reward_sessions ADD CONSTRAINT chk_ad_reward_sessions_remaining_amount_non_negative CHECK (remaining_amount >= 0);
+          ALTER TABLE ad_reward_sessions ADD CONSTRAINT chk_ad_reward_sessions_type_not_blank CHECK (length(trim(session_type)) > 0);
+          ALTER TABLE market_sales ADD CONSTRAINT chk_market_sales_quantity_positive CHECK (quantity > 0);
+          ALTER TABLE market_sales ADD CONSTRAINT chk_market_sales_price_positive CHECK (price_per_unit > 0);
+          ALTER TABLE market_sales ADD CONSTRAINT chk_market_sales_total_price_non_negative CHECK (total_price >= 0);`,
   },
 ];
 

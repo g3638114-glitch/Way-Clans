@@ -27,7 +27,7 @@ router.post('/:userId/market/create', requireTelegramAuth, async (req, res) => {
 });
 
 // GET /api/user/:userId/market/listings/:resourceType - Get listings for a resource
-router.get('/:userId/market/listings/:resourceType', async (req, res) => {
+router.get('/:userId/market/listings/:resourceType', requireTelegramAuth, async (req, res) => {
   try {
     const { resourceType } = req.params;
     const listings = await getListings(resourceType);
@@ -39,7 +39,7 @@ router.get('/:userId/market/listings/:resourceType', async (req, res) => {
 });
 
 // GET /api/user/:userId/market/my-listings - Get current user's listings
-router.get('/:userId/market/my-listings', async (req, res) => {
+router.get('/:userId/market/my-listings', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const result = await getMyListings(userId);

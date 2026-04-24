@@ -1,7 +1,42 @@
 import { withTransaction } from '../database/pg.js';
 import { getCapacity, getProductionRate, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
+import { applyFinishMineNow, applySpeedUpToBuilding, validateMineFinishNowEligibility, validateSpeedUpEligibility } from './buildingService.js';
 
 const BUILDING_SESSION_TYPE = 'building_collect';
+const BUILDING_SPEED_UP_SESSION_TYPE = 'building_speed_up';
+const MINE_FINISH_NOW_SESSION_TYPE = 'mine_finish_now';
+const BUILDING_BLOCK_SESSION_TYPES = [BUILDING_SESSION_TYPE, BUILDING_SPEED_UP_SESSION_TYPE, MINE_FINISH_NOW_SESSION_TYPE];
+
+async function expireOpenSessions(client, userId, sessionTypes) {
+  await client.query(
+    `UPDATE ad_reward_sessions
+     SET expires_at = NOW()
+     WHERE user_id = $1 AND session_type = ANY($2::text[]) AND claimed_at IS NULL`,
+    [userId, sessionTypes]
+  );
+}
+
+async function getLockedSession(client, telegramId, sessionId, sessionType) {
+  const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
+  if (userResult.rows.length === 0) throw new Error('User not found');
+  const user = userResult.rows[0];
+
+  const sessionResult = await client.query(
+    `SELECT * FROM ad_reward_sessions
+     WHERE id = $1 AND user_id = $2 AND session_type = $3
+     FOR UPDATE`,
+    [sessionId, user.id, sessionType]
+  );
+  if (sessionResult.rows.length === 0) throw new Error('Reward session not found');
+
+  const session = sessionResult.rows[0];
+  if (session.claimed_at) throw new Error('Reward session already claimed');
+  if (!session.ad_confirmed_at) throw new Error('Рекламная награда ещё не подтверждена');
+  if (new Date(session.expires_at) <= new Date()) throw new Error('Reward session expired');
+
+  return { user, session };
+}
+
 export async function createBuildingCollectSession(telegramId, buildingId) {
   return withTransaction(async (client) => {
     const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
@@ -19,12 +54,7 @@ export async function createBuildingCollectSession(telegramId, buildingId) {
       throw new Error('Building must be activated first');
     }
 
-    await client.query(
-      `UPDATE ad_reward_sessions
-       SET expires_at = NOW()
-       WHERE user_id = $1 AND session_type = $2 AND claimed_at IS NULL`,
-      [user.id, BUILDING_SESSION_TYPE]
-    );
+    await expireOpenSessions(client, user.id, BUILDING_BLOCK_SESSION_TYPES);
 
     const productionRate = getProductionRate(building.building_type, building.level || 1);
     const capacity = getCapacity(building.building_type, building.level || 1);
@@ -73,28 +103,7 @@ export async function createBuildingCollectSession(telegramId, buildingId) {
 
 export async function finalizeBuildingCollectSession(telegramId, sessionId) {
   return withTransaction(async (client) => {
-    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
-    if (userResult.rows.length === 0) throw new Error('User not found');
-    const user = userResult.rows[0];
-
-    const sessionResult = await client.query(
-      `SELECT * FROM ad_reward_sessions
-       WHERE id = $1 AND user_id = $2 AND session_type = $3
-       FOR UPDATE`,
-      [sessionId, user.id, BUILDING_SESSION_TYPE]
-    );
-    if (sessionResult.rows.length === 0) throw new Error('Reward session not found');
-    const session = sessionResult.rows[0];
-
-    if (session.claimed_at) {
-      throw new Error('Reward session already claimed');
-    }
-    if (!session.ad_confirmed_at) {
-      throw new Error('Рекламная награда ещё не подтверждена');
-    }
-    if (new Date(session.expires_at) <= new Date()) {
-      throw new Error('Reward session expired');
-    }
+    const { user, session } = await getLockedSession(client, telegramId, sessionId, BUILDING_SESSION_TYPE);
 
     const buildingResult = await client.query(
       'SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE',
@@ -145,11 +154,11 @@ export async function confirmBuildingCollectReward(telegramId) {
 
     const sessionResult = await client.query(
       `SELECT id FROM ad_reward_sessions
-       WHERE user_id = $1 AND session_type = $2 AND claimed_at IS NULL AND ad_confirmed_at IS NULL AND expires_at > NOW()
+       WHERE user_id = $1 AND session_type = ANY($2::text[]) AND claimed_at IS NULL AND ad_confirmed_at IS NULL AND expires_at > NOW()
        ORDER BY created_at DESC
        LIMIT 1
        FOR UPDATE`,
-      [user.id, BUILDING_SESSION_TYPE]
+      [user.id, BUILDING_BLOCK_SESSION_TYPES]
     );
 
     if (sessionResult.rows.length === 0) return { ok: true };
@@ -160,6 +169,64 @@ export async function confirmBuildingCollectReward(telegramId) {
 
 export async function confirmMiningAdReward(telegramId) {
   return { ok: true };
+}
+
+export async function createSpeedUpSession(telegramId, buildingId) {
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
+
+    await validateSpeedUpEligibility(client, user.id, buildingId);
+    await expireOpenSessions(client, user.id, BUILDING_BLOCK_SESSION_TYPES);
+
+    const sessionResult = await client.query(
+      `INSERT INTO ad_reward_sessions (user_id, session_type, building_id, expires_at)
+       VALUES ($1, $2, $3, NOW() + INTERVAL '10 minutes')
+       RETURNING *`,
+      [user.id, BUILDING_SPEED_UP_SESSION_TYPE, buildingId]
+    );
+
+    return { success: true, sessionId: sessionResult.rows[0].id };
+  });
+}
+
+export async function finalizeSpeedUpSession(telegramId, sessionId) {
+  return withTransaction(async (client) => {
+    const { user, session } = await getLockedSession(client, telegramId, sessionId, BUILDING_SPEED_UP_SESSION_TYPE);
+    const result = await applySpeedUpToBuilding(client, user.id, session.building_id, 2);
+    await client.query('UPDATE ad_reward_sessions SET claimed_at = NOW() WHERE id = $1', [sessionId]);
+    return result;
+  });
+}
+
+export async function createMineFinishNowSession(telegramId, buildingId) {
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
+
+    await validateMineFinishNowEligibility(client, user.id, buildingId);
+    await expireOpenSessions(client, user.id, BUILDING_BLOCK_SESSION_TYPES);
+
+    const sessionResult = await client.query(
+      `INSERT INTO ad_reward_sessions (user_id, session_type, building_id, expires_at)
+       VALUES ($1, $2, $3, NOW() + INTERVAL '10 minutes')
+       RETURNING *`,
+      [user.id, MINE_FINISH_NOW_SESSION_TYPE, buildingId]
+    );
+
+    return { success: true, sessionId: sessionResult.rows[0].id };
+  });
+}
+
+export async function finalizeMineFinishNowSession(telegramId, sessionId) {
+  return withTransaction(async (client) => {
+    const { user, session } = await getLockedSession(client, telegramId, sessionId, MINE_FINISH_NOW_SESSION_TYPE);
+    const result = await applyFinishMineNow(client, user.id, session.building_id, 2);
+    await client.query('UPDATE ad_reward_sessions SET claimed_at = NOW() WHERE id = $1', [sessionId]);
+    return result;
+  });
 }
 
 export async function getMiningAdStatus(telegramId) {

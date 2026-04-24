@@ -45,6 +45,25 @@ CREATE TABLE IF NOT EXISTS completed_quests (
   UNIQUE(user_id, quest_id)
 );
 
+ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_gold_non_negative;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_wood_non_negative;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_stone_non_negative;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_meat_non_negative;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_jabcoins_non_negative;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_users_referral_count_non_negative;
+ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_building_number_positive;
+ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_level_positive;
+ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_collected_amount_non_negative;
+ALTER TABLE users ADD CONSTRAINT chk_users_gold_non_negative CHECK (gold >= 0);
+ALTER TABLE users ADD CONSTRAINT chk_users_wood_non_negative CHECK (wood >= 0);
+ALTER TABLE users ADD CONSTRAINT chk_users_stone_non_negative CHECK (stone >= 0);
+ALTER TABLE users ADD CONSTRAINT chk_users_meat_non_negative CHECK (meat >= 0);
+ALTER TABLE users ADD CONSTRAINT chk_users_jabcoins_non_negative CHECK (jabcoins >= 0);
+ALTER TABLE users ADD CONSTRAINT chk_users_referral_count_non_negative CHECK (referral_count >= 0);
+ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_building_number_positive CHECK (building_number >= 1);
+ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_level_positive CHECK (level >= 1);
+ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_collected_amount_non_negative CHECK (collected_amount >= 0);
+
 -- Create index for faster queries
 CREATE INDEX IF NOT EXISTS idx_completed_quests_user_id ON completed_quests(user_id);
 

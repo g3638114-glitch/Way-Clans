@@ -145,49 +145,7 @@ export async function speedUpBuildingProduction(userId, buildingId, speedMultipl
   return withTransaction(async (client) => {
     const userResult = await client.query('SELECT id FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
     if (userResult.rows.length === 0) throw new Error('User not found');
-
-    const buildingResult = await client.query(
-      `SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE`,
-      [buildingId, userResult.rows[0].id]
-    );
-    if (buildingResult.rows.length === 0) throw new Error('Building not found');
-
-    const building = buildingResult.rows[0];
-    if (building.building_type === 'mine') {
-      throw new Error('Ускорение x2 доступно только для фермы, лесопилки и каменоломни');
-    }
-    if (!building.last_activated) {
-      throw new Error('Сначала активируйте здание');
-    }
-
-    const level = building.level || 1;
-    const productionRate = getProductionRate(building.building_type, level);
-    const capacity = getCapacity(building.building_type, level);
-    const lastActivated = new Date(building.last_activated);
-    const elapsedHours = Math.max(0, (Date.now() - lastActivated.getTime()) / 3600000);
-    const currentAccumulated = Math.min(Number(building.collected_amount || 0) + elapsedHours * productionRate, capacity);
-    if (currentAccumulated >= capacity) {
-      throw new Error('Здание уже заполнено, ускорение не требуется');
-    }
-
-    const effectiveMultiplier = Math.max(1, Number(speedMultiplier || 1));
-    const extraProduced = (capacity - currentAccumulated) * ((effectiveMultiplier - 1) / effectiveMultiplier);
-    const nextCollectedAmount = Math.floor(Math.min(capacity, currentAccumulated + extraProduced));
-
-    const updatedBuildingResult = await client.query(
-      `UPDATE user_buildings
-       SET collected_amount = $1, last_activated = $2
-       WHERE id = $3
-       RETURNING *`,
-      [nextCollectedAmount, new Date().toISOString(), building.id]
-    );
-
-    return {
-      success: true,
-      building: updatedBuildingResult.rows[0],
-      acceleratedAmount: Math.max(0, nextCollectedAmount - Math.floor(currentAccumulated)),
-      currentAccumulated: Math.floor(currentAccumulated),
-    };
+    return applySpeedUpToBuilding(client, userResult.rows[0].id, buildingId, speedMultiplier);
   });
 }
 
@@ -325,22 +283,84 @@ export async function finishMineWorkNow(userId, buildingId, rewardMultiplier = 2
   return withTransaction(async (client) => {
     const userResult = await client.query('SELECT id FROM users WHERE telegram_id = $1 FOR UPDATE', [userId]);
     if (userResult.rows.length === 0) throw new Error('User not found');
-    const userIdDb = userResult.rows[0].id;
-
-    const buildingResult = await client.query('SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE', [buildingId, userIdDb]);
-    if (buildingResult.rows.length === 0) throw new Error('Building not found');
-
-    const building = buildingResult.rows[0];
-    if (building.building_type !== 'mine') {
-      throw new Error('Собрать сразу доступно только для шахты');
-    }
-    if (!isMineShiftActive(building)) {
-      throw new Error('В шахте нет активной смены рабочих');
-    }
-
-    const finalizedBuilding = await settleMineShiftImmediately(client, building, null, rewardMultiplier);
-    return { success: true, building: finalizedBuilding };
+    return applyFinishMineNow(client, userResult.rows[0].id, buildingId, rewardMultiplier);
   });
+}
+
+export async function applySpeedUpToBuilding(client, userIdDb, buildingId, speedMultiplier = 2) {
+  const { building, currentAccumulated, capacity } = await validateSpeedUpEligibility(client, userIdDb, buildingId);
+
+  const effectiveMultiplier = Math.max(1, Number(speedMultiplier || 1));
+  const extraProduced = (capacity - currentAccumulated) * ((effectiveMultiplier - 1) / effectiveMultiplier);
+  const nextCollectedAmount = Math.floor(Math.min(capacity, currentAccumulated + extraProduced));
+
+  const updatedBuildingResult = await client.query(
+    `UPDATE user_buildings
+     SET collected_amount = $1, last_activated = $2
+     WHERE id = $3
+     RETURNING *`,
+    [nextCollectedAmount, new Date().toISOString(), building.id]
+  );
+
+  return {
+    success: true,
+    building: updatedBuildingResult.rows[0],
+    acceleratedAmount: Math.max(0, nextCollectedAmount - Math.floor(currentAccumulated)),
+    currentAccumulated: Math.floor(currentAccumulated),
+  };
+}
+
+export async function validateSpeedUpEligibility(client, userIdDb, buildingId) {
+  const buildingResult = await client.query(
+    `SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE`,
+    [buildingId, userIdDb]
+  );
+  if (buildingResult.rows.length === 0) throw new Error('Building not found');
+
+  const building = buildingResult.rows[0];
+  if (building.building_type === 'mine') {
+    throw new Error('Ускорение x2 доступно только для фермы, лесопилки и каменоломни');
+  }
+  if (!building.last_activated) {
+    throw new Error('Сначала активируйте здание');
+  }
+
+  const level = building.level || 1;
+  const productionRate = getProductionRate(building.building_type, level);
+  const capacity = getCapacity(building.building_type, level);
+  const lastActivated = new Date(building.last_activated);
+  const elapsedHours = Math.max(0, (Date.now() - lastActivated.getTime()) / 3600000);
+  const currentAccumulated = Math.min(Number(building.collected_amount || 0) + elapsedHours * productionRate, capacity);
+  if (currentAccumulated >= capacity) {
+    throw new Error('Здание уже заполнено, ускорение не требуется');
+  }
+
+  return {
+    building,
+    currentAccumulated,
+    capacity,
+  };
+}
+
+export async function applyFinishMineNow(client, userIdDb, buildingId, rewardMultiplier = 2) {
+  const building = await validateMineFinishNowEligibility(client, userIdDb, buildingId);
+  const finalizedBuilding = await settleMineShiftImmediately(client, building, null, rewardMultiplier);
+  return { success: true, building: finalizedBuilding };
+}
+
+export async function validateMineFinishNowEligibility(client, userIdDb, buildingId) {
+  const buildingResult = await client.query('SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE', [buildingId, userIdDb]);
+  if (buildingResult.rows.length === 0) throw new Error('Building not found');
+
+  const building = buildingResult.rows[0];
+  if (building.building_type !== 'mine') {
+    throw new Error('Собрать сразу доступно только для шахты');
+  }
+  if (!isMineShiftActive(building)) {
+    throw new Error('В шахте нет активной смены рабочих');
+  }
+
+  return building;
 }
 
 export async function upgradeBuilding(userId, buildingId) {

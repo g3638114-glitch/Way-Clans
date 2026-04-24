@@ -10,12 +10,19 @@ import {
   speedUpBuildingProduction,
 } from '../services/buildingService.js';
 import { requireTelegramAuth } from '../middleware/telegramAuth.js';
-import { createBuildingCollectSession, finalizeBuildingCollectSession } from '../services/adService.js';
+import {
+  createBuildingCollectSession,
+  createMineFinishNowSession,
+  createSpeedUpSession,
+  finalizeBuildingCollectSession,
+  finalizeMineFinishNowSession,
+  finalizeSpeedUpSession,
+} from '../services/adService.js';
 
 const router = express.Router();
 
 // GET /api/user/:userId/buildings
-router.get('/:userId/buildings', async (req, res) => {
+router.get('/:userId/buildings', requireTelegramAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const buildings = await getUserBuildings(userId);
@@ -75,10 +82,22 @@ router.post('/:userId/building/:buildingId/collect-x2/finalize', requireTelegram
 router.post('/:userId/building/:buildingId/speed-up', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
-    const result = await speedUpBuildingProduction(userId, buildingId, 2);
+    const result = await createSpeedUpSession(userId, buildingId);
     res.json(result);
   } catch (error) {
     console.error('Error speeding up building production:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.post('/:userId/building/:buildingId/speed-up/finalize', requireTelegramAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { sessionId } = req.body || {};
+    const result = await finalizeSpeedUpSession(userId, sessionId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error finalizing building speed-up:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });
@@ -98,10 +117,22 @@ router.post('/:userId/building/:buildingId/mine/start', requireTelegramAuth, asy
 router.post('/:userId/building/:buildingId/mine/finish-now', requireTelegramAuth, async (req, res) => {
   try {
     const { userId, buildingId } = req.params;
-    const result = await finishMineWorkNow(userId, buildingId, 2);
+    const result = await createMineFinishNowSession(userId, buildingId);
     res.json(result);
   } catch (error) {
     console.error('Error finishing mine work now:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.post('/:userId/building/:buildingId/mine/finish-now/finalize', requireTelegramAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { sessionId } = req.body || {};
+    const result = await finalizeMineFinishNowSession(userId, sessionId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error finalizing mine work now:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

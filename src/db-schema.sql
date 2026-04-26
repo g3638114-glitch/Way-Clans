@@ -86,7 +86,7 @@ ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_level_positive CHEC
 ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_collected_amount_non_negative CHECK (collected_amount >= 0);
 ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_amount_positive CHECK (amount_jabcoins > 0);
 ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_rub_positive CHECK (amount_rub > 0);
-ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_method_valid CHECK (method IN ('card', 'usdt_trc20'));
+ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_method_valid CHECK (method IN ('card', 'sbp', 'usdt_trc20'));
 ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_status_valid CHECK (status IN ('pending', 'completed', 'refunded'));
 
 -- Create index for faster queries

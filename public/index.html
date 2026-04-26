@@ -167,7 +167,6 @@
       <div id="withdrawals-page" class="page">
         <div class="withdrawals-page-shell">
           <div class="withdrawals-page-header">
-            <button class="btn btn-secondary withdrawals-back-btn" id="withdrawals-back-btn">Назад</button>
             <div class="withdrawals-header-copy">
               <div class="withdrawals-page-title">Вывод Jabcoin</div>
               <div class="withdrawals-page-subtitle">1 Jabcoin = 1 RUB</div>
@@ -183,6 +182,7 @@
             <div class="withdrawals-section-title">Создать заявку</div>
             <div class="withdrawals-method-tabs">
               <button class="withdrawals-method-btn active" data-method="card">Карта</button>
+              <button class="withdrawals-method-btn" data-method="sbp">СБП</button>
               <button class="withdrawals-method-btn" data-method="usdt_trc20">USDT TRC20</button>
             </div>
             <div class="withdrawals-hint" id="withdrawals-method-hint">Минимум 1 Jabcoin, комиссия 0%</div>
@@ -190,14 +190,14 @@
             <input class="withdrawals-input" id="withdrawals-amount-input" type="number" min="1" placeholder="Введите сумму в Jabcoin">
             <label class="withdrawals-field-label" id="withdrawals-destination-label" for="withdrawals-destination-input">Номер карты</label>
             <input class="withdrawals-input" id="withdrawals-destination-input" type="text" placeholder="Введите номер карты">
+            <label class="withdrawals-field-label withdrawals-bank-label" id="withdrawals-bank-label" for="withdrawals-bank-input">Название банка</label>
+            <input class="withdrawals-input withdrawals-bank-input" id="withdrawals-bank-input" type="text" placeholder="Введите название банка">
             <button class="btn btn-withdraw" id="withdrawals-submit-btn">Создать заявку</button>
             <div class="withdrawals-feedback" id="withdrawals-feedback"></div>
           </div>
 
-          <div class="withdrawals-history-card">
-            <div class="withdrawals-section-title">История выводов</div>
-            <div class="withdrawals-history-list" id="withdrawals-history-list"></div>
-          </div>
+          <button class="btn btn-secondary withdrawals-history-btn" id="open-withdrawals-history-btn">История выводов</button>
+          <button class="btn btn-secondary withdrawals-back-btn" id="withdrawals-back-btn">👈 В главное меню</button>
         </div>
       </div>
 
@@ -596,6 +596,16 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="window.market.closeSalesHistoryModal()">Закрыть</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal" id="withdrawals-history-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>История выводов</h2>
+        <button class="close-btn" id="close-withdrawals-history-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="withdrawals-history-modal-body"></div>
     </div>
   </div>
 

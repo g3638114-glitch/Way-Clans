@@ -10,6 +10,15 @@ const METHOD_CONFIG = {
     hint: 'Минимум 1 Jabcoin, комиссия 0%',
     destinationLabel: 'Номер карты',
     destinationPlaceholder: 'Введите номер карты',
+    needsBank: false,
+  },
+  sbp: {
+    label: 'СБП',
+    minAmount: 1,
+    hint: 'Минимум 1 Jabcoin, комиссия 0%',
+    destinationLabel: 'Номер телефона',
+    destinationPlaceholder: 'Введите номер телефона',
+    needsBank: true,
   },
   usdt_trc20: {
     label: 'USDT TRC20',
@@ -17,6 +26,7 @@ const METHOD_CONFIG = {
     hint: 'Минимум 100 Jabcoin, комиссия 0%',
     destinationLabel: 'Адрес кошелька TRC20',
     destinationPlaceholder: 'Введите адрес кошелька TRC20',
+    needsBank: false,
   },
 };
 
@@ -27,6 +37,13 @@ function getCurrentMethod() {
 export function setupWithdrawalsPage() {
   document.getElementById('withdrawals-submit-btn')?.addEventListener('click', submitWithdrawalRequest);
   document.getElementById('withdrawals-back-btn')?.addEventListener('click', () => window.showPage?.('main'));
+  document.getElementById('open-withdrawals-history-btn')?.addEventListener('click', openWithdrawalsHistoryModal);
+  document.getElementById('close-withdrawals-history-btn')?.addEventListener('click', closeWithdrawalsHistoryModal);
+  document.getElementById('withdrawals-history-modal')?.addEventListener('click', (event) => {
+    if (event.target?.id === 'withdrawals-history-modal') {
+      closeWithdrawalsHistoryModal();
+    }
+  });
 
   document.querySelectorAll('.withdrawals-method-btn').forEach((button) => {
     button.addEventListener('click', () => {
@@ -39,30 +56,17 @@ export function setupWithdrawalsPage() {
 export async function loadWithdrawalsPage() {
   renderWithdrawalsMethodState();
   renderWithdrawalsBalance();
-  await loadWithdrawalHistory();
-}
-
-async function loadWithdrawalHistory() {
-  const historyList = document.getElementById('withdrawals-history-list');
-  if (!historyList) return;
-
-  historyList.innerHTML = '<div class="withdrawals-history-empty">Загружаем историю выводов...</div>';
-  try {
-    const result = await apiClient.getWithdrawals(appState.userId);
-    renderWithdrawalHistory(result.withdrawals || []);
-  } catch (error) {
-    historyList.innerHTML = `<div class="withdrawals-history-empty">${error.message || 'Не удалось загрузить историю выводов'}</div>`;
-  }
 }
 
 async function submitWithdrawalRequest() {
   const method = getCurrentMethod();
   const amountInput = document.getElementById('withdrawals-amount-input');
   const destinationInput = document.getElementById('withdrawals-destination-input');
+  const bankInput = document.getElementById('withdrawals-bank-input');
   const submitBtn = document.getElementById('withdrawals-submit-btn');
   const feedbackEl = document.getElementById('withdrawals-feedback');
 
-  if (!amountInput || !destinationInput || !submitBtn || !feedbackEl) return;
+  if (!amountInput || !destinationInput || !submitBtn || !feedbackEl || !bankInput) return;
 
   submitBtn.disabled = true;
   feedbackEl.textContent = 'Отправляем заявку...';
@@ -73,6 +77,7 @@ async function submitWithdrawalRequest() {
       method,
       amountJabcoins: amountInput.value,
       destination: destinationInput.value,
+      bank: bankInput.value,
     });
 
     appState.currentUser = result.user;
@@ -80,9 +85,9 @@ async function submitWithdrawalRequest() {
     renderWithdrawalsBalance();
     amountInput.value = '';
     destinationInput.value = '';
+    bankInput.value = '';
     feedbackEl.textContent = 'Заявка на вывод отправлена. Ожидайте обработки администратором.';
     feedbackEl.className = 'withdrawals-feedback is-success';
-    await loadWithdrawalHistory();
   } catch (error) {
     feedbackEl.textContent = error.message || 'Не удалось создать заявку';
     feedbackEl.className = 'withdrawals-feedback is-error';
@@ -102,12 +107,16 @@ function renderWithdrawalsMethodState() {
   const hintEl = document.getElementById('withdrawals-method-hint');
   const destinationLabelEl = document.getElementById('withdrawals-destination-label');
   const destinationInputEl = document.getElementById('withdrawals-destination-input');
+  const bankLabelEl = document.getElementById('withdrawals-bank-label');
+  const bankInputEl = document.getElementById('withdrawals-bank-input');
   const amountInput = document.getElementById('withdrawals-amount-input');
 
   if (hintEl) hintEl.textContent = config.hint;
   if (destinationLabelEl) destinationLabelEl.textContent = config.destinationLabel;
   if (destinationInputEl) destinationInputEl.placeholder = config.destinationPlaceholder;
   if (amountInput) amountInput.min = String(config.minAmount);
+  if (bankLabelEl) bankLabelEl.classList.toggle('is-visible', Boolean(config.needsBank));
+  if (bankInputEl) bankInputEl.classList.toggle('is-visible', Boolean(config.needsBank));
 }
 
 function renderWithdrawalsBalance() {
@@ -117,7 +126,7 @@ function renderWithdrawalsBalance() {
 }
 
 function renderWithdrawalHistory(withdrawals) {
-  const historyList = document.getElementById('withdrawals-history-list');
+  const historyList = document.getElementById('withdrawals-history-modal-body');
   if (!historyList) return;
   if (!withdrawals.length) {
     historyList.innerHTML = '<div class="withdrawals-history-empty">Заявок на вывод ещё не было</div>';
@@ -135,6 +144,26 @@ function renderWithdrawalHistory(withdrawals) {
       <div class="withdrawals-history-meta">${formatDate(item.createdAt)}</div>
     </div>
   `).join('');
+}
+
+async function openWithdrawalsHistoryModal() {
+  const modal = document.getElementById('withdrawals-history-modal');
+  const body = document.getElementById('withdrawals-history-modal-body');
+  if (!modal || !body) return;
+
+  body.innerHTML = '<div class="withdrawals-history-empty">Загружаем историю выводов...</div>';
+  modal.classList.add('active');
+
+  try {
+    const result = await apiClient.getWithdrawals(appState.userId);
+    renderWithdrawalHistory(result.withdrawals || []);
+  } catch (error) {
+    body.innerHTML = `<div class="withdrawals-history-empty">${error.message || 'Не удалось загрузить историю выводов'}</div>`;
+  }
+}
+
+function closeWithdrawalsHistoryModal() {
+  document.getElementById('withdrawals-history-modal')?.classList.remove('active');
 }
 
 function getStatusLabel(status) {

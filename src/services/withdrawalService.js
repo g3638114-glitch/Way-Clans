@@ -5,13 +5,17 @@ export const WITHDRAWAL_METHODS = {
     label: 'Карта',
     minAmount: 1,
   },
+  sbp: {
+    label: 'СБП',
+    minAmount: 1,
+  },
   usdt_trc20: {
     label: 'USDT TRC20',
     minAmount: 100,
   },
 };
 
-export async function createWithdrawalRequest(userId, { method, amountJabcoins, destination }) {
+export async function createWithdrawalRequest(userId, { method, amountJabcoins, destination, bank }) {
   const normalizedMethod = String(method || '').trim();
   const methodConfig = WITHDRAWAL_METHODS[normalizedMethod];
   if (!methodConfig) {
@@ -26,7 +30,7 @@ export async function createWithdrawalRequest(userId, { method, amountJabcoins, 
     throw new Error(`Минимальная сумма для ${methodConfig.label}: ${methodConfig.minAmount} Jabcoin`);
   }
 
-  const normalizedDestination = normalizeDestination(normalizedMethod, destination);
+  const normalizedDestination = normalizeDestination(normalizedMethod, destination, bank);
   const maskedDestination = maskDestination(normalizedMethod, normalizedDestination);
 
   return withTransaction(async (client) => {
@@ -80,7 +84,7 @@ export async function getWithdrawalHistory(userId) {
       `SELECT * FROM withdrawals
        WHERE user_id = $1
        ORDER BY created_at DESC
-       LIMIT 50`,
+       LIMIT 10`,
       [userResult.rows[0].id]
     );
 
@@ -158,7 +162,7 @@ export async function rejectWithdrawal(withdrawalId, adminActor) {
   });
 }
 
-function normalizeDestination(method, destination) {
+function normalizeDestination(method, destination, bank) {
   const raw = String(destination || '').trim();
   if (!raw) {
     throw new Error('Введите реквизиты для вывода');
@@ -170,6 +174,18 @@ function normalizeDestination(method, destination) {
       throw new Error('Введите корректный номер карты');
     }
     return digits;
+  }
+
+  if (method === 'sbp') {
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 15) {
+      throw new Error('Введите корректный номер телефона');
+    }
+    const bankName = String(bank || '').trim();
+    if (!bankName) {
+      throw new Error('Введите название банка для СБП');
+    }
+    return `Телефон: ${digits}; Банк: ${bankName}`;
   }
 
   if (method === 'usdt_trc20') {
@@ -185,6 +201,16 @@ function normalizeDestination(method, destination) {
 function maskDestination(method, destination) {
   if (method === 'card') {
     return `${destination.slice(0, 4)} **** **** ${destination.slice(-4)}`;
+  }
+  if (method === 'sbp') {
+    const phoneMatch = destination.match(/Телефон:\s*(\d+)/);
+    const bankMatch = destination.match(/Банк:\s*(.+)$/);
+    const phone = phoneMatch?.[1] || '';
+    const bank = bankMatch?.[1] || '';
+    const maskedPhone = phone.length >= 4
+      ? `${phone.slice(0, 2)}******${phone.slice(-2)}`
+      : phone;
+    return `${maskedPhone}${bank ? ` • ${bank}` : ''}`;
   }
   if (method === 'usdt_trc20') {
     return `${destination.slice(0, 5)}...${destination.slice(-5)}`;

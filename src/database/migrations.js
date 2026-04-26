@@ -265,8 +265,13 @@ const migrations = [
           ALTER TABLE withdrawals DROP CONSTRAINT IF EXISTS chk_withdrawals_status_valid;
           ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_amount_positive CHECK (amount_jabcoins > 0);
           ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_rub_positive CHECK (amount_rub > 0);
-          ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_method_valid CHECK (method IN ('card', 'usdt_trc20'));
+          ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_method_valid CHECK (method IN ('card', 'sbp', 'usdt_trc20'));
           ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_status_valid CHECK (status IN ('pending', 'completed', 'refunded'));`,
+  },
+  {
+    name: 'Allow sbp withdrawals',
+    sql: `ALTER TABLE withdrawals DROP CONSTRAINT IF EXISTS chk_withdrawals_method_valid;
+          ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_method_valid CHECK (method IN ('card', 'sbp', 'usdt_trc20'));`,
   },
 ];
 

@@ -7,12 +7,8 @@
 
 .withdrawals-page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-}
-
-.withdrawals-back-btn {
-  max-width: 110px;
 }
 
 .withdrawals-header-copy {
@@ -59,7 +55,7 @@
 
 .withdrawals-method-tabs {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 10px;
 }
@@ -99,9 +95,31 @@
   border-radius: 12px;
 }
 
+.withdrawals-bank-label,
+.withdrawals-bank-input {
+  display: none;
+}
+
+.withdrawals-bank-label.is-visible {
+  display: block;
+}
+
+.withdrawals-bank-input.is-visible {
+  display: block;
+}
+
+#withdrawals-submit-btn {
+  margin-top: 18px;
+}
+
 .withdrawals-feedback {
   margin-top: 10px;
   font-size: 13px;
+}
+
+.withdrawals-history-btn,
+.withdrawals-back-btn {
+  width: 100%;
 }
 
 .withdrawals-feedback.is-success { color: #8fe39c; }
@@ -147,4 +165,10 @@
   color: rgba(255,255,255,0.62);
   text-align: center;
   padding: 8px 0;
+}
+
+#withdrawals-history-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }

@@ -71,6 +71,7 @@ export function createBuildingCard(building) {
 
   const resourceType = config.resource;
   const resourceIcon = getResourceIconHtml(resourceType, 'resource-inline-icon', config.name);
+  const buildingIconHtml = getBuildingIconHtml(config);
 
   if (building.building_type === 'mine') {
     return createMineCard(building, config, level, productionRate, capacity, currentAccumulated, progressPercent, isFull);
@@ -81,7 +82,7 @@ export function createBuildingCard(building) {
   header.className = 'building-card-header';
   header.innerHTML = `
     <div class="building-card-title">
-      <span class="building-icon">${config.icon}</span>
+      ${buildingIconHtml}
       <h3 class="building-name">${config.name} (Уровень ${level})</h3>
     </div>
   `;
@@ -213,7 +214,7 @@ function createMineCard(building, config, level, productionRate, capacity, curre
   card.innerHTML = `
     <div class="building-card-header">
       <div class="building-card-title">
-        <span class="building-icon">${config.icon}</span>
+        ${buildingIconHtml}
         <h3 class="building-name">${config.name} (Уровень ${level})</h3>
       </div>
       <span class="mine-worker-badge ${shiftActive ? 'is-active' : ''}">${shiftActive ? `${workerCount} рабочих` : 'Шахта ждёт рабочих'}</span>
@@ -253,6 +254,13 @@ function createMineCard(building, config, level, productionRate, capacity, curre
   card.querySelector('[data-action="mine-upgrade"]')?.addEventListener('click', () => upgradeBuilding(building.id));
 
   return card;
+}
+
+function getBuildingIconHtml(config) {
+  if (config?.image) {
+    return `<span class="building-icon"><img class="building-icon-img" src="${config.image}" alt="${config.name}"></span>`;
+  }
+  return `<span class="building-icon">${config?.icon || '🏢'}</span>`;
 }
 
 /**

@@ -271,7 +271,12 @@ const migrations = [
   {
     name: 'Allow sbp withdrawals',
     sql: `ALTER TABLE withdrawals DROP CONSTRAINT IF EXISTS chk_withdrawals_method_valid;
-          ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_method_valid CHECK (method IN ('card', 'sbp', 'usdt_trc20'));`,
+          ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_method_valid CHECK (method IN ('card', 'sbp', 'mobile', 'usdt_trc20'));`,
+  },
+  {
+    name: 'Allow mobile withdrawals',
+    sql: `ALTER TABLE withdrawals DROP CONSTRAINT IF EXISTS chk_withdrawals_method_valid;
+          ALTER TABLE withdrawals ADD CONSTRAINT chk_withdrawals_method_valid CHECK (method IN ('card', 'sbp', 'mobile', 'usdt_trc20'));`,
   },
 ];
 

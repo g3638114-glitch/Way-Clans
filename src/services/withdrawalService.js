@@ -9,6 +9,10 @@ export const WITHDRAWAL_METHODS = {
     label: 'СБП',
     minAmount: 1,
   },
+  mobile: {
+    label: 'Моб. связь',
+    minAmount: 1,
+  },
   usdt_trc20: {
     label: 'USDT TRC20',
     minAmount: 100,
@@ -188,6 +192,14 @@ function normalizeDestination(method, destination, bank) {
     return `Телефон: ${digits}; Банк: ${bankName}`;
   }
 
+  if (method === 'mobile') {
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 15) {
+      throw new Error('Введите корректный номер телефона');
+    }
+    return digits;
+  }
+
   if (method === 'usdt_trc20') {
     if (!/^T[a-zA-Z0-9]{33}$/.test(raw)) {
       throw new Error('Введите корректный адрес кошелька TRC20');
@@ -211,6 +223,11 @@ function maskDestination(method, destination) {
       ? `${phone.slice(0, 2)}******${phone.slice(-2)}`
       : phone;
     return `${maskedPhone}${bank ? ` • ${bank}` : ''}`;
+  }
+  if (method === 'mobile') {
+    return destination.length >= 4
+      ? `${destination.slice(0, 2)}******${destination.slice(-2)}`
+      : destination;
   }
   if (method === 'usdt_trc20') {
     return `${destination.slice(0, 5)}...${destination.slice(-5)}`;

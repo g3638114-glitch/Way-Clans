@@ -20,6 +20,14 @@ const METHOD_CONFIG = {
     destinationPlaceholder: 'Введите номер телефона',
     needsBank: true,
   },
+  mobile: {
+    label: 'Моб. связь',
+    minAmount: 1,
+    hint: 'Минимум 1 Jabcoin, комиссия 0%',
+    destinationLabel: 'Номер телефона',
+    destinationPlaceholder: 'Введите номер телефона',
+    needsBank: false,
+  },
   usdt_trc20: {
     label: 'USDT TRC20',
     minAmount: 100,
@@ -117,6 +125,9 @@ function renderWithdrawalsMethodState() {
   if (amountInput) amountInput.min = String(config.minAmount);
   if (bankLabelEl) bankLabelEl.classList.toggle('is-visible', Boolean(config.needsBank));
   if (bankInputEl) bankInputEl.classList.toggle('is-visible', Boolean(config.needsBank));
+  if (bankInputEl && !config.needsBank) {
+    bankInputEl.value = '';
+  }
 }
 
 function renderWithdrawalsBalance() {

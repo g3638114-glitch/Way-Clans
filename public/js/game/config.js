@@ -6,10 +6,10 @@ import { getResourceLabel } from '../utils/resourceIcons.js';
 
 // ... existing BUILDING_TYPES, TREASURY_CONFIG, WAREHOUSE_CONFIG ...
 export const BUILDING_TYPES = {
-  mine: { name: 'Шахта', icon: '⛏', resource: 'gold' },
-  quarry: { name: 'Каменоломня', icon: '🪨', resource: 'stone' },
-  lumber_mill: { name: 'Лесопилка', icon: '🌲', resource: 'wood' },
-  farm: { name: 'Ферма', icon: '🍖', resource: 'meat' },
+  mine: { name: 'Шахта', icon: '⛏', image: '/resources/buildings/mine.png', resource: 'gold' },
+  quarry: { name: 'Каменоломня', icon: '🪨', image: '/resources/buildings/quarry.png', resource: 'stone' },
+  lumber_mill: { name: 'Лесопилка', icon: '🌲', image: '/resources/buildings/lumber_mill.png', resource: 'wood' },
+  farm: { name: 'Ферма', icon: '🍖', image: '/resources/buildings/farm.png', resource: 'meat' },
 };
 
 export const TREASURY_CONFIG = { name: 'Казна', icon: '🏰', resource: 'gold' };

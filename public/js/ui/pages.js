@@ -28,6 +28,10 @@ export function showPage(page) {
   const mainNav = document.getElementById('bottom-nav');
   const mainNavButtons = mainNav.querySelectorAll('#nav-main, #nav-mining, #nav-coin-mining, #nav-barracks, #nav-friends');
 
+  if (mainNav) {
+    mainNav.style.display = '';
+  }
+
   // Show selected page
   if (page === 'main') {
     document.getElementById('main-page').classList.add('active');
@@ -72,7 +76,7 @@ export function showPage(page) {
     document.getElementById('withdrawals-page').classList.add('active');
     stopProductionRefresh();
     if (resourcesHeader) resourcesHeader.style.display = 'grid';
-    mainNavButtons.forEach(btn => btn.style.display = 'none');
+    if (mainNav) mainNav.style.display = 'none';
     loadWithdrawalsPage();
   }
 }

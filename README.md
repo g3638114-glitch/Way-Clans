@@ -39,7 +39,7 @@ PORT=3000
 NODE_ENV=development
 SUPABASE_URL=https://your_project.supabase.co
 SUPABASE_KEY=your_anon_key
-DATABASE_URL=postgresql://postgres:KhamzatJaradat@db.lqbznbvljsqqnvwjxpmn.supabase.co:5432/postgres
+DATABASE_URL=postgresql://
 MINIAPP_URL=https://way.clans.idlebat.online
 ```
 

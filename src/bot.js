@@ -2,12 +2,106 @@ import { Telegraf } from 'telegraf';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { initializeDatabase } from './database/init.js';
+import { completeWithdrawal, rejectWithdrawal, WITHDRAWAL_METHODS } from './services/withdrawalService.js';
 
 dotenv.config();
 
 // Initialize bot and Supabase
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const WITHDRAWAL_ADMIN_IDS = new Set(['5676949534', '6910097562']);
+const WITHDRAWAL_CHAT = process.env.WITHDRAWAL_TELEGRAM_CHAT || '@wayclanszayavki';
+
+function resolveAdminLabel(adminActor) {
+  if (!adminActor) return 'Администратор';
+  if (adminActor.name) return adminActor.name;
+  if (adminActor.username) return `@${adminActor.username}`;
+  if (adminActor.telegramId) return `ID ${adminActor.telegramId}`;
+  return 'Администратор';
+}
+
+function isAuthorizedWithdrawalAdmin(telegramId) {
+  return WITHDRAWAL_ADMIN_IDS.has(String(telegramId || ''));
+}
+
+async function updateWithdrawalAdminMessage(ctx, statusLine) {
+  const message = ctx.callbackQuery?.message;
+  const baseText = message?.text || message?.caption || '';
+  const updatedText = baseText.includes(statusLine) ? baseText : `${baseText}\n\n${statusLine}`.trim();
+  try {
+    if (message?.text) {
+      await ctx.telegram.editMessageText(message.chat.id, message.message_id, undefined, updatedText, {
+        disable_web_page_preview: true,
+        reply_markup: null,
+      });
+    } else if (message?.caption) {
+      await ctx.telegram.editMessageCaption(message.chat.id, message.message_id, undefined, updatedText, {
+        reply_markup: null,
+      });
+    }
+  } catch {
+    try {
+      await ctx.telegram.editMessageReplyMarkup(message.chat.id, message.message_id, undefined, null);
+    } catch {}
+  }
+}
+
+async function notifyWithdrawalStatusToUser(withdrawal, text) {
+  try {
+    await bot.telegram.sendMessage(withdrawal.telegramId, text);
+  } catch (error) {
+    console.warn('⚠️ Failed to notify user about withdrawal status:', error.message);
+  }
+}
+
+async function fetchUserSnapshotByTelegramId(telegramId) {
+  const { data: user } = await supabase
+    .from('users')
+    .select('telegram_id, username, first_name, jabcoins')
+    .eq('telegram_id', telegramId)
+    .single();
+  return user || null;
+}
+
+async function fetchTelegramProfileMeta(telegramId) {
+  try {
+    const chat = await bot.telegram.getChat(telegramId);
+    const first = chat?.first_name || '';
+    const last = chat?.last_name || '';
+    return {
+      username: chat?.username || null,
+      fullName: `${first} ${last}`.trim() || null,
+      displayName: `${first} ${last}`.trim() || chat?.username || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function notifyAdminWithdrawal(withdrawal, userSnapshot, telegramUser) {
+  const methodLabel = WITHDRAWAL_METHODS[withdrawal.method]?.label || withdrawal.method;
+  const usernamePart = userSnapshot?.username ? `, @${userSnapshot.username}` : telegramUser?.username ? `, @${telegramUser.username}` : '';
+  const displayName = userSnapshot?.first_name || telegramUser?.first_name || `Игрок ${withdrawal.telegramId}`;
+  const lines = [
+    `Заявка #${withdrawal.id} на вывод`,
+    '',
+    `Игрок: ${displayName} (ID: ${withdrawal.telegramId}${usernamePart})`,
+    `Сумма: ${withdrawal.amountJabcoins} Jabcoin`,
+    `Эквивалент: ${withdrawal.amountRub} RUB`,
+    `Способ: ${methodLabel}`,
+    `Реквизиты: ${withdrawal.destinationRaw || withdrawal.destinationMasked}`,
+    `Остаток после списания: ${Number(userSnapshot?.jabcoins || 0)} Jabcoin`,
+  ];
+
+  await bot.telegram.sendMessage(WITHDRAWAL_CHAT, lines.join('\n'), {
+    reply_markup: {
+      inline_keyboard: [[
+        { text: '✅ Выполнено', callback_data: `wd:done:${withdrawal.id}` },
+        { text: '🚫 Отклонить', callback_data: `wd:reject:${withdrawal.id}` },
+      ]],
+    },
+  });
+}
 
 /**
  * Create initial buildings for a new user (free buildings: mine, quarry, lumber_mill, farm)
@@ -241,6 +335,68 @@ bot.command('start', async (ctx) => {
   }
 });
 
+bot.on('callback_query', async (ctx) => {
+  const data = ctx.callbackQuery?.data || '';
+  if (!data.startsWith('wd:')) {
+    try { await ctx.answerCbQuery(); } catch {}
+    return;
+  }
+
+  const actorId = ctx.from?.id;
+  if (!isAuthorizedWithdrawalAdmin(actorId)) {
+    try { await ctx.answerCbQuery('У вас нет прав для этого действия', { show_alert: true }); } catch {}
+    return;
+  }
+
+  const [, action, withdrawalId] = data.split(':');
+  const adminActor = {
+    telegramId: actorId,
+    username: ctx.from?.username || null,
+    name: [ctx.from?.first_name, ctx.from?.last_name].filter(Boolean).join(' ') || null,
+  };
+
+  try {
+    if (action === 'done') {
+      const result = await completeWithdrawal(withdrawalId, adminActor);
+      if (!result.ok) {
+        await ctx.answerCbQuery('Заявка уже обработана', { show_alert: true });
+        await updateWithdrawalAdminMessage(ctx, 'Заявка уже обработана ранее.');
+        return;
+      }
+      const statusLine = `✅ Заявка #${result.withdrawal.id} выполнена администратором ${resolveAdminLabel(adminActor)}`;
+      await updateWithdrawalAdminMessage(ctx, statusLine);
+      await notifyWithdrawalStatusToUser(
+        result.withdrawal,
+        `Ваша заявка #${result.withdrawal.id} выполнена.\nСпособ: ${result.withdrawal.methodLabel}\nСумма: ${result.withdrawal.amountJabcoins} Jabcoin`
+      );
+      await ctx.answerCbQuery('Заявка выполнена');
+      return;
+    }
+
+    if (action === 'reject') {
+      const result = await rejectWithdrawal(withdrawalId, adminActor);
+      if (!result.ok) {
+        await ctx.answerCbQuery('Заявка уже обработана', { show_alert: true });
+        await updateWithdrawalAdminMessage(ctx, 'Заявка уже обработана ранее.');
+        return;
+      }
+      const statusLine = `🚫 Заявка #${result.withdrawal.id} отклонена администратором ${resolveAdminLabel(adminActor)}`;
+      await updateWithdrawalAdminMessage(ctx, statusLine);
+      await notifyWithdrawalStatusToUser(
+        result.withdrawal,
+        `Ваша заявка #${result.withdrawal.id} отклонена. Jabcoin возвращены на баланс.`
+      );
+      await ctx.answerCbQuery('Заявка отклонена');
+      return;
+    }
+
+    await ctx.answerCbQuery('Неизвестное действие', { show_alert: true });
+  } catch (error) {
+    console.error('❌ Withdrawal callback error:', error);
+    try { await ctx.answerCbQuery('Ошибка обработки', { show_alert: true }); } catch {}
+  }
+});
+
 // Handle unknown commands
 bot.on('message', async (ctx) => {
   // Only respond to unknown messages
@@ -259,4 +415,4 @@ bot.catch((err, ctx) => {
   }
 });
 
-export { bot, supabase, initializeDatabase };
+export { bot, supabase, initializeDatabase, notifyAdminWithdrawal, fetchUserSnapshotByTelegramId, fetchTelegramProfileMeta };

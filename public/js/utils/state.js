@@ -10,6 +10,7 @@ export const appState = {
   // Game data
   allBuildings: [],
   selectedBuildingType: 'mine',
+  selectedWithdrawalMethod: 'card',
   currentPage: 'main',
 
   // Modal data

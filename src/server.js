@@ -15,6 +15,7 @@ import marketRouter from './routes/market.js';
 import barracksRouter from './routes/barracks.js';
 import attackRouter from './routes/attack.js';
 import adsgramRouter from './routes/adsgram.js';
+import withdrawalsRouter from './routes/withdrawals.js';
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use('/api/user', warehouseRouter);
 app.use('/api/user', marketRouter);
 app.use('/api/user', barracksRouter);
 app.use('/api/user', attackRouter);
+app.use('/api/user', withdrawalsRouter);
 app.use('/api/adsgram', adsgramRouter);
 
 // Serve MiniApp HTML

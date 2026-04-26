@@ -125,6 +125,22 @@
   box-shadow: 0 2px 8px rgba(0, 121, 107, 0.3);
 }
 
+.btn-withdraw {
+  background: linear-gradient(135deg, #00a78e 0%, #0a6f73 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 167, 142, 0.28);
+}
+
+.btn-withdraw:hover {
+  box-shadow: 0 6px 16px rgba(0, 167, 142, 0.42);
+  transform: translateY(-2px);
+}
+
+.btn-withdraw:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 167, 142, 0.26);
+}
+
 /* Attack Button */
 .btn-attack {
   background: linear-gradient(135deg, #d32f2f 0%, #8b0000 100%);

@@ -4,6 +4,7 @@ import { startProductionRefresh, stopProductionRefresh } from '../game/productio
 import { loadMarketListings } from '../game/market.js';
 import { loadBarracksData } from '../game/barracks.js';
 import { loadReferralsPage } from '../game/referrals.js';
+import { loadWithdrawalsPage } from '../game/withdrawals.js';
 
 // Show specific page
 export function showPage(page) {
@@ -15,6 +16,7 @@ export function showPage(page) {
   document.getElementById('coin-mining-page').classList.remove('active');
   document.getElementById('market-page').classList.remove('active');
   document.getElementById('barracks-page').classList.remove('active');
+  document.getElementById('withdrawals-page').classList.remove('active');
   document.getElementById('friends-page').classList.remove('active');
 
   // Update nav items
@@ -66,5 +68,11 @@ export function showPage(page) {
     if (resourcesHeader) resourcesHeader.style.display = 'grid';
     mainNavButtons.forEach(btn => btn.style.display = '');
     loadReferralsPage();
+  } else if (page === 'withdrawals') {
+    document.getElementById('withdrawals-page').classList.add('active');
+    stopProductionRefresh();
+    if (resourcesHeader) resourcesHeader.style.display = 'grid';
+    mainNavButtons.forEach(btn => btn.style.display = 'none');
+    loadWithdrawalsPage();
   }
 }

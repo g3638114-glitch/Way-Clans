@@ -153,7 +153,7 @@ export function createBuildingCard(building) {
     const speedUpBtn = document.createElement('button');
     speedUpBtn.className = 'btn btn-speedup';
     speedUpBtn.dataset.action = 'speed-up';
-    speedUpBtn.textContent = 'Сократить ожидание в 2 раза [реклама]';
+    speedUpBtn.textContent = 'Забрать сразу за 1 час [реклама]';
     speedUpBtn.disabled = isFull;
     speedUpBtn.addEventListener('click', () => {
       speedUpBuildingProduction(building.id);

@@ -15,6 +15,7 @@ import { renderBuildings } from './ui/builders.js';
 import * as market from './game/market.js';
 import { renderBarracks } from './game/barracks.js';
 import { openAttackMenu, closeAttackModal } from './game/attack.js';
+import { setupWithdrawalsPage } from './game/withdrawals.js';
 import { getAdsgramBlockId, showRewardedAd } from './services/adsgram.js';
 
 const COIN_VALUE = 100;
@@ -192,6 +193,7 @@ export function setupEventListeners() {
   document.getElementById('treasury-btn').addEventListener('click', openTreasuryModal);
   document.getElementById('market-btn').addEventListener('click', () => showPage('market'));
   document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
+  document.getElementById('withdrawals-btn').addEventListener('click', () => showPage('withdrawals'));
   
   // Attack button
   document.getElementById('attack-btn').addEventListener('click', openAttackMenu);
@@ -255,6 +257,7 @@ export function setupEventListeners() {
   });
 
   setupModalHandlers();
+  setupWithdrawalsPage();
 
   window.closeAttackModal = closeAttackModal;
   window.openStorageModal = openStorageModal;

@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/market.css">
   <link rel="stylesheet" href="css/barracks.css">
+  <link rel="stylesheet" href="css/withdrawals.css">
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/responsive.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -108,6 +109,14 @@
                   <span class="main-action-subtitle">Бой</span>
                 </span>
               </button>
+
+              <button class="btn btn-withdraw main-action-card" id="withdrawals-btn">
+                <span class="main-action-icon">💸</span>
+                <span class="main-action-text">
+                  <span class="main-action-title">Вывод</span>
+                  <span class="main-action-subtitle">Jabcoin</span>
+                </span>
+              </button>
             </div>
           </section>
         </div>
@@ -153,6 +162,43 @@
           <button class="barracks-tab-btn" data-type="my-soldiers">Мои воины</button>
         </div>
         <div class="barracks-container" id="barracks-container"></div>
+      </div>
+
+      <div id="withdrawals-page" class="page">
+        <div class="withdrawals-page-shell">
+          <div class="withdrawals-page-header">
+            <button class="btn btn-secondary withdrawals-back-btn" id="withdrawals-back-btn">Назад</button>
+            <div class="withdrawals-header-copy">
+              <div class="withdrawals-page-title">Вывод Jabcoin</div>
+              <div class="withdrawals-page-subtitle">1 Jabcoin = 1 RUB</div>
+            </div>
+          </div>
+
+          <div class="withdrawals-balance-card">
+            <div class="withdrawals-balance-label">Доступно к выводу</div>
+            <div class="withdrawals-balance-value" id="withdrawals-balance-value">0</div>
+          </div>
+
+          <div class="withdrawals-form-card">
+            <div class="withdrawals-section-title">Создать заявку</div>
+            <div class="withdrawals-method-tabs">
+              <button class="withdrawals-method-btn active" data-method="card">Карта</button>
+              <button class="withdrawals-method-btn" data-method="usdt_trc20">USDT TRC20</button>
+            </div>
+            <div class="withdrawals-hint" id="withdrawals-method-hint">Минимум 1 Jabcoin, комиссия 0%</div>
+            <label class="withdrawals-field-label" for="withdrawals-amount-input">Сумма вывода</label>
+            <input class="withdrawals-input" id="withdrawals-amount-input" type="number" min="1" placeholder="Введите сумму в Jabcoin">
+            <label class="withdrawals-field-label" id="withdrawals-destination-label" for="withdrawals-destination-input">Номер карты</label>
+            <input class="withdrawals-input" id="withdrawals-destination-input" type="text" placeholder="Введите номер карты">
+            <button class="btn btn-withdraw" id="withdrawals-submit-btn">Создать заявку</button>
+            <div class="withdrawals-feedback" id="withdrawals-feedback"></div>
+          </div>
+
+          <div class="withdrawals-history-card">
+            <div class="withdrawals-section-title">История выводов</div>
+            <div class="withdrawals-history-list" id="withdrawals-history-list"></div>
+          </div>
+        </div>
       </div>
 
       <div id="friends-page" class="page"></div>

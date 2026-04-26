@@ -126,7 +126,7 @@ export async function speedUpBuildingProduction(buildingId) {
       const session = await apiClient.speedUpBuilding(appState.userId, buildingId);
       const adShown = await showRewardedAd(getAdsgramBlockId('building'));
       if (!adShown) {
-        window.tg.showAlert('Реклама не была просмотрена полностью. Ускорение x2 не выполнено.');
+        window.tg.showAlert('Реклама не была просмотрена полностью. Бонус за 1 час не применён.');
         return;
       }
 
@@ -143,7 +143,7 @@ export async function speedUpBuildingProduction(buildingId) {
         capacity: result.capacity,
       });
     } catch (error) {
-      window.tg.showAlert(error.message || 'Ошибка при ускорении здания');
+      window.tg.showAlert(error.message || 'Ошибка при начислении ресурсов за 1 час');
     }
   });
 }
@@ -218,23 +218,23 @@ function renderSpeedUpResultModal({ buildingName, resourceType, beforeAmount, ad
   const body = document.getElementById('game-result-body');
 
   if (!modal || !title || !body) {
-    window.tg.showAlert(`Ожидание сокращено в 2 раза. Было: ${beforeAmount}, стало: ${afterAmount}.`);
+    window.tg.showAlert(`Добавлены ресурсы за 1 час. Было: ${beforeAmount}, стало: ${afterAmount}.`);
     return;
   }
 
-  title.textContent = 'Ожидание Сокращено';
+  title.textContent = 'Бонус За 1 Час';
   body.innerHTML = `
     <div class="target-card">
       <div class="target-name">${buildingName}</div>
       <div class="target-defenders">
         <div class="soldier-item" style="border-left-color: #ffb347; display:block;">
-          <div style="font-weight:700; margin-bottom:6px;">Реклама сразу добавила ресурсы за половину оставшегося времени</div>
+          <div style="font-weight:700; margin-bottom:6px;">Реклама сразу добавила ресурсы за 1 час производства</div>
           <div style="display:grid; gap:8px; color:#fff;">
             <div>Было: <strong>${beforeAmount}</strong> ${getResourceLabel(resourceType)}</div>
-            <div>Добавлено: <strong style="color:#ffd166;">+${addedAmount}</strong> ${getResourceLabel(resourceType)}</div>
+            <div>Добавлено за 1 час: <strong style="color:#ffd166;">+${addedAmount}</strong> ${getResourceLabel(resourceType)}</div>
             <div>Стало: <strong>${afterAmount}</strong> из ${capacity} ${getResourceLabel(resourceType)}</div>
           </div>
-          <div style="margin-top:10px; color:#8fe39c; font-weight:700;">Оставшееся ожидание сокращено в 2 раза</div>
+          <div style="margin-top:10px; color:#8fe39c; font-weight:700;">${afterAmount >= capacity ? 'Лимит заполнен' : 'Ресурсы за 1 час начислены'}</div>
         </div>
       </div>
     </div>

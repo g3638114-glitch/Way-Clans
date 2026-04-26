@@ -290,14 +290,13 @@ export async function finishMineWorkNow(userId, buildingId, rewardMultiplier = 2
 export async function applySpeedUpToBuilding(client, userIdDb, buildingId, speedMultiplier = 2) {
   const { building, currentAccumulated, capacity, productionRate } = await validateSpeedUpEligibility(client, userIdDb, buildingId);
 
-  const effectiveMultiplier = Math.max(1, Number(speedMultiplier || 1));
   const beforeAmount = Math.floor(currentAccumulated);
-  const extraProduced = (capacity - currentAccumulated) * ((effectiveMultiplier - 1) / effectiveMultiplier);
-  const nextCollectedAmount = Math.floor(Math.min(capacity, currentAccumulated + extraProduced));
+  const oneHourProduction = Math.max(0, Number(productionRate || 0));
+  const nextCollectedAmount = Math.floor(Math.min(capacity, currentAccumulated + oneHourProduction));
   const afterAmount = Math.max(beforeAmount, nextCollectedAmount);
   const addedAmount = Math.max(0, afterAmount - beforeAmount);
-  const remainingHoursBefore = Math.max(0, (capacity - currentAccumulated) / productionRate);
-  const remainingHoursAfter = Math.max(0, (capacity - afterAmount) / productionRate);
+  const remainingHoursBefore = productionRate > 0 ? Math.max(0, (capacity - currentAccumulated) / productionRate) : 0;
+  const remainingHoursAfter = productionRate > 0 ? Math.max(0, (capacity - afterAmount) / productionRate) : 0;
 
   const updatedBuildingResult = await client.query(
     `UPDATE user_buildings
@@ -343,7 +342,7 @@ export async function validateSpeedUpEligibility(client, userIdDb, buildingId) {
   const elapsedHours = Math.max(0, (Date.now() - lastActivated.getTime()) / 3600000);
   const currentAccumulated = Math.min(Number(building.collected_amount || 0) + elapsedHours * productionRate, capacity);
   if (currentAccumulated >= capacity) {
-    throw new Error('Здание уже заполнено, ускорение не требуется');
+    throw new Error('Здание уже заполнено, дополнительный час не требуется');
   }
 
   return {

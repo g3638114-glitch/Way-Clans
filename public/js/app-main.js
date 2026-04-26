@@ -124,3 +124,4 @@ document.addEventListener('DOMContentLoaded', () => {
 // Export for global access if needed
 window.appState = appState;
 window.loadBuildings = loadBuildings;
+window.showPage = showPage;

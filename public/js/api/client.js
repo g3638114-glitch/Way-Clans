@@ -266,5 +266,21 @@ export const apiClient = {
     });
     if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to perform attack'); }
     return response.json();
+  },
+
+  async getWithdrawals(userId) {
+    const response = await fetch(`/api/user/${userId}/withdrawals`, { headers: buildAuthHeaders() });
+    if (!response.ok) { const error = await response.json().catch(() => ({})); throw new Error(error.error || 'Failed to load withdrawals'); }
+    return response.json();
+  },
+
+  async createWithdrawal(userId, payload) {
+    const response = await fetch(`/api/user/${userId}/withdrawals`, {
+      method: 'POST',
+      headers: buildAuthHeaders(true),
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) { const error = await response.json().catch(() => ({})); throw new Error(error.error || 'Failed to create withdrawal'); }
+    return response.json();
   }
 };

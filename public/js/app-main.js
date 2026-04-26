@@ -8,6 +8,17 @@ import { setupEventListeners } from './events.js';
 import * as market from './game/market.js';
 import { initializeAdsgram } from './services/adsgram.js';
 
+function buildTelegramAuthHeaders(includeJson = false) {
+  const headers = {};
+  if (includeJson) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (appState.telegramInitData) {
+    headers['X-Telegram-Init-Data'] = appState.telegramInitData;
+  }
+  return headers;
+}
+
 // Initialize Telegram WebApp
 const tg = window.Telegram.WebApp;
 tg.ready();
@@ -30,7 +41,7 @@ async function loadUserData() {
     if (!appState.currentUser.photo_url) {
       fetch(`/api/user/${appState.userId}/fetch-photo`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildTelegramAuthHeaders(true),
       })
         .then((response) => response.ok ? response.json() : null)
         .then((data) => {

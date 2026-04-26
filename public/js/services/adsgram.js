@@ -1,5 +1,8 @@
 const ADSGRAM_SDK_URL = 'https://sad.adsgram.ai/js/sad.min.js';
 let adsgramLoadPromise = null;
+let rewardLoadingEl = null;
+let rewardLoadingTextEl = null;
+let rewardLoadingTimer = null;
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -34,6 +37,51 @@ function loadAdsgramScript() {
   return adsgramLoadPromise;
 }
 
+function ensureRewardLoadingUi() {
+  if (rewardLoadingEl) {
+    return rewardLoadingEl;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'reward-loading-overlay';
+  wrapper.innerHTML = `
+    <div class="reward-loading-card">
+      <div class="reward-loading-spinner"></div>
+      <div class="reward-loading-title">Загружаем рекламу...</div>
+      <div class="reward-loading-text">Подождите 1-2 секунды</div>
+    </div>
+  `;
+
+  rewardLoadingEl = wrapper;
+  rewardLoadingTextEl = wrapper.querySelector('.reward-loading-text');
+  document.body.appendChild(wrapper);
+  return rewardLoadingEl;
+}
+
+function showRewardLoadingState() {
+  const overlay = ensureRewardLoadingUi();
+  overlay.classList.add('active');
+  if (rewardLoadingTextEl) {
+    rewardLoadingTextEl.textContent = 'Подождите 1-2 секунды';
+  }
+  if (rewardLoadingTimer) {
+    clearTimeout(rewardLoadingTimer);
+  }
+  rewardLoadingTimer = setTimeout(() => {
+    if (rewardLoadingTextEl && rewardLoadingEl?.classList.contains('active')) {
+      rewardLoadingTextEl.textContent = 'Реклама готовится к показу...';
+    }
+  }, 1600);
+}
+
+function hideRewardLoadingState() {
+  if (rewardLoadingTimer) {
+    clearTimeout(rewardLoadingTimer);
+    rewardLoadingTimer = null;
+  }
+  rewardLoadingEl?.classList.remove('active');
+}
+
 async function ensureAdsgramReady() {
   if (window.Adsgram) {
     return window.Adsgram;
@@ -60,10 +108,17 @@ export async function showRewardedAd(blockId) {
     window.Telegram?.WebApp?.expand?.();
   } catch {}
 
-  const Adsgram = await ensureAdsgramReady();
-  const controller = Adsgram.init({ blockId: String(blockId) });
-  const result = await controller.show();
-  return Boolean(result && result.done && !result.error);
+  showRewardLoadingState();
+  try {
+    const Adsgram = await ensureAdsgramReady();
+    const controller = Adsgram.init({ blockId: String(blockId) });
+    hideRewardLoadingState();
+    const result = await controller.show();
+    return Boolean(result && result.done && !result.error);
+  } catch (error) {
+    hideRewardLoadingState();
+    throw error;
+  }
 }
 
 export async function initializeAdsgram() {

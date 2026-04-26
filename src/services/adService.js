@@ -80,8 +80,15 @@ export async function createBuildingCollectSession(telegramId, buildingId) {
         : `Лимит склада достигнут. Вы не можете собрать ресурс. Вместимость склада: ${getWarehouseCapacity(user.warehouse_level || 1)}, сейчас: ${user[resourceType] || 0}. Освободите место и попробуйте снова.`);
     }
 
-    const collectedAmount = Math.min(accumulatedAmount, availableSpace);
-    const remainingAmount = Math.max(0, accumulatedAmount - collectedAmount);
+    const baseCollectedAmount = Math.min(accumulatedAmount, Math.floor(availableSpace / 2));
+    if (baseCollectedAmount <= 0) {
+      throw new Error(resourceType === 'gold'
+        ? 'Недостаточно места в казне для сбора x2. Освободите место и попробуйте снова.'
+        : 'Недостаточно места на складе для сбора x2. Освободите место и попробуйте снова.');
+    }
+
+    const collectedAmount = baseCollectedAmount * 2;
+    const remainingAmount = Math.max(0, accumulatedAmount - baseCollectedAmount);
 
     const sessionResult = await client.query(
       `INSERT INTO ad_reward_sessions (user_id, session_type, building_id, resource_type, collected_amount, remaining_amount, expires_at)
@@ -96,6 +103,7 @@ export async function createBuildingCollectSession(telegramId, buildingId) {
       resourceType,
       collectedAmount,
       remainingAmount,
+      baseCollectedAmount,
       partialCollection: remainingAmount > 0,
     };
   });

@@ -13,8 +13,10 @@ function buildTelegramAuthHeaders(includeJson = false) {
   if (includeJson) {
     headers['Content-Type'] = 'application/json';
   }
-  if (appState.telegramInitData) {
-    headers['X-Telegram-Init-Data'] = appState.telegramInitData;
+  const initData = appState.telegramInitData || window.Telegram?.WebApp?.initData;
+  if (initData) {
+    appState.telegramInitData = initData;
+    headers['X-Telegram-Init-Data'] = initData;
   }
   return headers;
 }

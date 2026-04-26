@@ -44,6 +44,7 @@ export function renderBuildings() {
 export function createBuildingCard(building) {
   const card = document.createElement('div');
   card.className = 'building-card';
+  card.classList.add(`building-card-${building.building_type}`);
   card.dataset.buildingId = building.id;
 
   const config = getBuildingConfig(building.building_type);
@@ -190,6 +191,7 @@ export function createBuildingCard(building) {
 function createMineCard(building, config, level, productionRate, capacity, currentAccumulated, progressPercent, isFull, buildingIconHtml) {
   const card = document.createElement('div');
   card.className = 'building-card mine-card';
+  card.classList.add('building-card-mine');
   card.dataset.buildingId = building.id;
 
   const workerCount = Number(building.mineWorkerCount || 0);

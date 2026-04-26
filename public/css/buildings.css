@@ -45,6 +45,34 @@
   animation: slideIn 0.3s ease;
 }
 
+.building-card-mine {
+  background:
+    radial-gradient(circle at top right, rgba(230, 200, 120, 0.14) 0%, rgba(230, 200, 120, 0) 34%),
+    linear-gradient(180deg, rgba(24, 31, 58, 0.98) 0%, rgba(12, 18, 35, 0.98) 100%);
+  border-color: rgba(230, 200, 120, 0.22);
+}
+
+.building-card-quarry {
+  background:
+    radial-gradient(circle at top right, rgba(205, 210, 220, 0.12) 0%, rgba(205, 210, 220, 0) 34%),
+    linear-gradient(180deg, rgba(34, 37, 48, 0.98) 0%, rgba(18, 21, 29, 0.98) 100%);
+  border-color: rgba(188, 194, 206, 0.22);
+}
+
+.building-card-lumber_mill {
+  background:
+    radial-gradient(circle at top right, rgba(120, 204, 146, 0.13) 0%, rgba(120, 204, 146, 0) 34%),
+    linear-gradient(180deg, rgba(21, 46, 33, 0.98) 0%, rgba(10, 25, 18, 0.98) 100%);
+  border-color: rgba(120, 204, 146, 0.22);
+}
+
+.building-card-farm {
+  background:
+    radial-gradient(circle at top right, rgba(238, 175, 149, 0.13) 0%, rgba(238, 175, 149, 0) 34%),
+    linear-gradient(180deg, rgba(58, 29, 29, 0.98) 0%, rgba(31, 16, 16, 0.98) 100%);
+  border-color: rgba(238, 175, 149, 0.22);
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;

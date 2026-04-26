@@ -313,7 +313,7 @@ bot.command('start', async (ctx) => {
     }
 
     // Send welcome message with plain MiniApp link so Telegram opens it with proper initData
-    const botUsername = (process.env.TELEGRAM_BOT_USERNAME || 'Way_clans_bot').replace(/^@/, '').trim();
+    const botUsername = (process.env.TELEGRAM_BOT_USERNAME || 'Way_clans_test_robot').replace(/^@/, '').trim();
     const miniAppShortName = (process.env.TELEGRAM_MINIAPP_SHORT_NAME || 'wayclans').trim();
     const miniappUrl = `https://t.me/${botUsername}/${miniAppShortName}`;
 

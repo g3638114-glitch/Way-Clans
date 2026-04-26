@@ -151,7 +151,7 @@ export function createBuildingCard(building) {
     actions.appendChild(collectX2Btn);
 
     const speedUpBtn = document.createElement('button');
-    speedUpBtn.className = 'btn btn-secondary';
+    speedUpBtn.className = 'btn btn-speedup';
     speedUpBtn.dataset.action = 'speed-up';
     speedUpBtn.textContent = 'Сократить ожидание в 2 раза [реклама]';
     speedUpBtn.disabled = isFull;

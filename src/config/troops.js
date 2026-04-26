@@ -23,5 +23,5 @@ export const TROOP_STATS = {
 
 export const HIRE_COSTS = {
   attacker: { gold: 250, wood: 65, stone: 65, meat: 10 },
-  defender: { gold: 1000, wood: 500, stone: 500, meat: 100 }
+  defender: { gold: 100, wood: 30, stone: 30, meat: 5 }
 };

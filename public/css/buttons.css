@@ -212,6 +212,39 @@
   transform: scale(0.95);
 }
 
+.btn-speedup {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  background: linear-gradient(135deg, #f4b93c 0%, #d88414 100%);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(216, 132, 20, 0.28);
+}
+
+.btn-speedup:focus,
+.btn-speedup:focus-visible {
+  outline: none !important;
+  box-shadow: 0 6px 16px rgba(216, 132, 20, 0.28) !important;
+}
+
+.btn-speedup:active {
+  transform: scale(0.95);
+}
+
+.btn-speedup:disabled,
+.btn-speedup.disabled {
+  background: linear-gradient(135deg, rgba(138, 110, 70, 0.7) 0%, rgba(102, 78, 46, 0.7) 100%);
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
 .btn-secondary:active {
   transform: scale(0.95);
 }
@@ -493,6 +526,9 @@
   align-items: center;
   gap: 10px;
   position: relative;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
 .coin-floating-reward {
@@ -532,24 +568,25 @@
 }
 
 .btn-coin {
-  width: auto;
-  height: auto;
+  width: 320px;
+  height: 320px;
   padding: 0;
-  border-radius: 0 !important;
+  border-radius: 50% !important;
   font-size: 0;
   flex: none !important;
-  background: transparent;
+  background: transparent !important;
   color: transparent;
-  box-shadow: none;
-  border: none;
+  box-shadow: none !important;
+  border: none !important;
   transition: transform 0.18s ease;
   flex: none;
   position: static;
-  overflow: visible;
+  overflow: hidden;
   display: block;
   cursor: pointer;
   line-height: 1;
   outline: none;
+  isolation: isolate;
 }
 
 .btn-coin::before {
@@ -561,6 +598,7 @@
 .btn-coin:focus-visible {
   outline: none !important;
   box-shadow: none !important;
+  background: transparent !important;
 }
 
 .btn-coin:hover {
@@ -570,10 +608,12 @@
 .btn-coin:active {
   transform: none;
   box-shadow: none;
+  background: transparent !important;
 }
 
 .btn-coin.coin-click {
   animation: none;
+  background: transparent !important;
 }
 
 /* Coin Mining Header */

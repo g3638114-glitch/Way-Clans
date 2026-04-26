@@ -131,9 +131,17 @@ export async function speedUpBuildingProduction(buildingId) {
       }
 
       const result = await finalizeAdAction(() => apiClient.finalizeSpeedUpBuilding(appState.userId, buildingId, session.sessionId));
-      updateBuildingState(result.building);
+      updateBuildingState(result.building, result.afterAmount);
       renderBuildings();
-      window.tg.showAlert('✅ Производство ускорено в 2 раза. Оставшееся время сокращено вдвое.');
+      const config = getBuildingConfig(result.building.building_type);
+      renderSpeedUpResultModal({
+        buildingName: config.name,
+        resourceType: config.resource,
+        beforeAmount: result.beforeAmount,
+        addedAmount: result.addedAmount,
+        afterAmount: result.afterAmount,
+        capacity: result.capacity,
+      });
     } catch (error) {
       window.tg.showAlert(error.message || 'Ошибка при ускорении здания');
     }
@@ -185,13 +193,15 @@ export async function finishMineWorkNow(buildingId) {
   });
 }
 
-function updateBuildingState(building) {
+function updateBuildingState(building, overrideCurrentAccumulated = null) {
   const buildingIndex = appState.allBuildings.findIndex((b) => b.id === building.id);
   if (buildingIndex !== -1) {
     appState.allBuildings[buildingIndex] = {
       ...appState.allBuildings[buildingIndex],
       ...building,
-      currentAccumulated: Number(building.collected_amount || building.currentAccumulated || 0),
+      currentAccumulated: overrideCurrentAccumulated !== null
+        ? Number(overrideCurrentAccumulated || 0)
+        : Number(building.collected_amount || building.currentAccumulated || 0),
       mineShiftActive: Boolean(building.worker_count && building.work_ends_at && new Date(building.work_ends_at) > new Date()),
       mineWorkerCount: Number(building.worker_count || 0),
       mineWorkEndsAt: building.work_ends_at || null,
@@ -200,6 +210,37 @@ function updateBuildingState(building) {
       worker_count: Number(building.worker_count || 0),
     };
   }
+}
+
+function renderSpeedUpResultModal({ buildingName, resourceType, beforeAmount, addedAmount, afterAmount, capacity }) {
+  const modal = document.getElementById('game-result-modal');
+  const title = document.getElementById('game-result-title');
+  const body = document.getElementById('game-result-body');
+
+  if (!modal || !title || !body) {
+    window.tg.showAlert(`Ожидание сокращено в 2 раза. Было: ${beforeAmount}, стало: ${afterAmount}.`);
+    return;
+  }
+
+  title.textContent = 'Ожидание Сокращено';
+  body.innerHTML = `
+    <div class="target-card">
+      <div class="target-name">${buildingName}</div>
+      <div class="target-defenders">
+        <div class="soldier-item" style="border-left-color: #ffb347; display:block;">
+          <div style="font-weight:700; margin-bottom:6px;">Реклама сразу добавила ресурсы за половину оставшегося времени</div>
+          <div style="display:grid; gap:8px; color:#fff;">
+            <div>Было: <strong>${beforeAmount}</strong> ${getResourceLabel(resourceType)}</div>
+            <div>Добавлено: <strong style="color:#ffd166;">+${addedAmount}</strong> ${getResourceLabel(resourceType)}</div>
+            <div>Стало: <strong>${afterAmount}</strong> из ${capacity} ${getResourceLabel(resourceType)}</div>
+          </div>
+          <div style="margin-top:10px; color:#8fe39c; font-weight:700;">Оставшееся ожидание сокращено в 2 раза</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('active');
 }
 
 function renderCollectionResultModal({ buildingName, resourceType, collectedAmount, partialCollection = false, remainingAmount = 0, rewardMultiplier = 1 }) {

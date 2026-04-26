@@ -73,7 +73,7 @@ function calculateBuildingProgress(building) {
   const now = new Date();
   const hoursPassed = (now - lastActivated) / (1000 * 60 * 60);
 
-  const totalAccumulated = (building.collected_amount || 0) + hoursPassed * productionRate;
+  const totalAccumulated = Number(building.collected_amount || 0) + hoursPassed * productionRate;
   const accumulated = Math.floor(Math.min(totalAccumulated, capacity));
   const isFull = accumulated >= capacity;
 

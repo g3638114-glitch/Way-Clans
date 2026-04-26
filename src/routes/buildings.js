@@ -6,8 +6,6 @@ import {
   activateBuilding,
   getUserBuildings,
   startMineWorkers,
-  finishMineWorkNow,
-  speedUpBuildingProduction,
 } from '../services/buildingService.js';
 import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 import {

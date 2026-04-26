@@ -90,7 +90,9 @@ export async function initializeUserId() {
     }
 
     const tg = window.Telegram.WebApp;
-    await waitForTelegramAuthContext(tg);
+    if (tg.initData) {
+      appState.telegramInitData = tg.initData;
+    }
 
     if (tg.initDataUnsafe?.start_param) {
       appState.startParam = tg.initDataUnsafe.start_param;
@@ -137,26 +139,5 @@ export async function initializeUserId() {
   } catch (error) {
     console.warn('⚠️ Error initializing userId:', error.message);
     return null;
-  }
-}
-
-async function waitForTelegramAuthContext(tg) {
-  const maxAttempts = 20;
-  const delayMs = 150;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    if (tg.initData) {
-      appState.telegramInitData = tg.initData;
-    }
-
-    if (tg.initDataUnsafe?.user?.id && appState.telegramInitData) {
-      return;
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-  }
-
-  if (tg.initData) {
-    appState.telegramInitData = tg.initData;
   }
 }

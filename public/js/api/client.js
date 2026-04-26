@@ -1,27 +1,12 @@
 import { appState } from '../utils/state.js';
 
-function getLiveTelegramInitData() {
-  if (appState.telegramInitData) {
-    return appState.telegramInitData;
-  }
-
-  const runtimeInitData = window.Telegram?.WebApp?.initData;
-  if (runtimeInitData) {
-    appState.telegramInitData = runtimeInitData;
-    return runtimeInitData;
-  }
-
-  return null;
-}
-
 function buildAuthHeaders(includeJson = false) {
   const headers = {};
   if (includeJson) {
     headers['Content-Type'] = 'application/json';
   }
-  const initData = getLiveTelegramInitData();
-  if (initData) {
-    headers['X-Telegram-Init-Data'] = initData;
+  if (appState.telegramInitData) {
+    headers['X-Telegram-Init-Data'] = appState.telegramInitData;
   }
   return headers;
 }

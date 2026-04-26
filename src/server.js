@@ -52,11 +52,11 @@ app.get('/', (req, res) => {
   res.sendFile(join(__dirname, '../public/index.html'));
 });
 
-app.get('/wayclansoriginal', (req, res) => {
+app.get('/wayclans', (req, res) => {
   res.sendFile(join(__dirname, '../public/index.html'));
 });
 
-app.get('/wayclansoriginal/*', (req, res) => {
+app.get('/wayclans/*', (req, res) => {
   res.sendFile(join(__dirname, '../public/index.html'));
 });
 

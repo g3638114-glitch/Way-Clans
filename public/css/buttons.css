@@ -439,6 +439,26 @@
   box-shadow: none;
 }
 
+.tab-btn[data-type="mine"].active {
+  background: linear-gradient(135deg, rgba(78, 102, 160, 0.98) 0%, rgba(34, 46, 81, 0.98) 100%);
+  border-color: rgba(230, 200, 120, 0.92);
+}
+
+.tab-btn[data-type="quarry"].active {
+  background: linear-gradient(135deg, rgba(112, 116, 128, 0.98) 0%, rgba(63, 67, 78, 0.98) 100%);
+  border-color: rgba(205, 210, 220, 0.9);
+}
+
+.tab-btn[data-type="lumber_mill"].active {
+  background: linear-gradient(135deg, rgba(54, 126, 84, 0.98) 0%, rgba(25, 70, 45, 0.98) 100%);
+  border-color: rgba(148, 214, 168, 0.9);
+}
+
+.tab-btn[data-type="farm"].active {
+  background: linear-gradient(135deg, rgba(146, 74, 74, 0.98) 0%, rgba(82, 39, 39, 0.98) 100%);
+  border-color: rgba(238, 175, 149, 0.9);
+}
+
 .tab-btn:hover:not(.active) {
   background: rgba(76, 111, 166, 0.2);
   border-color: rgba(76, 111, 166, 0.6);
@@ -463,6 +483,34 @@
 .tab-btn.active:active {
   border-color: #d4af37 !important;
   box-shadow: none !important;
+}
+
+.tab-btn[data-type="mine"].active:focus,
+.tab-btn[data-type="mine"].active:focus-visible,
+.tab-btn[data-type="mine"].active:focus-within,
+.tab-btn[data-type="mine"].active:active {
+  border-color: rgba(230, 200, 120, 0.92) !important;
+}
+
+.tab-btn[data-type="quarry"].active:focus,
+.tab-btn[data-type="quarry"].active:focus-visible,
+.tab-btn[data-type="quarry"].active:focus-within,
+.tab-btn[data-type="quarry"].active:active {
+  border-color: rgba(205, 210, 220, 0.9) !important;
+}
+
+.tab-btn[data-type="lumber_mill"].active:focus,
+.tab-btn[data-type="lumber_mill"].active:focus-visible,
+.tab-btn[data-type="lumber_mill"].active:focus-within,
+.tab-btn[data-type="lumber_mill"].active:active {
+  border-color: rgba(148, 214, 168, 0.9) !important;
+}
+
+.tab-btn[data-type="farm"].active:focus,
+.tab-btn[data-type="farm"].active:focus-visible,
+.tab-btn[data-type="farm"].active:focus-within,
+.tab-btn[data-type="farm"].active:active {
+  border-color: rgba(238, 175, 149, 0.9) !important;
 }
 
 /* Quest Buttons */

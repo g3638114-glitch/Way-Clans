@@ -74,7 +74,7 @@ export function createBuildingCard(building) {
   const buildingIconHtml = getBuildingIconHtml(config);
 
   if (building.building_type === 'mine') {
-    return createMineCard(building, config, level, productionRate, capacity, currentAccumulated, progressPercent, isFull);
+    return createMineCard(building, config, level, productionRate, capacity, currentAccumulated, progressPercent, isFull, buildingIconHtml);
   }
 
   // ========== Card Header ==========
@@ -187,7 +187,7 @@ export function createBuildingCard(building) {
   return card;
 }
 
-function createMineCard(building, config, level, productionRate, capacity, currentAccumulated, progressPercent, isFull) {
+function createMineCard(building, config, level, productionRate, capacity, currentAccumulated, progressPercent, isFull, buildingIconHtml) {
   const card = document.createElement('div');
   card.className = 'building-card mine-card';
   card.dataset.buildingId = building.id;

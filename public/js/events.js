@@ -194,6 +194,7 @@ export function setupEventListeners() {
   document.getElementById('market-btn').addEventListener('click', () => showPage('market'));
   document.getElementById('quests-btn').addEventListener('click', openQuestsModal);
   document.getElementById('withdrawals-btn').addEventListener('click', () => showPage('withdrawals'));
+  document.getElementById('support-btn').addEventListener('click', () => window.open('https://t.me/Jamborz95', '_blank'));
   
   // Attack button
   document.getElementById('attack-btn').addEventListener('click', openAttackMenu);

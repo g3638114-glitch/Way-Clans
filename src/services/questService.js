@@ -6,11 +6,22 @@ import { withTransaction } from '../database/pg.js';
 const QUEST_DEFINITIONS = [
   {
     id: 'subscribe_channel',
-    title: 'Подписать на канал',
+    title: 'Подписка на канал',
     description: 'Подпишитесь на наш канал в Telegram',
     reward: 'Шахта +1',
     icon: '📱',
-    url: 'https://t.me/spn_newsvpn',
+    url: 'https://t.me/WayClansNews',
+    chatId: '@WayClansNews',
+    rewardMines: 1,
+  },
+  {
+    id: 'subscribe_group',
+    title: 'Подписка на группу',
+    description: 'Вступите в нашу группу в Telegram',
+    reward: 'Шахта +1',
+    icon: '💬',
+    url: 'https://t.me/WayClansChat',
+    chatId: '@WayClansChat',
     rewardMines: 1,
   },
   {
@@ -42,14 +53,13 @@ const QUEST_DEFINITIONS = [
   },
 ];
 
-async function isUserSubscribed(userId) {
+async function isUserSubscribedToChat(userId, chatId) {
   try {
-    const CHANNEL_ID = '@spn_newsvpn';
-    const member = await bot.telegram.getChatMember(CHANNEL_ID, userId);
+    const member = await bot.telegram.getChatMember(chatId, userId);
     const status = member.status;
     return status === 'member' || status === 'creator' || status === 'administrator' || status === 'restricted';
   } catch (error) {
-    console.log(`Subscription check error for user ${userId}:`, error.message);
+    console.log(`Subscription check error for user ${userId} in ${chatId}:`, error.message);
     return false;
   }
 }
@@ -61,8 +71,12 @@ export async function getQuests(userId) {
   // Get referral count
   const referralCount = user.referral_count || 0;
 
-  // Check if user is subscribed to channel
-  const isSubscribed = await isUserSubscribed(userId);
+  const subscriptionResults = new Map();
+  for (const questDef of QUEST_DEFINITIONS) {
+    if (questDef.chatId) {
+      subscriptionResults.set(questDef.id, await isUserSubscribedToChat(userId, questDef.chatId));
+    }
+  }
 
   // Get completed quests
   let completedQuestIds = new Set();
@@ -78,8 +92,8 @@ export async function getQuests(userId) {
   const quests = QUEST_DEFINITIONS.map(questDef => {
     let completed = false;
 
-    if (questDef.id === 'subscribe_channel') {
-      completed = isSubscribed;
+    if (questDef.chatId) {
+      completed = Boolean(subscriptionResults.get(questDef.id));
     } else if (questDef.id.startsWith('referral_')) {
       completed = referralCount >= questDef.threshold;
     }
@@ -109,8 +123,8 @@ export async function claimQuestReward(userId, questId) {
   }
 
   let completed = false;
-  if (questDef.id === 'subscribe_channel') {
-    completed = await isUserSubscribed(userId);
+  if (questDef.chatId) {
+    completed = await isUserSubscribedToChat(userId, questDef.chatId);
   } else if (questDef.id.startsWith('referral_')) {
     completed = Number(user.referral_count || 0) >= Number(questDef.threshold || 0);
   }

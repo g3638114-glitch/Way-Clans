@@ -12,6 +12,40 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 const WITHDRAWAL_ADMIN_IDS = new Set(['5676949534', '6910097562']);
 const WITHDRAWAL_CHAT = process.env.WITHDRAWAL_TELEGRAM_CHAT || '@wayclanszayavki';
 
+const originalSendMessage = bot.telegram.sendMessage.bind(bot.telegram);
+bot.telegram.sendMessage = async (chatId, ...args) => {
+  if (isGroupLikeChatTarget(chatId)) {
+    throw new Error(`Отправка сообщений в группы и каналы отключена: ${String(chatId)}`);
+  }
+  return originalSendMessage(chatId, ...args);
+};
+
+function isGroupLikeChatTarget(chatId) {
+  if (typeof chatId === 'number') {
+    return chatId <= 0;
+  }
+
+  if (typeof chatId !== 'string') {
+    return false;
+  }
+
+  const normalized = chatId.trim();
+  if (!normalized) {
+    return false;
+  }
+
+  if (normalized.startsWith('@')) {
+    return true;
+  }
+
+  const numericValue = Number(normalized);
+  if (Number.isFinite(numericValue)) {
+    return numericValue <= 0;
+  }
+
+  return false;
+}
+
 function resolveAdminLabel(adminActor) {
   if (!adminActor) return 'Администратор';
   if (adminActor.name) return adminActor.name;

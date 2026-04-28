@@ -84,6 +84,16 @@ window.handleCheckQuest = async (questId) => {
 };
 
 window.handleClaimReward = async (questId) => {
+  const button = document.querySelector(`.btn-quest-claim[onclick="handleClaimReward('${questId}')"]`);
+  const originalText = button?.innerHTML || '';
+
+  if (button) {
+    button.disabled = true;
+    button.classList.remove('btn-quest-claim');
+    button.classList.add('btn-quest-completed');
+    button.innerHTML = '⏳ Получаем награду...';
+  }
+
   const result = await claimQuestReward(questId);
   if (result) {
     const quests = await loadQuests();
@@ -93,5 +103,10 @@ window.handleClaimReward = async (questId) => {
     if (appState.currentPage === 'mining') {
       renderBuildings();
     }
+  } else if (button) {
+    button.disabled = false;
+    button.classList.remove('btn-quest-completed');
+    button.classList.add('btn-quest-claim');
+    button.innerHTML = originalText;
   }
 };

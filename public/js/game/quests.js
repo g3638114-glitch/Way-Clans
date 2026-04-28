@@ -30,8 +30,12 @@ export async function checkQuestProgress(questId) {
   if (quest.completed) {
     window.tg.showAlert('✅ Задание выполнено! Вы можете получить награду.');
   } else {
-    if (questId === 'subscribe_channel') {
+    if (quest.id === 'subscribe_channel') {
       window.tg.showAlert('❌ Вы еще не подписаны на канал.\n\nПожалуйста:\n1. Нажмите "Открыть"\n2. Подпишитесь на канал\n3. Вернитесь и нажмите "Проверить" ещё раз');
+    } else if (quest.id === 'subscribe_group') {
+      window.tg.showAlert('❌ Вы еще не вступили в группу.\n\nПожалуйста:\n1. Нажмите "Открыть"\n2. Вступите в группу\n3. Вернитесь и нажмите "Проверить" ещё раз');
+    } else if (quest.url) {
+      window.tg.showAlert('❌ Условие задания ещё не выполнено.\n\nОткройте ссылку, выполните задание и нажмите "Проверить" ещё раз.');
     } else {
       window.tg.showAlert('❌ Условие квеста еще не выполнено.\n\nВам нужно пригласить больше друзей.');
     }
@@ -42,7 +46,7 @@ export async function checkQuestProgress(questId) {
 
 // Claim quest reward
 export async function claimQuestReward(questId) {
-  await withOperationLock(`claimQuestReward_${questId}`, async () => {
+  return withOperationLock(`claimQuestReward_${questId}`, async () => {
     try {
       const result = await apiClient.claimQuestReward(appState.userId, questId);
 
@@ -64,6 +68,7 @@ export async function claimQuestReward(questId) {
     } catch (error) {
       console.error('Error claiming reward:', error);
       window.tg.showAlert(error.message || 'Ошибка при получении награды');
+      return null;
     }
   });
 }

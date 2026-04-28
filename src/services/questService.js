@@ -119,7 +119,7 @@ export async function claimQuestReward(userId, questId) {
   const user = await getOrCreateUser(userId);
   const questDef = QUEST_DEFINITIONS.find(q => q.id === questId);
   if (!questDef) {
-    throw new Error('Invalid quest');
+    throw new Error('Неверное задание');
   }
 
   let completed = false;
@@ -130,7 +130,7 @@ export async function claimQuestReward(userId, questId) {
   }
 
   if (!completed) {
-    throw new Error('Quest requirements are not met yet');
+    throw new Error('Условие задания ещё не выполнено');
   }
 
   return withTransaction(async (client) => {
@@ -143,7 +143,7 @@ export async function claimQuestReward(userId, questId) {
     );
 
     if (completionResult.rows.length === 0) {
-      throw new Error('You have already received the reward for this quest!');
+      throw new Error('Вы уже получили награду за это задание');
     }
 
     const minesToAdd = Number(questDef.rewardMines || 0);
@@ -181,7 +181,7 @@ export async function claimQuestReward(userId, questId) {
       questId,
       minesAdded: minesToAdd,
       buildings: buildingsAdded,
-      message: `✅ Received ${minesToAdd} mines!`,
+      message: `✅ Получено шахт: ${minesToAdd}`,
     };
   });
 }

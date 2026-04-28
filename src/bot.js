@@ -11,6 +11,12 @@ const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const WITHDRAWAL_ADMIN_IDS = new Set(['5676949534', '6910097562']);
 const WITHDRAWAL_CHAT = process.env.WITHDRAWAL_TELEGRAM_CHAT || '@wayclanszayavki';
+const BOT_SILENT_CHAT_USERNAME = 'WayClansChat';
+
+function isMutedChat(ctx) {
+  const chatUsername = String(ctx.chat?.username || '').replace(/^@/, '').trim().toLowerCase();
+  return chatUsername === BOT_SILENT_CHAT_USERNAME.toLowerCase();
+}
 
 function resolveAdminLabel(adminActor) {
   if (!adminActor) return 'Администратор';
@@ -243,6 +249,10 @@ async function getUserProfilePhotoUrl(userId, maxRetries = 2) {
 
 // Handle /start command
 bot.command('start', async (ctx) => {
+  if (isMutedChat(ctx)) {
+    return;
+  }
+
   const userId = ctx.from.id;
   const username = ctx.from.username || 'Unknown';
   const firstName = ctx.from.first_name || '';
@@ -399,6 +409,10 @@ bot.on('callback_query', async (ctx) => {
 
 // Handle unknown commands
 bot.on('message', async (ctx) => {
+  if (isMutedChat(ctx)) {
+    return;
+  }
+
   // Only respond to unknown messages
   if (!ctx.message.text?.startsWith('/')) {
     await ctx.reply('Используйте команду /start для начала игры.');
@@ -408,6 +422,9 @@ bot.on('message', async (ctx) => {
 // Error handler
 bot.catch((err, ctx) => {
   console.error('Bot error:', err);
+  if (isMutedChat(ctx)) {
+    return;
+  }
   try {
     ctx.reply('Произошла ошибка. Попробуйте позже.').catch(() => {});
   } catch (e) {

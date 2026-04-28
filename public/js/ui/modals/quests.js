@@ -32,7 +32,7 @@ export function renderQuestsList(quests) {
         </div>
       </div>
       <div class="quest-reward">
-        <span class="reward-text">Reward: ${quest.reward}</span>
+        <span class="reward-text">Награда: ${quest.reward}</span>
       </div>
     `;
 
@@ -41,14 +41,14 @@ export function renderQuestsList(quests) {
       // If already received reward - show completed status
       questContent += `
         <button class="btn btn-quest btn-quest-completed" disabled>
-          ✓ Reward received
+          ✓ Награда получена
         </button>
       `;
     } else if (quest.completed) {
       // If completed but not rewarded - show "Get Reward" button
       questContent += `
         <button class="btn btn-quest btn-quest-claim" onclick="handleClaimReward('${quest.id}')">
-          Get reward ✓
+          Забрать награду ✓
         </button>
       `;
     } else if (quest.url) {
@@ -56,10 +56,10 @@ export function renderQuestsList(quests) {
       questContent += `
         <div class="quest-buttons">
           <button class="btn btn-quest btn-quest-action" onclick="window.open('${quest.url}', '_blank')">
-            Go to channel
+            Открыть
           </button>
           <button class="btn btn-quest btn-quest-check" onclick="handleCheckQuest('${quest.id}')">
-            Check
+            Проверить
           </button>
         </div>
       `;
@@ -67,7 +67,7 @@ export function renderQuestsList(quests) {
       // For referral quests - show check button
       questContent += `
         <button class="btn btn-quest btn-quest-check" onclick="handleCheckQuest('${quest.id}')">
-          Check
+          Проверить
         </button>
       `;
     }

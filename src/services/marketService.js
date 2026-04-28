@@ -260,6 +260,18 @@ export async function deleteListing(telegramId, listingId) {
     }
 
     const resourceField = listing.resource_type;
+    const warehouseCapacity = getWarehouseCapacity(user.warehouse_level || 1);
+    const availableSpace = Math.max(0, warehouseCapacity - Number(user[resourceField] || 0));
+    const returningQuantity = Number(listing.quantity || 0);
+
+    if (returningQuantity > availableSpace) {
+      const resourceLabels = { wood: 'дерева', stone: 'камня', meat: 'мяса' };
+      throw new Error(
+        `Недостаточно места в складе для возврата объявления. Освободите место и попробуйте снова. ` +
+        `Свободно: ${availableSpace}, вернётся: ${returningQuantity} ${resourceLabels[resourceField] || 'ресурса'}.`
+      );
+    }
+
     const nextAmount = Number(user[resourceField] || 0) + Number(listing.quantity);
 
     const updatedUserResult = await client.query(`UPDATE users SET ${resourceField} = $1 WHERE id = $2 RETURNING *`, [nextAmount, user.id]);
@@ -307,6 +319,18 @@ export async function editListing(telegramId, listingId, { quantity, pricePerUni
       const updatedUserResult = await client.query(`UPDATE users SET ${listing.resource_type} = $1 WHERE id = $2 RETURNING *`, [nextAmount, user.id]);
       updatedUser = updatedUserResult.rows[0];
     } else if (quantityDiff < 0) {
+      const warehouseCapacity = getWarehouseCapacity(user.warehouse_level || 1);
+      const returningQuantity = Math.abs(quantityDiff);
+      const availableSpace = Math.max(0, warehouseCapacity - Number(user[listing.resource_type] || 0));
+
+      if (returningQuantity > availableSpace) {
+        const resourceLabels = { wood: 'дерева', stone: 'камня', meat: 'мяса' };
+        throw new Error(
+          `Недостаточно места в складе для возврата ресурсов из объявления. Освободите место и попробуйте снова. ` +
+          `Свободно: ${availableSpace}, вернётся: ${returningQuantity} ${resourceLabels[listing.resource_type] || 'ресурса'}.`
+        );
+      }
+
       const nextAmount = Number(user[listing.resource_type] || 0) - quantityDiff;
       const updatedUserResult = await client.query(`UPDATE users SET ${listing.resource_type} = $1 WHERE id = $2 RETURNING *`, [nextAmount, user.id]);
       updatedUser = updatedUserResult.rows[0];

@@ -44,13 +44,12 @@ export async function createListing(telegramId, { resourceType, quantity, priceP
       [user.id, resourceType, quantity, pricePerUnit]
     );
 
+    const updatedUserResult = await client.query('SELECT * FROM users WHERE id = $1', [user.id]);
+
     return {
       success: true,
       listing: listingResult.rows[0],
-      user: {
-        ...user,
-        [resourceType]: newQuantity,
-      },
+      user: updatedUserResult.rows[0],
     };
   });
 }
@@ -209,10 +208,11 @@ export async function buyFromListing(buyerTelegramId, listingId, quantity) {
       [listing.resource_type]: currentResourceAmount + quantity,
     };
 
-    await client.query(
+    const updatedBuyerResult = await client.query(
       `UPDATE users
        SET gold = $1, ${listing.resource_type} = $2
-       WHERE id = $3`,
+       WHERE id = $3
+       RETURNING *`,
       [buyerUpdates.gold, buyerUpdates[listing.resource_type], buyer.id]
     );
 
@@ -237,7 +237,7 @@ export async function buyFromListing(buyerTelegramId, listingId, quantity) {
     return {
       success: true,
       message: `Purchased ${quantity} ${listing.resource_type}`,
-      user: { ...buyer, ...buyerUpdates },
+      user: updatedBuyerResult.rows[0],
     };
   });
 }
@@ -262,13 +262,13 @@ export async function deleteListing(telegramId, listingId) {
     const resourceField = listing.resource_type;
     const nextAmount = Number(user[resourceField] || 0) + Number(listing.quantity);
 
-    await client.query(`UPDATE users SET ${resourceField} = $1 WHERE id = $2`, [nextAmount, user.id]);
+    const updatedUserResult = await client.query(`UPDATE users SET ${resourceField} = $1 WHERE id = $2 RETURNING *`, [nextAmount, user.id]);
     await client.query('DELETE FROM market_listings WHERE id = $1', [listingId]);
 
     return {
       success: true,
       message: 'Listing deleted and resources returned',
-      user: { ...user, [resourceField]: nextAmount },
+      user: updatedUserResult.rows[0],
     };
   });
 }
@@ -304,12 +304,15 @@ export async function editListing(telegramId, listingId, { quantity, pricePerUni
       }
 
       const nextAmount = userResources - quantityDiff;
-      await client.query(`UPDATE users SET ${listing.resource_type} = $1 WHERE id = $2`, [nextAmount, user.id]);
-      updatedUser = { ...user, [listing.resource_type]: nextAmount };
+      const updatedUserResult = await client.query(`UPDATE users SET ${listing.resource_type} = $1 WHERE id = $2 RETURNING *`, [nextAmount, user.id]);
+      updatedUser = updatedUserResult.rows[0];
     } else if (quantityDiff < 0) {
       const nextAmount = Number(user[listing.resource_type] || 0) - quantityDiff;
-      await client.query(`UPDATE users SET ${listing.resource_type} = $1 WHERE id = $2`, [nextAmount, user.id]);
-      updatedUser = { ...user, [listing.resource_type]: nextAmount };
+      const updatedUserResult = await client.query(`UPDATE users SET ${listing.resource_type} = $1 WHERE id = $2 RETURNING *`, [nextAmount, user.id]);
+      updatedUser = updatedUserResult.rows[0];
+    } else {
+      const refreshedUserResult = await client.query('SELECT * FROM users WHERE id = $1', [user.id]);
+      updatedUser = refreshedUserResult.rows[0];
     }
 
     const updatedListingResult = await client.query(

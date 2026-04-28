@@ -212,6 +212,7 @@ export async function upgradeWarehouseToLevel() {
 
       appState.currentUser = result.user;
       updateUI(appState.currentUser);
+      updateWarehouseSellModal();
 
       // Re-render warehouse content
       renderWarehouseContent();
@@ -278,6 +279,7 @@ export async function sellWarehouseResources() {
       const result = await apiClient.sellResources(appState.userId, { wood, stone, meat });
       appState.currentUser = result.user;
       updateUI(appState.currentUser);
+      updateWarehouseSellModal();
       closeWarehouseSellModal();
       tg.showAlert('✅ Ресурсы успешно проданы!');
     } catch (error) {

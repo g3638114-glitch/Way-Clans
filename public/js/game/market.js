@@ -11,10 +11,28 @@ let currentEditListing = null;
 let currentEditMaxQuantity = 0;
 let currentSalesHistory = [];
 
+function isModalOpen(id) {
+  return document.getElementById(id)?.classList.contains('active');
+}
+
+function syncMarketRelatedUi() {
+  updateWarehouseSellModal();
+
+  if (isModalOpen('warehouse-sell-modal')) {
+    const woodEl = document.getElementById('warehouse-sell-wood-amount');
+    const stoneEl = document.getElementById('warehouse-sell-stone-amount');
+    const meatEl = document.getElementById('warehouse-sell-meat-amount');
+    if (woodEl) woodEl.textContent = Number(appState.currentUser.wood || 0).toLocaleString();
+    if (stoneEl) stoneEl.textContent = Number(appState.currentUser.stone || 0).toLocaleString();
+    if (meatEl) meatEl.textContent = Number(appState.currentUser.meat || 0).toLocaleString();
+  }
+}
+
 function applyReturnedUser(user) {
   if (!user) return;
   appState.currentUser = { ...appState.currentUser, ...user };
   updateUI(appState.currentUser);
+  syncMarketRelatedUi();
 }
 
 /**
@@ -128,8 +146,8 @@ export function openBuyQuantityModal(listing) {
   };
 
   // Check warehouse capacity for this specific resource
-  const warehouseCapacity = getWarehouseCapacity(appState.currentUser.warehouse_level || 1);
-  const currentResourceAmount = appState.currentUser[listing.resource_type] || 0;
+  const warehouseCapacity = getWarehouseCapacity(Number(appState.currentUser.warehouse_level || 1));
+  const currentResourceAmount = Number(appState.currentUser[listing.resource_type] || 0);
   const availableSpace = warehouseCapacity - currentResourceAmount;
   currentBuyMaxQuantity = Math.min(listing.quantity, Math.max(0, availableSpace));
 
@@ -214,16 +232,22 @@ export async function confirmBuyQuantity() {
     return;
   }
 
-  // Check warehouse capacity for this specific resource
-  const warehouseCapacity = getWarehouseCapacity(appState.currentUser.warehouse_level || 1);
-  const currentResourceAmount = appState.currentUser[listing.resource_type] || 0;
-  if (currentResourceAmount + quantity > warehouseCapacity) {
-    alert('❌ Недостаточно места в складе! Продайте ресурсы, чтобы продолжить.');
-    return;
-  }
-
   await withOperationLock('buyFromMarketListing', async () => {
     try {
+        const warehouseResponse = await apiClient.getWarehouse(appState.userId);
+        const warehouse = warehouseResponse.warehouse;
+        const warehouseCapacity = Number(warehouse.capacity || 0);
+        const currentResourceAmount = Number({
+          wood: warehouse.currentWood,
+          stone: warehouse.currentStone,
+          meat: warehouse.currentMeat,
+        }[listing.resource_type] || 0);
+
+        if (currentResourceAmount + quantity > warehouseCapacity) {
+          alert(`❌ Недостаточно места в складе! Вместимость: ${warehouseCapacity}, сейчас: ${currentResourceAmount}.`);
+          return;
+        }
+
         const result = await apiClient.buyFromMarketListing(appState.userId, listing.id, quantity);
         applyReturnedUser(result.user);
         alert(`Вы купили ${quantity} ресурсов!`);
@@ -236,8 +260,8 @@ export async function confirmBuyQuantity() {
       }
     } catch (error) {
       // Show different messages for different errors
-      if (error.message.includes('warehouse') || error.message.includes('Warehouse')) {
-        alert('❌ Недостаточно места в складе! Продайте ресурсы, чтобы продолжить.');
+      if (error.message.includes('warehouse') || error.message.includes('Warehouse') || error.message.includes('склад')) {
+        alert(error.message || '❌ Недостаточно места в складе! Продайте ресурсы, чтобы продолжить.');
       } else {
         alert('Ошибка: ' + (error.message || 'Не удалось купить ресурсы'));
       }

@@ -1,6 +1,7 @@
 import { appState, withOperationLock } from '../../utils/state.js';
 import { apiClient } from '../../api/client.js';
 import { updateUI } from '../dom.js';
+import { updateWarehouseSellModal } from '../../game/market.js';
 
 export function openStorageModal() {
   document.getElementById('storage-modal').classList.add('active');
@@ -44,6 +45,7 @@ export async function sellResources() {
       const result = await apiClient.sellResources(appState.userId, { wood, stone, meat });
       appState.currentUser = result.user;
       updateUI(appState.currentUser);
+      updateWarehouseSellModal();
       closeStorageModal();
       tg.showAlert('✅ Ресурсы успешно проданы!');
     } catch (error) {

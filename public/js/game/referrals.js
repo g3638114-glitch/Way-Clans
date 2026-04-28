@@ -1,6 +1,38 @@
 import { apiClient } from '../api/client.js';
 import { appState, withOperationLock } from '../utils/state.js';
 
+export async function getReferralLink() {
+  if (appState.referralLink) {
+    return appState.referralLink;
+  }
+
+  const data = await apiClient.getReferrals(appState.userId);
+  appState.referralLink = data.referralLink || '';
+  return appState.referralLink;
+}
+
+export async function shareReferralLink() {
+  const referralLink = await getReferralLink();
+  if (!referralLink) {
+    throw new Error('Реферальная ссылка пока недоступна');
+  }
+
+  const shareText = `Присоединяйся ко мне в Way Clans: ${referralLink}`;
+  const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Присоединяйся ко мне в Way Clans!')}`;
+
+  if (window.Telegram?.WebApp?.openTelegramLink) {
+    window.Telegram.WebApp.openTelegramLink(telegramShareUrl);
+    return;
+  }
+
+  if (navigator.share) {
+    await navigator.share({ text: shareText, url: referralLink }).catch(() => {});
+    return;
+  }
+
+  window.open(telegramShareUrl, '_blank');
+}
+
 export async function loadReferralsPage() {
   await withOperationLock('loadReferrals', async () => {
     const container = document.getElementById('friends-page');
@@ -10,6 +42,7 @@ export async function loadReferralsPage() {
 
     try {
       const data = await apiClient.getReferrals(appState.userId);
+      appState.referralLink = data.referralLink || '';
       renderReferralsPage(data);
     } catch (error) {
       const message = error.message || 'Не удалось загрузить друзей';
@@ -84,18 +117,9 @@ function renderReferralsPage(data) {
   });
 
   shareBtn?.addEventListener('click', () => {
-    const shareText = `Присоединяйся ко мне в Way Clans: ${data.referralLink}`;
-    if (navigator.share) {
-      navigator.share({ text: shareText }).catch(() => {});
-      return;
-    }
-
-    try {
-      navigator.clipboard.writeText(shareText);
-      tg.showAlert('Текст для приглашения скопирован');
-    } catch {
+    shareReferralLink().catch(() => {
       tg.showAlert('Не удалось подготовить приглашение');
-    }
+    });
   });
 }
 

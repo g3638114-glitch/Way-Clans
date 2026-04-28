@@ -1,4 +1,5 @@
 import { loadQuests, checkQuestProgress, claimQuestReward } from '../../game/quests.js';
+import { shareReferralLink } from '../../game/referrals.js';
 import { renderBuildings } from '../builders.js';
 import { appState } from '../../utils/state.js';
 
@@ -64,11 +65,16 @@ export function renderQuestsList(quests) {
         </div>
       `;
     } else {
-      // For referral quests - show check button
+      // For referral quests - show invite and check buttons
       questContent += `
-        <button class="btn btn-quest btn-quest-check" onclick="handleCheckQuest('${quest.id}')">
-          Проверить
-        </button>
+        <div class="quest-buttons">
+          <button class="btn btn-quest btn-quest-action" onclick="handleInviteFriends()">
+            Пригласить
+          </button>
+          <button class="btn btn-quest btn-quest-check" onclick="handleCheckQuest('${quest.id}')">
+            Проверить
+          </button>
+        </div>
       `;
     }
 
@@ -108,5 +114,13 @@ window.handleClaimReward = async (questId) => {
     button.classList.remove('btn-quest-completed');
     button.classList.add('btn-quest-claim');
     button.innerHTML = originalText;
+  }
+};
+
+window.handleInviteFriends = async () => {
+  try {
+    await shareReferralLink();
+  } catch (error) {
+    window.tg.showAlert(error.message || 'Не удалось открыть приглашение');
   }
 };

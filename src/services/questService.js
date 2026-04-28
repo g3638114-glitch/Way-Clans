@@ -12,17 +12,19 @@ const QUEST_DEFINITIONS = [
     icon: '📱',
     url: 'https://t.me/WayClansNews',
     chatId: '@WayClansNews',
-    rewardMines: 1,
+    rewardBuildingType: 'mine',
+    rewardBuildingCount: 1,
   },
   {
     id: 'subscribe_group',
     title: 'Подписка на группу',
     description: 'Вступите в нашу группу в Telegram',
-    reward: 'Шахта +1',
+    reward: 'Ферма +1',
     icon: '💬',
     url: 'https://t.me/WayClansChat',
     chatId: '@WayClansChat',
-    rewardMines: 1,
+    rewardBuildingType: 'farm',
+    rewardBuildingCount: 1,
   },
   {
     id: 'referral_1',
@@ -30,7 +32,8 @@ const QUEST_DEFINITIONS = [
     description: 'Пригласите друга',
     reward: 'Шахта +1',
     icon: '👥',
-    rewardMines: 1,
+    rewardBuildingType: 'mine',
+    rewardBuildingCount: 1,
     threshold: 1,
   },
   {
@@ -39,7 +42,8 @@ const QUEST_DEFINITIONS = [
     description: 'Пригласите друзей',
     reward: 'Шахта +1',
     icon: '👥👥',
-    rewardMines: 1,
+    rewardBuildingType: 'mine',
+    rewardBuildingCount: 1,
     threshold: 2,
   },
   {
@@ -48,10 +52,18 @@ const QUEST_DEFINITIONS = [
     description: 'Пригласите друзей',
     reward: 'Шахта +2',
     icon: '👥👥👥',
-    rewardMines: 2,
+    rewardBuildingType: 'mine',
+    rewardBuildingCount: 2,
     threshold: 3,
   },
 ];
+
+const BUILDING_REWARD_LABELS = {
+  mine: 'шахт',
+  farm: 'ферм',
+  quarry: 'каменоломен',
+  lumber_mill: 'лесопилок',
+};
 
 async function isUserSubscribedToChat(userId, chatId) {
   try {
@@ -146,32 +158,33 @@ export async function claimQuestReward(userId, questId) {
       throw new Error('Вы уже получили награду за это задание');
     }
 
-    const minesToAdd = Number(questDef.rewardMines || 0);
+    const rewardBuildingType = questDef.rewardBuildingType || 'mine';
+    const buildingsToAdd = Number(questDef.rewardBuildingCount || 0);
     const buildingsAdded = [];
     let nextBuildingNumber = 1;
 
     const maxBuildingResult = await client.query(
       `SELECT building_number
        FROM user_buildings
-       WHERE user_id = $1 AND building_type = 'mine'
+       WHERE user_id = $1 AND building_type = $2
        ORDER BY building_number DESC
        LIMIT 1
        FOR UPDATE`,
-      [user.id]
+      [user.id, rewardBuildingType]
     );
 
     if (maxBuildingResult.rows.length > 0) {
       nextBuildingNumber = Number(maxBuildingResult.rows[0].building_number || 0) + 1;
     }
 
-    const productionRate = getProductionRate('mine', 1);
-    for (let index = 0; index < minesToAdd; index += 1) {
+    const productionRate = getProductionRate(rewardBuildingType, 1);
+    for (let index = 0; index < buildingsToAdd; index += 1) {
       const newBuildingResult = await client.query(
         `INSERT INTO user_buildings (
           user_id, building_type, building_number, level, collected_amount, production_rate, last_activated, created_at
-        ) VALUES ($1, 'mine', $2, 1, 0, $3, NULL, $4)
+        ) VALUES ($1, $2, $3, 1, 0, $4, NULL, $5)
         RETURNING *`,
-        [user.id, nextBuildingNumber + index, productionRate, new Date().toISOString()]
+        [user.id, rewardBuildingType, nextBuildingNumber + index, productionRate, new Date().toISOString()]
       );
       buildingsAdded.push(newBuildingResult.rows[0]);
     }
@@ -179,9 +192,9 @@ export async function claimQuestReward(userId, questId) {
     return {
       success: true,
       questId,
-      minesAdded: minesToAdd,
+      minesAdded: buildingsToAdd,
       buildings: buildingsAdded,
-      message: `✅ Получено шахт: ${minesToAdd}`,
+      message: `✅ Получено ${BUILDING_REWARD_LABELS[rewardBuildingType] || 'зданий'}: ${buildingsToAdd}`,
     };
   });
 }

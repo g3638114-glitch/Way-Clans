@@ -199,17 +199,21 @@ function createMineCard(building, config, level, productionRate, capacity, curre
   const ratePerHour = Number(building.mineRatePerHour || 0);
   const remainingText = shiftActive ? formatMineRemaining(building.mineRemainingMs || 0) : 'Смена не активна';
   const canCollect = currentAccumulated > 0;
+  const ad300CooldownMs = getCooldownRemainingMs(building.mine_ad_300_cooldown_until);
+  const finishNowCooldownMs = getCooldownRemainingMs(building.mine_finish_now_cooldown_until);
+  const ad300OnCooldown = ad300CooldownMs > 0;
+  const finishNowOnCooldown = finishNowCooldownMs > 0;
   const collectButton = !shiftActive
     ? `<button class="btn btn-collect mine-action-wide" ${canCollect ? '' : 'disabled'} data-action="mine-collect"><span>Собрать</span> ${currentAccumulated}${getResourceIconHtml('gold', 'resource-inline-icon', 'Jamcoin')}</button>`
     : '';
   const actionButtons = shiftActive
     ? `
-        <button class="btn btn-secondary mine-action-wide" data-action="mine-finish">Собрать сразу x2 [реклама]</button>
+        <button class="btn btn-secondary mine-action-wide" ${finishNowOnCooldown ? 'disabled' : ''} data-action="mine-finish">${finishNowOnCooldown ? `Сразу x2 через ${formatMineCooldown(ad300OrFinishCooldownLabel(finishNowCooldownMs))}` : 'Собрать сразу x2 [реклама]'}</button>
         <button class="btn btn-upgrade mine-upgrade-full" data-action="mine-upgrade" disabled>Улучшение недоступно во время работы</button>
       `
     : `
         <button class="btn btn-activate mine-action-wide" data-action="mine-meat">${MINE_MEAT_WORKERS} рабочих за ${MINE_MEAT_COST} ${getResourceIconHtml('meat', 'resource-inline-icon', 'Мясо')}</button>
-        <button class="btn btn-upgrade mine-action-wide" data-action="mine-ad">${MINE_AD_WORKERS} рабочих [реклама]</button>
+        <button class="btn btn-upgrade mine-action-wide" ${ad300OnCooldown ? 'disabled' : ''} data-action="mine-ad">${ad300OnCooldown ? `300 рабочих через ${formatMineCooldown(ad300OrFinishCooldownLabel(ad300CooldownMs))}` : `${MINE_AD_WORKERS} рабочих [реклама]`}</button>
         ${collectButton}
       `;
 
@@ -293,4 +297,22 @@ function formatMineRemaining(ms) {
     return `${seconds}с осталось`;
   }
   return `${minutes}м ${seconds.toString().padStart(2, '0')}с осталось`;
+}
+
+function getCooldownRemainingMs(cooldownUntil) {
+  if (!cooldownUntil) return 0;
+  return Math.max(0, new Date(cooldownUntil).getTime() - Date.now());
+}
+
+function ad300OrFinishCooldownLabel(ms) {
+  const totalMinutes = Math.max(1, Math.ceil(ms / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours <= 0) return `${totalMinutes}м`;
+  if (minutes <= 0) return `${hours}ч`;
+  return `${hours}ч ${minutes}м`;
+}
+
+function formatMineCooldown(text) {
+  return text;
 }

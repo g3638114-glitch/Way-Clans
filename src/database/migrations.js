@@ -199,6 +199,8 @@ const migrations = [
           ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS work_started_at TIMESTAMP WITH TIME ZONE;
           ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS work_ends_at TIMESTAMP WITH TIME ZONE;
           ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS work_mode TEXT;
+          ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS mine_ad_300_cooldown_until TIMESTAMP WITH TIME ZONE;
+          ALTER TABLE user_buildings ADD COLUMN IF NOT EXISTS mine_finish_now_cooldown_until TIMESTAMP WITH TIME ZONE;
           ALTER TABLE user_buildings DROP CONSTRAINT IF EXISTS chk_user_buildings_worker_count_non_negative;
           ALTER TABLE user_buildings ADD CONSTRAINT chk_user_buildings_worker_count_non_negative CHECK (worker_count >= 0);`,
   },

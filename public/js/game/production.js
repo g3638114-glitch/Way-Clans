@@ -14,6 +14,15 @@ function setElementText(element, nextText) {
   }
 }
 
+function formatCooldownText(remainingMs) {
+  const totalMinutes = Math.max(1, Math.ceil(remainingMs / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours <= 0) return `${totalMinutes}м`;
+  if (minutes <= 0) return `${hours}ч`;
+  return `${hours}ч ${minutes}м`;
+}
+
 /**
  * Calculate accumulated resources for a building
  */
@@ -130,9 +139,25 @@ function updateBuildingCardValues(building) {
     }
 
     const collectBtn = card.querySelector('[data-action="mine-collect"]');
+    const mineAdBtn = card.querySelector('[data-action="mine-ad"]');
+    const mineFinishBtn = card.querySelector('[data-action="mine-finish"]');
     if (collectBtn) {
       collectBtn.disabled = progress.accumulated <= 0;
       setElementHtml(collectBtn, `<span>Собрать</span> ${progress.accumulated}${resourceIcon}`);
+    }
+
+    if (mineAdBtn) {
+      const remainingMs = Math.max(0, new Date(building.mine_ad_300_cooldown_until || 0).getTime() - Date.now());
+      const onCooldown = remainingMs > 0;
+      mineAdBtn.disabled = onCooldown;
+      setElementText(mineAdBtn, onCooldown ? `300 рабочих через ${formatCooldownText(remainingMs)}` : '300 рабочих [реклама]');
+    }
+
+    if (mineFinishBtn) {
+      const remainingMs = Math.max(0, new Date(building.mine_finish_now_cooldown_until || 0).getTime() - Date.now());
+      const onCooldown = remainingMs > 0;
+      mineFinishBtn.disabled = onCooldown;
+      setElementText(mineFinishBtn, onCooldown ? `Сразу x2 через ${formatCooldownText(remainingMs)}` : 'Собрать сразу x2 [реклама]');
     }
 
     return updateProgressBar(card, progressPercent, progress.isFull);

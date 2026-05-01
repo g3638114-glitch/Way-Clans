@@ -27,6 +27,12 @@ CREATE TABLE IF NOT EXISTS user_buildings (
   collected_amount BIGINT DEFAULT 0,
   production_rate BIGINT DEFAULT 100,
   last_activated TIMESTAMP WITH TIME ZONE,
+  worker_count INT DEFAULT 0,
+  work_started_at TIMESTAMP WITH TIME ZONE,
+  work_ends_at TIMESTAMP WITH TIME ZONE,
+  work_mode TEXT,
+  mine_ad_300_cooldown_until TIMESTAMP WITH TIME ZONE,
+  mine_finish_now_cooldown_until TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, building_type, building_number)

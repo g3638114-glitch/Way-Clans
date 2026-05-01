@@ -250,6 +250,7 @@ export async function startMineWorkers(userId, buildingId, mode) {
       workerCount = MINE_MEAT_WORKERS;
       nextMeat -= MINE_MEAT_COST;
     } else if (mode === 'ad_300') {
+      ensureMineCooldownAvailable(building.mine_ad_300_cooldown_until, 'Нанять 300 рабочих');
       workerCount = MINE_AD_WORKERS;
     } else {
       throw new Error('Invalid mine mode');
@@ -263,12 +264,16 @@ export async function startMineWorkers(userId, buildingId, mode) {
       [nextMeat, user.id]
     );
 
+    const mineAdCooldownUntil = mode === 'ad_300'
+      ? new Date(Date.now() + 60 * 60 * 1000).toISOString()
+      : building.mine_ad_300_cooldown_until || null;
+
     const updatedBuildingResult = await client.query(
       `UPDATE user_buildings
-       SET worker_count = $1, work_started_at = $2, work_ends_at = $3, work_mode = $4
-       WHERE id = $5
+       SET worker_count = $1, work_started_at = $2, work_ends_at = $3, work_mode = $4, mine_ad_300_cooldown_until = $5
+       WHERE id = $6
        RETURNING *`,
-      [workerCount, startAt.toISOString(), endAt.toISOString(), mode, building.id]
+      [workerCount, startAt.toISOString(), endAt.toISOString(), mode, mineAdCooldownUntil, building.id]
     );
 
     return {
@@ -367,11 +372,40 @@ export async function validateMineFinishNowEligibility(client, userIdDb, buildin
   if (building.building_type !== 'mine') {
     throw new Error('Собрать сразу доступно только для шахты');
   }
+  ensureMineCooldownAvailable(building.mine_finish_now_cooldown_until, 'Собрать сразу x2');
   if (!isMineShiftActive(building)) {
     throw new Error('В шахте нет активной смены рабочих');
   }
 
   return building;
+}
+
+export async function applyMineFinishNowCooldown(client, buildingId) {
+  const updatedBuildingResult = await client.query(
+    `UPDATE user_buildings
+     SET mine_finish_now_cooldown_until = $1
+     WHERE id = $2
+     RETURNING *`,
+    [new Date(Date.now() + 60 * 60 * 1000).toISOString(), buildingId]
+  );
+  return updatedBuildingResult.rows[0];
+}
+
+function ensureMineCooldownAvailable(cooldownUntil, actionLabel) {
+  if (!cooldownUntil) return;
+  const remainingMs = new Date(cooldownUntil).getTime() - Date.now();
+  if (remainingMs <= 0) return;
+
+  throw new Error(`${actionLabel} будет доступно через ${formatCooldownRemaining(remainingMs)}`);
+}
+
+function formatCooldownRemaining(remainingMs) {
+  const totalMinutes = Math.max(1, Math.ceil(remainingMs / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours <= 0) return `${totalMinutes}м`;
+  if (minutes <= 0) return `${hours}ч`;
+  return `${hours}ч ${minutes}м`;
 }
 
 export async function upgradeBuilding(userId, buildingId) {

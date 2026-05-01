@@ -10,9 +10,11 @@ import {
 import { requireTelegramAuth } from '../middleware/telegramAuth.js';
 import {
   createBuildingCollectSession,
+  createMineAdWorkersSession,
   createMineFinishNowSession,
   createSpeedUpSession,
   finalizeBuildingCollectSession,
+  finalizeMineAdWorkersSession,
   finalizeMineFinishNowSession,
   finalizeSpeedUpSession,
 } from '../services/adService.js';
@@ -104,10 +106,24 @@ router.post('/:userId/building/:buildingId/mine/start', requireTelegramAuth, asy
   try {
     const { userId, buildingId } = req.params;
     const { mode } = req.body || {};
-    const result = await startMineWorkers(userId, buildingId, mode);
+    const result = mode === 'ad_300'
+      ? await createMineAdWorkersSession(userId, buildingId)
+      : await startMineWorkers(userId, buildingId, mode);
     res.json(result);
   } catch (error) {
     console.error('Error starting mine workers:', error);
+    res.status(400).json({ error: error.message || 'Server error' });
+  }
+});
+
+router.post('/:userId/building/:buildingId/mine/start/finalize', requireTelegramAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { sessionId } = req.body || {};
+    const result = await finalizeMineAdWorkersSession(userId, sessionId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error finalizing mine workers start:', error);
     res.status(400).json({ error: error.message || 'Server error' });
   }
 });

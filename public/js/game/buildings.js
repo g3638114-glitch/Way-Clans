@@ -152,11 +152,22 @@ export async function startMineWorkers(buildingId, mode) {
   await withOperationLock(`startMineWorkers_${buildingId}`, async () => {
     try {
       if (mode === 'ad_300') {
+        const session = await apiClient.startMineWorkers(appState.userId, buildingId, mode);
         const adShown = await showRewardedAd(getAdsgramBlockId('building'));
         if (!adShown) {
           window.tg.showAlert('Реклама не была просмотрена полностью. Рабочие не наняты.');
           return;
         }
+
+        const result = await finalizeAdAction(() => apiClient.finalizeStartMineWorkers(appState.userId, buildingId, session.sessionId));
+        appState.currentUser = result.user;
+        updateUI(appState.currentUser);
+        updateBuildingState(result.building);
+        renderBuildings();
+
+        const workers = MINE_AD_WORKERS;
+        window.tg.showAlert(`✅ В шахту отправлены ${workers} рабочих на ${MINE_SHIFT_HOURS} час.`);
+        return;
       }
 
       const result = await apiClient.startMineWorkers(appState.userId, buildingId, mode);
@@ -208,6 +219,8 @@ function updateBuildingState(building, overrideCurrentAccumulated = null) {
       work_started_at: building.work_started_at || null,
       work_ends_at: building.work_ends_at || null,
       worker_count: Number(building.worker_count || 0),
+      mine_ad_300_cooldown_until: building.mine_ad_300_cooldown_until || null,
+      mine_finish_now_cooldown_until: building.mine_finish_now_cooldown_until || null,
     };
   }
 }

@@ -86,6 +86,16 @@ export const apiClient = {
     return response.json();
   },
 
+  async finalizeStartMineWorkers(userId, buildingId, sessionId) {
+    const response = await fetch(`/api/user/${userId}/building/${buildingId}/mine/start/finalize`, {
+      method: 'POST',
+      headers: buildAuthHeaders(true),
+      body: JSON.stringify({ sessionId }),
+    });
+    if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Failed to finalize mine workers'); }
+    return response.json();
+  },
+
   async finishMineWorkNow(userId, buildingId) {
     const response = await fetch(`/api/user/${userId}/building/${buildingId}/mine/finish-now`, {
       method: 'POST',

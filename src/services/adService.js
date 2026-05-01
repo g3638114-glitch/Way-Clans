@@ -1,11 +1,12 @@
 import { withTransaction } from '../database/pg.js';
 import { getCapacity, getProductionRate, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
-import { applyFinishMineNow, applySpeedUpToBuilding, validateMineFinishNowEligibility, validateSpeedUpEligibility } from './buildingService.js';
+import { applyFinishMineNow, applyMineFinishNowCooldown, applySpeedUpToBuilding, validateMineFinishNowEligibility, validateSpeedUpEligibility, startMineWorkers } from './buildingService.js';
 
 const BUILDING_SESSION_TYPE = 'building_collect';
 const BUILDING_SPEED_UP_SESSION_TYPE = 'building_speed_up';
 const MINE_FINISH_NOW_SESSION_TYPE = 'mine_finish_now';
-const BUILDING_BLOCK_SESSION_TYPES = [BUILDING_SESSION_TYPE, BUILDING_SPEED_UP_SESSION_TYPE, MINE_FINISH_NOW_SESSION_TYPE];
+const MINE_AD_WORKERS_SESSION_TYPE = 'mine_ad_workers';
+const BUILDING_BLOCK_SESSION_TYPES = [BUILDING_SESSION_TYPE, BUILDING_SPEED_UP_SESSION_TYPE, MINE_FINISH_NOW_SESSION_TYPE, MINE_AD_WORKERS_SESSION_TYPE];
 
 async function expireOpenSessions(client, userId, sessionTypes) {
   await client.query(
@@ -179,6 +180,48 @@ export async function confirmMiningAdReward(telegramId) {
   return { ok: true };
 }
 
+export async function createMineAdWorkersSession(telegramId, buildingId) {
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
+
+    const buildingResult = await client.query(
+      `SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE`,
+      [buildingId, user.id]
+    );
+    if (buildingResult.rows.length === 0) throw new Error('Building not found');
+    const building = buildingResult.rows[0];
+    if (building.building_type !== 'mine') throw new Error('Рабочие доступны только для шахты');
+
+    if (building.mine_ad_300_cooldown_until && new Date(building.mine_ad_300_cooldown_until) > new Date()) {
+      const remainingMs = new Date(building.mine_ad_300_cooldown_until).getTime() - Date.now();
+      const totalMinutes = Math.max(1, Math.ceil(remainingMs / 60000));
+      throw new Error(`Нанять 300 рабочих будет доступно через ${totalMinutes}м`);
+    }
+
+    await expireOpenSessions(client, user.id, BUILDING_BLOCK_SESSION_TYPES);
+
+    const sessionResult = await client.query(
+      `INSERT INTO ad_reward_sessions (user_id, session_type, building_id, expires_at)
+       VALUES ($1, $2, $3, NOW() + INTERVAL '10 minutes')
+       RETURNING *`,
+      [user.id, MINE_AD_WORKERS_SESSION_TYPE, buildingId]
+    );
+
+    return { success: true, sessionId: sessionResult.rows[0].id };
+  });
+}
+
+export async function finalizeMineAdWorkersSession(telegramId, sessionId) {
+  return withTransaction(async (client) => {
+    const { session } = await getLockedSession(client, telegramId, sessionId, MINE_AD_WORKERS_SESSION_TYPE);
+    const result = await startMineWorkers(telegramId, session.building_id, 'ad_300');
+    await client.query('UPDATE ad_reward_sessions SET claimed_at = NOW() WHERE id = $1', [sessionId]);
+    return result;
+  });
+}
+
 export async function createSpeedUpSession(telegramId, buildingId) {
   return withTransaction(async (client) => {
     const userResult = await client.query('SELECT * FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
@@ -233,7 +276,8 @@ export async function finalizeMineFinishNowSession(telegramId, sessionId) {
     const { user, session } = await getLockedSession(client, telegramId, sessionId, MINE_FINISH_NOW_SESSION_TYPE);
     const result = await applyFinishMineNow(client, user.id, session.building_id, 2);
     await client.query('UPDATE ad_reward_sessions SET claimed_at = NOW() WHERE id = $1', [sessionId]);
-    return result;
+    const building = await applyMineFinishNowCooldown(client, session.building_id);
+    return { ...result, building };
   });
 }
 

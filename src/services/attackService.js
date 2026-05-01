@@ -1,6 +1,7 @@
 import { supabase } from '../bot.js';
 import { withTransaction } from '../database/pg.js';
 import { computeLootFromSurvivors, simulateBattle } from '../domain/battleMath.js';
+import { getAttackableResources } from '../domain/attackResources.js';
 
 export async function getRandomTarget(userId, mode = 'default') {
   const { data: currentUser } = await supabase.from('users').select('id').eq('telegram_id', userId).single();
@@ -63,10 +64,7 @@ export async function getRandomTarget(userId, mode = 'default') {
     target: {
       username: target.username,
       first_name: target.first_name,
-      gold: target.gold,
-      wood: target.wood,
-      stone: target.stone,
-      meat: target.meat
+      ...getAttackableResources(target),
     },
     defenders,
     searchMode: mode,
@@ -75,12 +73,7 @@ export async function getRandomTarget(userId, mode = 'default') {
 
 function calculateTargetScore(attackerTroops, defenders, target) {
   const battle = simulateBattle(attackerTroops, defenders);
-  const availableResources = {
-    gold: Number(target.gold || 0),
-    wood: Number(target.wood || 0),
-    stone: Number(target.stone || 0),
-    meat: Number(target.meat || 0),
-  };
+  const availableResources = getAttackableResources(target);
 
   const lootPotential = battle.defendersRemaining === 0
     ? computeLootFromSurvivors(battle.attackersByLevel)
@@ -208,12 +201,7 @@ export async function performAttack(userId, targetId) {
 
     if (attackersRemaining > 0 && defendersRemaining === 0) {
       const potentialLoot = computeLootFromSurvivors(attackersByLevel);
-      const remainingResources = {
-        gold: Number(targetUser.gold),
-        wood: Number(targetUser.wood),
-        stone: Number(targetUser.stone),
-        meat: Number(targetUser.meat),
-      };
+      const remainingResources = getAttackableResources(targetUser);
 
       totalLoot = {
         gold: Math.min(potentialLoot.gold, remainingResources.gold),

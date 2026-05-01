@@ -226,62 +226,66 @@ export async function startMineWorkers(userId, buildingId, mode) {
     if (userResult.rows.length === 0) throw new Error('User not found');
     const user = userResult.rows[0];
 
-    const buildingResult = await client.query('SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE', [buildingId, user.id]);
-    if (buildingResult.rows.length === 0) throw new Error('Building not found');
-
-    let building = buildingResult.rows[0];
-    if (building.building_type !== 'mine') {
-      throw new Error('Рабочие доступны только для шахты');
-    }
-
-    building = await syncMineShiftState(client, building);
-
-    if (isMineShiftActive(building)) {
-      throw new Error('Рабочие уже трудятся в шахте');
-    }
-
-    let workerCount = 0;
-    let nextMeat = Number(user.meat || 0);
-
-    if (mode === 'meat_100') {
-      if (nextMeat < MINE_MEAT_COST) {
-        throw new Error(`Недостаточно мяса. Нужно ${MINE_MEAT_COST}, у вас ${nextMeat}`);
-      }
-      workerCount = MINE_MEAT_WORKERS;
-      nextMeat -= MINE_MEAT_COST;
-    } else if (mode === 'ad_300') {
-      ensureMineCooldownAvailable(building.mine_ad_300_cooldown_until, 'Нанять 300 рабочих');
-      workerCount = MINE_AD_WORKERS;
-    } else {
-      throw new Error('Invalid mine mode');
-    }
-
-    const startAt = new Date();
-    const endAt = new Date(startAt.getTime() + MINE_SHIFT_HOURS * 60 * 60 * 1000);
-
-    const updatedUserResult = await client.query(
-      'UPDATE users SET meat = $1 WHERE id = $2 RETURNING *',
-      [nextMeat, user.id]
-    );
-
-    const mineAdCooldownUntil = mode === 'ad_300'
-      ? new Date(Date.now() + 60 * 60 * 1000).toISOString()
-      : building.mine_ad_300_cooldown_until || null;
-
-    const updatedBuildingResult = await client.query(
-      `UPDATE user_buildings
-       SET worker_count = $1, work_started_at = $2, work_ends_at = $3, work_mode = $4, mine_ad_300_cooldown_until = $5
-       WHERE id = $6
-       RETURNING *`,
-      [workerCount, startAt.toISOString(), endAt.toISOString(), mode, mineAdCooldownUntil, building.id]
-    );
-
-    return {
-      success: true,
-      user: updatedUserResult.rows[0],
-      building: updatedBuildingResult.rows[0],
-    };
+    return applyStartMineWorkers(client, user, buildingId, mode);
   });
+}
+
+export async function applyStartMineWorkers(client, user, buildingId, mode) {
+  const buildingResult = await client.query('SELECT * FROM user_buildings WHERE id = $1 AND user_id = $2 FOR UPDATE', [buildingId, user.id]);
+  if (buildingResult.rows.length === 0) throw new Error('Building not found');
+
+  let building = buildingResult.rows[0];
+  if (building.building_type !== 'mine') {
+    throw new Error('Рабочие доступны только для шахты');
+  }
+
+  building = await syncMineShiftState(client, building);
+
+  if (isMineShiftActive(building)) {
+    throw new Error('Рабочие уже трудятся в шахте');
+  }
+
+  let workerCount = 0;
+  let nextMeat = Number(user.meat || 0);
+
+  if (mode === 'meat_100') {
+    if (nextMeat < MINE_MEAT_COST) {
+      throw new Error(`Недостаточно мяса. Нужно ${MINE_MEAT_COST}, у вас ${nextMeat}`);
+    }
+    workerCount = MINE_MEAT_WORKERS;
+    nextMeat -= MINE_MEAT_COST;
+  } else if (mode === 'ad_300') {
+    ensureMineCooldownAvailable(building.mine_ad_300_cooldown_until, 'Нанять 300 рабочих');
+    workerCount = MINE_AD_WORKERS;
+  } else {
+    throw new Error('Invalid mine mode');
+  }
+
+  const startAt = new Date();
+  const endAt = new Date(startAt.getTime() + MINE_SHIFT_HOURS * 60 * 60 * 1000);
+
+  const updatedUserResult = await client.query(
+    'UPDATE users SET meat = $1 WHERE id = $2 RETURNING *',
+    [nextMeat, user.id]
+  );
+
+  const mineAdCooldownUntil = mode === 'ad_300'
+    ? new Date(Date.now() + 60 * 60 * 1000).toISOString()
+    : building.mine_ad_300_cooldown_until || null;
+
+  const updatedBuildingResult = await client.query(
+    `UPDATE user_buildings
+     SET worker_count = $1, work_started_at = $2, work_ends_at = $3, work_mode = $4, mine_ad_300_cooldown_until = $5
+     WHERE id = $6
+     RETURNING *`,
+    [workerCount, startAt.toISOString(), endAt.toISOString(), mode, mineAdCooldownUntil, building.id]
+  );
+
+  return {
+    success: true,
+    user: updatedUserResult.rows[0],
+    building: updatedBuildingResult.rows[0],
+  };
 }
 
 export async function finishMineWorkNow(userId, buildingId, rewardMultiplier = 2) {

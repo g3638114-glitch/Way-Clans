@@ -1,6 +1,6 @@
 import { withTransaction } from '../database/pg.js';
 import { getCapacity, getProductionRate, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
-import { applyFinishMineNow, applyMineFinishNowCooldown, applySpeedUpToBuilding, validateMineFinishNowEligibility, validateSpeedUpEligibility, startMineWorkers } from './buildingService.js';
+import { applyFinishMineNow, applyMineFinishNowCooldown, applySpeedUpToBuilding, applyStartMineWorkers, validateMineFinishNowEligibility, validateSpeedUpEligibility } from './buildingService.js';
 
 const BUILDING_SESSION_TYPE = 'building_collect';
 const BUILDING_SPEED_UP_SESSION_TYPE = 'building_speed_up';
@@ -215,8 +215,8 @@ export async function createMineAdWorkersSession(telegramId, buildingId) {
 
 export async function finalizeMineAdWorkersSession(telegramId, sessionId) {
   return withTransaction(async (client) => {
-    const { session } = await getLockedSession(client, telegramId, sessionId, MINE_AD_WORKERS_SESSION_TYPE);
-    const result = await startMineWorkers(telegramId, session.building_id, 'ad_300');
+    const { user, session } = await getLockedSession(client, telegramId, sessionId, MINE_AD_WORKERS_SESSION_TYPE);
+    const result = await applyStartMineWorkers(client, user, session.building_id, 'ad_300');
     await client.query('UPDATE ad_reward_sessions SET claimed_at = NOW() WHERE id = $1', [sessionId]);
     return result;
   });

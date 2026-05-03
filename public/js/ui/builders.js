@@ -73,6 +73,10 @@ export function createBuildingCard(building) {
   const resourceType = config.resource;
   const resourceIcon = getResourceIconHtml(resourceType, 'resource-inline-icon', config.name);
   const buildingIconHtml = getBuildingIconHtml(config);
+  const collectX2CooldownMs = getCooldownRemainingMs(building.building_collect_x2_cooldown_until);
+  const speedUpCooldownMs = getCooldownRemainingMs(building.building_speedup_1h_cooldown_until);
+  const collectX2OnCooldown = collectX2CooldownMs > 0;
+  const speedUpOnCooldown = speedUpCooldownMs > 0;
 
   if (building.building_type === 'mine') {
     return createMineCard(building, config, level, productionRate, capacity, currentAccumulated, progressPercent, isFull, buildingIconHtml);
@@ -145,7 +149,10 @@ export function createBuildingCard(building) {
     const collectX2Btn = document.createElement('button');
     collectX2Btn.className = 'btn btn-reward';
     collectX2Btn.dataset.action = 'collect-x2';
-    collectX2Btn.innerHTML = `<span>Собрать x2 [реклама]</span> ${currentAccumulated * 2}${resourceIcon}`;
+    collectX2Btn.disabled = collectX2OnCooldown;
+    collectX2Btn.innerHTML = collectX2OnCooldown
+      ? `<span>Собрать x2 через ${formatCooldownLabel(collectX2CooldownMs)}</span>`
+      : `<span>Собрать x2 [реклама]</span> ${currentAccumulated * 2}${resourceIcon}`;
     collectX2Btn.addEventListener('click', () => {
       collectResources(building.id, 2);
       collectX2Btn.blur();
@@ -155,8 +162,10 @@ export function createBuildingCard(building) {
     const speedUpBtn = document.createElement('button');
     speedUpBtn.className = 'btn btn-speedup';
     speedUpBtn.dataset.action = 'speed-up';
-    speedUpBtn.textContent = 'Забрать сразу за 1 час [реклама]';
-    speedUpBtn.disabled = isFull;
+    speedUpBtn.textContent = speedUpOnCooldown
+      ? `1 час через ${formatCooldownLabel(speedUpCooldownMs)}`
+      : 'Забрать сразу за 1 час [реклама]';
+    speedUpBtn.disabled = isFull || speedUpOnCooldown;
     speedUpBtn.addEventListener('click', () => {
       speedUpBuildingProduction(building.id);
       speedUpBtn.blur();
@@ -315,4 +324,13 @@ function ad300OrFinishCooldownLabel(ms) {
 
 function formatMineCooldown(text) {
   return text;
+}
+
+function formatCooldownLabel(ms) {
+  const totalMinutes = Math.max(1, Math.ceil(ms / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours <= 0) return `${totalMinutes}м`;
+  if (minutes <= 0) return `${hours}ч`;
+  return `${hours}ч ${minutes}м`;
 }

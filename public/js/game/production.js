@@ -224,11 +224,22 @@ function updateBuildingCardValues(building) {
       }
 
       if (collectX2Btn) {
-        setElementHtml(collectX2Btn, `<span>Собрать x2 [реклама]</span> ${progress.accumulated * 2}${resourceIcon}`);
+        const remainingMs = Math.max(0, new Date(building.building_collect_x2_cooldown_until || 0).getTime() - Date.now());
+        const onCooldown = remainingMs > 0;
+        collectX2Btn.disabled = onCooldown;
+        setElementHtml(
+          collectX2Btn,
+          onCooldown
+            ? `<span>Собрать x2 через ${formatCooldownText(remainingMs)}</span>`
+            : `<span>Собрать x2 [реклама]</span> ${progress.accumulated * 2}${resourceIcon}`
+        );
       }
 
       if (speedUpBtn) {
-        speedUpBtn.disabled = progress.isFull;
+        const remainingMs = Math.max(0, new Date(building.building_speedup_1h_cooldown_until || 0).getTime() - Date.now());
+        const onCooldown = remainingMs > 0;
+        speedUpBtn.disabled = progress.isFull || onCooldown;
+        setElementText(speedUpBtn, onCooldown ? `1 час через ${formatCooldownText(remainingMs)}` : 'Забрать сразу за 1 час [реклама]');
       }
     } else {
       // Should not have collect button

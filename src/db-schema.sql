@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS user_buildings (
   work_started_at TIMESTAMP WITH TIME ZONE,
   work_ends_at TIMESTAMP WITH TIME ZONE,
   work_mode TEXT,
+  building_collect_x2_cooldown_until TIMESTAMP WITH TIME ZONE,
+  building_speedup_1h_cooldown_until TIMESTAMP WITH TIME ZONE,
   mine_ad_300_cooldown_until TIMESTAMP WITH TIME ZONE,
   mine_finish_now_cooldown_until TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

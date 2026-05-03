@@ -1,12 +1,13 @@
 import { withTransaction } from '../database/pg.js';
 import { getCapacity, getProductionRate, getResourceType, getTreasuryCapacity, getWarehouseCapacity } from '../config/buildings.js';
-import { applyFinishMineNow, applyMineFinishNowCooldown, applySpeedUpToBuilding, applyStartMineWorkers, validateMineFinishNowEligibility, validateSpeedUpEligibility } from './buildingService.js';
+import { applyBuildingCollectX2Cooldown, applyBuildingSpeedupCooldown, applyFinishMineNow, applyMineFinishNowCooldown, applySpeedUpToBuilding, applyStartMineWorkers, validateMineFinishNowEligibility, validateSpeedUpEligibility } from './buildingService.js';
 
 const BUILDING_SESSION_TYPE = 'building_collect';
 const BUILDING_SPEED_UP_SESSION_TYPE = 'building_speed_up';
 const MINE_FINISH_NOW_SESSION_TYPE = 'mine_finish_now';
 const MINE_AD_WORKERS_SESSION_TYPE = 'mine_ad_workers';
 const BUILDING_BLOCK_SESSION_TYPES = [BUILDING_SESSION_TYPE, BUILDING_SPEED_UP_SESSION_TYPE, MINE_FINISH_NOW_SESSION_TYPE, MINE_AD_WORKERS_SESSION_TYPE];
+const MINING_BLOCK_SESSION_TYPES = [MINE_FINISH_NOW_SESSION_TYPE, MINE_AD_WORKERS_SESSION_TYPE];
 
 async function expireOpenSessions(client, userId, sessionTypes) {
   await client.query(
@@ -53,6 +54,11 @@ export async function createBuildingCollectSession(telegramId, buildingId) {
 
     if (!building.last_activated) {
       throw new Error('Building must be activated first');
+    }
+    if (building.building_collect_x2_cooldown_until && new Date(building.building_collect_x2_cooldown_until) > new Date()) {
+      const remainingMs = new Date(building.building_collect_x2_cooldown_until).getTime() - Date.now();
+      const totalMinutes = Math.max(1, Math.ceil(remainingMs / 60000));
+      throw new Error(`Собрать x2 будет доступно через ${totalMinutes}м`);
     }
 
     await expireOpenSessions(client, user.id, BUILDING_BLOCK_SESSION_TYPES);
@@ -142,6 +148,7 @@ export async function finalizeBuildingCollectSession(telegramId, sessionId) {
     );
 
     await client.query('UPDATE ad_reward_sessions SET claimed_at = NOW() WHERE id = $1', [sessionId]);
+    const buildingWithCooldown = await applyBuildingCollectX2Cooldown(client, building.id);
 
     return {
       success: true,
@@ -150,7 +157,7 @@ export async function finalizeBuildingCollectSession(telegramId, sessionId) {
       partialCollection: remainingAmount > 0,
       resourceType,
       user: updatedUserResult.rows[0],
-      building: updatedBuildingResult.rows[0],
+      building: { ...updatedBuildingResult.rows[0], ...buildingWithCooldown },
     };
   });
 }
@@ -177,7 +184,24 @@ export async function confirmBuildingCollectReward(telegramId) {
 }
 
 export async function confirmMiningAdReward(telegramId) {
-  return { ok: true };
+  return withTransaction(async (client) => {
+    const userResult = await client.query('SELECT id FROM users WHERE telegram_id = $1 FOR UPDATE', [telegramId]);
+    if (userResult.rows.length === 0) throw new Error('User not found');
+    const user = userResult.rows[0];
+
+    const sessionResult = await client.query(
+      `SELECT id FROM ad_reward_sessions
+       WHERE user_id = $1 AND session_type = ANY($2::text[]) AND claimed_at IS NULL AND ad_confirmed_at IS NULL AND expires_at > NOW()
+       ORDER BY created_at DESC
+       LIMIT 1
+       FOR UPDATE`,
+      [user.id, MINING_BLOCK_SESSION_TYPES]
+    );
+
+    if (sessionResult.rows.length === 0) return { ok: true };
+    await client.query('UPDATE ad_reward_sessions SET ad_confirmed_at = NOW() WHERE id = $1', [sessionResult.rows[0].id]);
+    return { ok: true };
+  });
 }
 
 export async function createMineAdWorkersSession(telegramId, buildingId) {
@@ -247,7 +271,8 @@ export async function finalizeSpeedUpSession(telegramId, sessionId) {
     const { user, session } = await getLockedSession(client, telegramId, sessionId, BUILDING_SPEED_UP_SESSION_TYPE);
     const result = await applySpeedUpToBuilding(client, user.id, session.building_id, 2);
     await client.query('UPDATE ad_reward_sessions SET claimed_at = NOW() WHERE id = $1', [sessionId]);
-    return result;
+    const building = await applyBuildingSpeedupCooldown(client, session.building_id);
+    return { ...result, building };
   });
 }
 

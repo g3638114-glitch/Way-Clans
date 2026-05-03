@@ -77,6 +77,10 @@ export async function collectBuildingResources(userId, buildingId, rewardMultipl
       return collectMineResources(client, user, building);
     }
 
+    if (Number(rewardMultiplier || 1) > 1) {
+      ensureBuildingCooldownAvailable(building.building_collect_x2_cooldown_until, 'Собрать x2');
+    }
+
     return collectStandardBuildingResources(client, user, building, rewardMultiplier);
   });
 }
@@ -344,6 +348,8 @@ export async function validateSpeedUpEligibility(client, userIdDb, buildingId) {
     throw new Error('Сначала активируйте здание');
   }
 
+  ensureBuildingCooldownAvailable(building.building_speedup_1h_cooldown_until, 'Забрать сразу за 1 час');
+
   const level = building.level || 1;
   const productionRate = getProductionRate(building.building_type, level);
   const capacity = getCapacity(building.building_type, level);
@@ -395,7 +401,37 @@ export async function applyMineFinishNowCooldown(client, buildingId) {
   return updatedBuildingResult.rows[0];
 }
 
+export async function applyBuildingCollectX2Cooldown(client, buildingId) {
+  const updatedBuildingResult = await client.query(
+    `UPDATE user_buildings
+     SET building_collect_x2_cooldown_until = $1
+     WHERE id = $2
+     RETURNING *`,
+    [new Date(Date.now() + 60 * 60 * 1000).toISOString(), buildingId]
+  );
+  return updatedBuildingResult.rows[0];
+}
+
+export async function applyBuildingSpeedupCooldown(client, buildingId) {
+  const updatedBuildingResult = await client.query(
+    `UPDATE user_buildings
+     SET building_speedup_1h_cooldown_until = $1
+     WHERE id = $2
+     RETURNING *`,
+    [new Date(Date.now() + 60 * 60 * 1000).toISOString(), buildingId]
+  );
+  return updatedBuildingResult.rows[0];
+}
+
 function ensureMineCooldownAvailable(cooldownUntil, actionLabel) {
+  if (!cooldownUntil) return;
+  const remainingMs = new Date(cooldownUntil).getTime() - Date.now();
+  if (remainingMs <= 0) return;
+
+  throw new Error(`${actionLabel} будет доступно через ${formatCooldownRemaining(remainingMs)}`);
+}
+
+function ensureBuildingCooldownAvailable(cooldownUntil, actionLabel) {
   if (!cooldownUntil) return;
   const remainingMs = new Date(cooldownUntil).getTime() - Date.now();
   if (remainingMs <= 0) return;
